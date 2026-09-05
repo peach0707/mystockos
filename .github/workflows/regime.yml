@@ -40,6 +40,7 @@ jobs:
                   "outputsize": 260,
                   "adjust": "all",
                   "apikey": API_KEY,
+                  **({"type": "index"} if symbol == "VIX" else {}),
               })
 
               url = "https://api.twelvedata.com/time_series?" + params
