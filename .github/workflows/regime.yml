@@ -33,6 +33,7 @@ jobs:
           SYMBOLS = ["QQQ", "SPY", "RSP", "HYG", "LQD", "SOXX", "VIX"]
 
           def fetch(symbol):
+              print(f"Fetching {symbol}...")
               params = urllib.parse.urlencode({
                   "symbol": symbol,
                   "interval": "1day",
