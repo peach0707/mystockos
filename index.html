@@ -8,6 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>My Stock OS</title>
   <style>
+    [hidden]{display:none!important}
+    .theme-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+    .theme-card h4{margin:0 0 10px;overflow-wrap:anywhere}
+    .theme-card dl{display:grid;grid-template-columns:1fr auto;gap:8px;margin:10px 0;font-size:14px}
+    .theme-card dd{margin:0}.theme-card dt{color:var(--muted)}
+    details{margin-top:12px;font-size:14px}summary{cursor:pointer}
+    .label,.status,.sub{font-size:14px!important}.badge{font-size:12px!important}
+
     :root{
       --bg:#0b0f14;--card:#131922;--card2:#0f141c;--text:#eef3f8;--muted:#93a1b1;
       --line:#233041;--green:#3ddc97;--red:#ff6b6b;--yellow:#ffd166;--blue:#6ab0ff;
@@ -61,19 +69,11 @@
 <div class="wrap">
   <h1>My Stock OS</h1>
 
+  <div id="stressBanner" class="card red" role="alert" hidden>Market Stress：市場ストレスが発生しています。</div>
   <section id="today">
-    <h2>今日の地合い <span class="badge">サンプル</span></h2>
-    <div class="grid">
-      <div class="card wide">
-        <div class="label">MARKET MODE</div>
-        <div class="big green">やや強気 🟢</div>
-        <div class="sub">地合いのリアルデータ化は次の段階で実装</div>
-      </div>
-      <div class="card"><div class="label">SOX</div><div class="big green">+1.8%</div></div>
-      <div class="card"><div class="label">NASDAQ</div><div class="big green">+0.9%</div></div>
-      <div class="card"><div class="label">US 10Y</div><div class="big green">-6bp</div></div>
-      <div class="card"><div class="label">VIX</div><div class="big">16.2</div></div>
-    </div>
+    <h2>市場レジーム / Market State <span id="marketBadge" class="badge">読込中</span></h2>
+    <div id="marketContent" class="grid" aria-live="polite"><div class="card wide">市場データを読み込み中…</div></div>
+    <div id="marketStatus" class="status"></div>
   </section>
 
   <section id="watchlist">
@@ -96,13 +96,9 @@
   </section>
 
   <section id="themes">
-    <h2>テーマ <span class="badge">サンプル</span></h2>
-    <div class="card">
-      <div class="theme-row"><span>MEMORY</span><span class="green">🔥🔥🔥 +4.8%</span></div>
-      <div class="theme-row"><span>OPTICAL / CPO</span><span class="green">🔥🔥🔥 +3.1%</span></div>
-      <div class="theme-row"><span>ADVANCED SEMI</span><span class="green">🔥🔥 +1.7%</span></div>
-      <div class="theme-row"><span>POWER / COOLING</span><span class="green">🔥 +0.8%</span></div>
-    </div>
+    <h2>テーマ / Theme State <span id="themeBadge" class="badge">読込中</span></h2>
+    <div id="themeStatus" class="status" aria-live="polite"></div>
+    <div id="themeContent"></div>
   </section>
 
   <section id="news">
@@ -159,20 +155,86 @@ TSMCはCPO/シリコンフォトニクスを強調。
 </nav>
 
 <script>
+
+const esc = v => String(v ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const numeric = v => typeof v === 'number' && Number.isFinite(v);
+const scoreText = v => numeric(v) ? v.toFixed(1) : '—';
+const labelText = v => ({Bull:'強気 / Bull',Bear:'弱気 / Bear',Neutral:'中立 / Neutral',Stable:'安定 / Stable',Low:'低 / Low',High:'高 / High',Leading:'先行 / Leading',Improving:'改善 / Improving',Weakening:'減速 / Weakening',Lagging:'出遅れ / Lagging'}[v] || v || '—');
+async function readData(path){
+  const response = await fetch(`${path}?t=${Date.now()}`, {cache:'no-store'});
+  if(!response.ok){const error = new Error(`HTTP ${response.status}`); error.status=response.status; throw error;}
+  return response.json();
+}
+function metric(title,value,note=''){
+  return `<div class="card"><div class="label">${esc(title)}</div><div class="big">${esc(value)}</div><div class="sub">${esc(note)}</div></div>`;
+}
+async function loadMarket(){
+  try{
+    const d=await readData('data/regime.json');
+    if(!d.market || !d.instability || !d.semiconductor || !d.as_of) throw new Error('市場データの形式を確認してください');
+    document.getElementById('marketBadge').textContent='保存データ';
+    document.getElementById('stressBanner').hidden=d.market_stress?.active!==true;
+    document.getElementById('marketContent').innerHTML=
+      metric('市場判定 / Market Regime',labelText(d.market.label),`Trend ${scoreText(d.market.trend_score)} / 100`)+
+      metric('信頼度 / Confidence',labelText(d.market.confidence),`継続 ${d.market.regime_duration ?? '—'} 営業日`)+
+      metric('不安定度 / Instability',scoreText(d.instability.score),labelText(d.instability.label))+
+      metric('半導体 / Semiconductors',scoreText(d.semiconductor.score),labelText(d.semiconductor.label))+
+      metric('VIX',numeric(d.instability.factors?.vix?.raw)?d.instability.factors.vix.raw.toFixed(2):'—',`${d.data?.vix_source ?? '—'} / ${d.data?.vix_as_of ?? '—'}`);
+    const status=document.getElementById('marketStatus');
+    status.textContent=`AS OF ${d.as_of} ／ 更新 ${d.updated_at_utc ?? '—'}${d.data?.missing_data ? ' ／ データ欠損あり' : ''}`;
+    const detail=document.createElement('details');
+    detail.innerHTML='<summary>判定の内訳 / Factors</summary>'+[d.market,d.instability,d.semiconductor].map(group=>Object.entries(group.factors || {}).map(([key,v])=>`<div class="theme-row"><span>${esc(key)}</span><span>${esc(scoreText(v.score))} / 100</span></div>`).join('')).join('');
+    document.getElementById('marketContent').appendChild(detail);
+  }catch(e){
+    document.getElementById('marketBadge').textContent='取得失敗';
+    document.getElementById('marketContent').innerHTML='<div class="card wide">市場データを表示できません。</div>';
+    document.getElementById('marketStatus').textContent=e.message;
+  }
+}
+function themeCard(t){
+  const watch=t.score_mode==='none';
+  const strength=['ranked','thin'].includes(t.score_mode);
+  const turning=t.turning_watch;
+  return `<article class="card theme-card"><h4>${esc(t.name)}</h4><div class="sub">${esc(t.family)}${t.benchmark ? ' / '+esc(t.benchmark) : ''}</div>`+
+    (watch?'<p class="sub">Watch：スコア対象外</p>':`<dl>${strength?`<dt>強さ / Strength</dt><dd>${scoreText(t.strength?.score)}</dd>`:''}<dt>方向 / Velocity</dt><dd>${esc(labelText(t.velocity?.state))}</dd><dt>過熱度 / Heat</dt><dd>${scoreText(t.heat?.score)}${t.heat?.hot?' / Hot':''}</dd></dl><div class="sub">${t.data_quality?.status==='insufficient'?'データ不足':t.data_quality?.status==='thin'?'Thin Monitor':''}${t.heat?.single_stock_driven?' ／ 単一銘柄の影響が大きい':''}</div><div class="sub">Turning Watch：${turning?.active?'反転条件成立':turning?.eligible?'条件未成立':'判定不可'}</div>`)+
+    `<details><summary>構成銘柄・データ状況</summary><p>Core：${esc((t.core_members||[]).join(', ')||'—')}</p><p>Related：${esc((t.related_members||[]).join(', ')||'—')}</p><p>Watch：${esc((t.watch_members||[]).join(', ')||'—')}</p><p>欠損Core：${esc((t.data_quality?.missing_core_data||[]).join(', ')||'なし')}</p><p>定義 v${esc(t.definition_version)}</p></details></article>`;
+}
+function renderThemes(d){
+  if(!Array.isArray(d.themes) || !d.as_of) throw new Error('テーマデータの形式を確認してください');
+  const group=(title,rows)=>rows.length?`<h3>${esc(title)}</h3><div class="theme-grid">${rows.map(themeCard).join('')}</div>`:'';
+  let html=`<div class="card"><div class="label">Theme Selection：テーマ間の差</div><strong>${esc(d.theme_selection?.label ?? 'UNAVAILABLE')}</strong><div class="sub">テーマ間の騰落率のばらつきと相関から算出。資金移動を直接示す指標ではありません。</div></div>`;
+  const ranked=d.themes.filter(t=>t.score_mode==='ranked').sort((a,b)=>(numeric(b.strength?.score)?b.strength.score:-Infinity)-(numeric(a.strength?.score)?a.strength.score:-Infinity));
+  html+=group('Structural Ranked / 強さ順',ranked);
+  const thin=d.themes.filter(t=>t.score_mode==='thin');
+  for(const family of new Set(thin.map(t=>t.family))) html+=group(`Thin / ${family}（順位なし）`,thin.filter(t=>t.family===family));
+  html+=group('Tactical / Heat',d.themes.filter(t=>t.score_mode==='heat_only'));
+  html+=group('Watch',d.themes.filter(t=>t.score_mode==='none'));
+  document.getElementById('themeContent').innerHTML=html;
+  document.getElementById('themeStatus').textContent=`AS OF ${d.as_of} ／ 更新 ${d.calculated_at ?? '—'}`;
+  document.getElementById('themeBadge').textContent='保存データ';
+}
+async function loadThemes(){
+  try{renderThemes(await readData('data/themes.json'));}
+  catch(e){
+    document.getElementById('themeBadge').textContent=e.status===404?'未生成':'取得失敗';
+    document.getElementById('themeStatus').textContent=e.status===404?'正式なテーマデータはまだ生成されていません。適用開始日以降の更新を待っています。':'テーマデータを表示できません：'+e.message;
+  }
+}
+
 const targets = { MU:null, TSM:null, AVGO:null, COHR:null, LITE:null };
 
 function pct(v){
-  const n = Number(v);
+  const n = v === null || v === undefined || v === "" ? NaN : Number(v);
   if (!Number.isFinite(n)) return "—";
   return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 function cls(v){
-  const n = Number(v);
+  const n = v === null || v === undefined || v === "" ? NaN : Number(v);
   if (!Number.isFinite(n) || n === 0) return "";
   return n > 0 ? "green" : "red";
 }
 function money(v){
-  const n = Number(v);
+  const n = v === null || v === undefined || v === "" ? NaN : Number(v);
   if (!Number.isFinite(n)) return "—";
   return "$" + n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
 }
@@ -233,6 +295,8 @@ function rewritePost(){
 }
 
 loadStocks();
+loadMarket();
+loadThemes();
 </script>
 </body>
 </html>
