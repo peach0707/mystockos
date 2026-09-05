@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0b0f14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>My Stock OS</title>
   <style>
     :root{
@@ -11,20 +13,27 @@
       --line:#233041;--green:#3ddc97;--red:#ff6b6b;--yellow:#ffd166;--blue:#6ab0ff;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    .wrap{max-width:980px;margin:auto;padding:18px 14px 90px}
-    h1{font-size:24px;margin:6px 0 18px}
-    h2{font-size:16px;margin:24px 2px 10px;color:#dbe6f2}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      padding-top:env(safe-area-inset-top);
+    }
+    .wrap{max-width:980px;margin:auto;padding:22px 14px 100px}
+    h1{font-size:26px;margin:8px 0 22px}
+    h2{font-size:17px;margin:26px 2px 11px;color:#dbe6f2}
     .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
     .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:14px}
-    .full{grid-column:1/-1}
+    .wide{grid-column:span 2}
     .label{font-size:12px;color:var(--muted);margin-bottom:6px}
     .big{font-size:28px;font-weight:800}
-    .sub{font-size:13px;color:var(--muted)}
+    .sub{font-size:13px;color:var(--muted);line-height:1.45}
     .green{color:var(--green)} .red{color:var(--red)} .yellow{color:var(--yellow)} .blue{color:var(--blue)}
-    table{width:100%;border-collapse:collapse;font-size:13px}
-    th,td{padding:10px 6px;border-bottom:1px solid var(--line);text-align:right}
-    th:first-child,td:first-child{text-align:left}
+    .badge{display:inline-block;font-size:10px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted);margin-left:6px;vertical-align:middle}
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{width:100%;min-width:650px;border-collapse:collapse;font-size:13px}
+    th,td{padding:11px 7px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+    th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:#111822;z-index:1}
     .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#1b2634;font-size:11px;color:#c9d6e3;margin:2px 3px 2px 0}
     .news{padding:12px 0;border-bottom:1px solid var(--line)}
     .news:last-child{border-bottom:none}
@@ -33,9 +42,19 @@
     textarea{width:100%;min-height:110px;background:#0c1118;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;resize:vertical}
     .theme-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
     .theme-row:last-child{border-bottom:none}
-    .nav{position:fixed;left:0;right:0;bottom:0;background:rgba(11,15,20,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:10px 6px calc(10px + env(safe-area-inset-bottom))}
+    .status{margin:8px 2px 0;font-size:12px;color:var(--muted)}
+    .error{color:var(--red)}
+    .nav{
+      position:fixed;left:0;right:0;bottom:0;background:rgba(11,15,20,.95);
+      backdrop-filter:blur(12px);border-top:1px solid var(--line);
+      display:flex;justify-content:space-around;padding:11px 6px calc(11px + env(safe-area-inset-bottom));
+      z-index:10
+    }
     .nav a{color:var(--muted);text-decoration:none;font-size:12px}
-    @media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.wide{grid-column:span 2}}
+    @media(min-width:700px){
+      .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .wide{grid-column:span 2}
+    }
   </style>
 </head>
 <body>
@@ -43,46 +62,41 @@
   <h1>My Stock OS</h1>
 
   <section id="today">
-    <h2>今日の地合い</h2>
+    <h2>今日の地合い <span class="badge">サンプル</span></h2>
     <div class="grid">
       <div class="card wide">
         <div class="label">MARKET MODE</div>
         <div class="big green">やや強気 🟢</div>
-        <div class="sub">SOX堅調・金利低下で半導体優位</div>
+        <div class="sub">地合いのリアルデータ化は次の段階で実装</div>
       </div>
-      <div class="card">
-        <div class="label">SOX</div>
-        <div class="big green">+1.8%</div>
-      </div>
-      <div class="card">
-        <div class="label">NASDAQ</div>
-        <div class="big green">+0.9%</div>
-      </div>
-      <div class="card">
-        <div class="label">US 10Y</div>
-        <div class="big green">-6bp</div>
-      </div>
-      <div class="card">
-        <div class="label">VIX</div>
-        <div class="big">16.2</div>
-      </div>
+      <div class="card"><div class="label">SOX</div><div class="big green">+1.8%</div></div>
+      <div class="card"><div class="label">NASDAQ</div><div class="big green">+0.9%</div></div>
+      <div class="card"><div class="label">US 10Y</div><div class="big green">-6bp</div></div>
+      <div class="card"><div class="label">VIX</div><div class="big">16.2</div></div>
     </div>
   </section>
 
   <section id="watchlist">
-    <h2>ウォッチリスト</h2>
-    <div class="card full">
-      <table>
-        <thead>
-          <tr><th>銘柄</th><th>株価</th><th>前日</th><th>1W</th><th>1M</th><th>3M</th><th>期待株価</th><th>上値余地</th></tr>
-        </thead>
-        <tbody id="watchBody"></tbody>
-      </table>
+    <h2>ウォッチリスト <span class="badge">LIVE DATA</span></h2>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>銘柄</th><th>株価</th><th>前日</th><th>1W</th><th>1M</th><th>3M</th><th>期待株価</th><th>上値余地</th>
+            </tr>
+          </thead>
+          <tbody id="watchBody">
+            <tr><td colspan="8" style="text-align:left;color:#93a1b1">株価データを読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="updateStatus" class="status">更新情報を確認中...</div>
     </div>
   </section>
 
   <section id="themes">
-    <h2>テーマ</h2>
+    <h2>テーマ <span class="badge">サンプル</span></h2>
     <div class="card">
       <div class="theme-row"><span>MEMORY</span><span class="green">🔥🔥🔥 +4.8%</span></div>
       <div class="theme-row"><span>OPTICAL / CPO</span><span class="green">🔥🔥🔥 +3.1%</span></div>
@@ -92,7 +106,7 @@
   </section>
 
   <section id="news">
-    <h2>重要ニュース</h2>
+    <h2>重要ニュース <span class="badge">サンプル</span></h2>
     <div class="card">
       <div class="news">
         <div class="score yellow">重要度 9.4 / 10</div>
@@ -104,41 +118,33 @@
         <div class="score yellow">重要度 8.8 / 10</div>
         <strong>TSMC、CPO・シリコンフォトニクスを強調</strong>
         <div class="sub">COHR ◎ / LITE ◎ / AVGO ○ / MRVL ○</div>
-        <div style="margin-top:6px">AI分析：AIクラスタの帯域・消費電力ボトルネックが光へ資金を向かわせる材料。</div>
-      </div>
-      <div class="news">
-        <div class="score">重要度 6.2 / 10</div>
-        <strong>DRAMスポット価格続伸</strong>
-        <div class="sub">新規性：既存材料の進展</div>
       </div>
     </div>
   </section>
 
   <section id="events">
-    <h2>次の重要イベント</h2>
+    <h2>次の重要イベント <span class="badge">サンプル</span></h2>
     <div class="card">
       <span class="pill">MU 決算 あと12日</span>
       <span class="pill">CPI あと4日</span>
       <span class="pill">FOMC あと10日</span>
-      <span class="pill">COHR Investor Day あと18日</span>
     </div>
   </section>
 
   <section id="post">
-    <h2>ポスト案</h2>
+    <h2>ポスト案 <span class="badge">サンプル</span></h2>
     <div class="card">
       <div class="label">今日いちばん投稿価値が高いネタ</div>
       <strong>TSMC × CPO</strong>
-      <textarea id="postText">SEMICON Taiwan 2026
-やっぱり光がかなり強い⚡️
+      <textarea id="postText">AI半導体の次の主戦場、
+やっぱり「光」になりそう⚡️
 
-TSMCはシリコンフォトニクス/CPOについて、
-従来の銅配線に対して10倍超の電力効率を狙えると説明。
+TSMCはCPO/シリコンフォトニクスを強調。
 
-AIクラスタの大型化で、
-「演算」よりデータをどう動かすかがボトルネックに。
+計算資源が増えるほど、
+帯域と消費電力がボトルネックになる。
 
-2027年もメモリ＋光はかなり重要そう🦍</textarea>
+2027年はメモリ＋光を中心に見たい🦍</textarea>
       <button onclick="rewritePost()">別案を作る</button>
     </div>
   </section>
@@ -153,27 +159,56 @@ AIクラスタの大型化で、
 </nav>
 
 <script>
-const stocks = [
-  {t:"MU",p:"$192.40",d:"+3.2%",w:"+8.0%",m:"+21.0%",q:"+34.0%",target:"$273",up:"+42%"},
-  {t:"TSM",p:"$284.10",d:"+1.1%",w:"+3.0%",m:"+9.0%",q:"+18.0%",target:"$372",up:"+31%"},
-  {t:"AVGO",p:"$381.50",d:"+0.6%",w:"+1.9%",m:"+5.4%",q:"+14.0%",target:"$473",up:"+24%"},
-  {t:"COHR",p:"$164.20",d:"+4.8%",w:"+12.0%",m:"+28.0%",q:"+41.0%",target:"$259",up:"+58%"},
-  {t:"LITE",p:"$182.90",d:"+2.4%",w:"+7.2%",m:"+19.1%",q:"+27.0%",target:"$242",up:"+32%"},
-];
+const targets = { MU:null, TSM:null, AVGO:null, COHR:null, LITE:null };
 
-const body = document.getElementById("watchBody");
-stocks.forEach(s=>{
-  const tr = document.createElement("tr");
-  tr.innerHTML = `<td><strong>${s.t}</strong></td>
-  <td>${s.p}</td>
-  <td class="${s.d.startsWith('+')?'green':'red'}">${s.d}</td>
-  <td class="${s.w.startsWith('+')?'green':'red'}">${s.w}</td>
-  <td class="${s.m.startsWith('+')?'green':'red'}">${s.m}</td>
-  <td class="${s.q.startsWith('+')?'green':'red'}">${s.q}</td>
-  <td>${s.target}</td>
-  <td class="green"><strong>${s.up}</strong></td>`;
-  body.appendChild(tr);
-});
+function pct(v){
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "—";
+  return `${n >= 0 ? "+" : ""}${n.toFixed(1)}%`;
+}
+function cls(v){
+  const n = Number(v);
+  if (!Number.isFinite(n) || n === 0) return "";
+  return n > 0 ? "green" : "red";
+}
+function money(v){
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "—";
+  return "$" + n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+async function loadStocks(){
+  const body = document.getElementById("watchBody");
+  const status = document.getElementById("updateStatus");
+  try{
+    const res = await fetch(`data.json?t=${Date.now()}`, {cache:"no-store"});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    body.innerHTML = "";
+    data.stocks.forEach(s => {
+      const target = targets[s.ticker];
+      const upside = target ? ((target / Number(s.price) - 1) * 100) : null;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${s.ticker}</strong></td>
+        <td>${money(s.price)}</td>
+        <td class="${cls(s.day)}">${pct(s.day)}</td>
+        <td class="${cls(s.week)}">${pct(s.week)}</td>
+        <td class="${cls(s.month)}">${pct(s.month)}</td>
+        <td class="${cls(s.three_month)}">${pct(s.three_month)}</td>
+        <td>${target ? money(target) : "—"}</td>
+        <td class="${cls(upside)}">${target ? pct(upside) : "—"}</td>`;
+      body.appendChild(tr);
+    });
+    const updated = new Date(data.updated_at);
+    status.textContent = `株価基準日: ${data.stocks?.[0]?.date ?? "—"} ／ データ更新: ` +
+      updated.toLocaleString("ja-JP", {timeZone:"Asia/Tokyo"});
+  }catch(err){
+    body.innerHTML = `<tr><td colspan="8" style="text-align:left" class="error">株価データの読み込みに失敗しました</td></tr>`;
+    status.textContent = `エラー: ${err.message}`;
+    status.classList.add("error");
+  }
+}
 
 const postVariants = [
 `TSMCのCPO発言、かなり重要👀
@@ -182,39 +217,22 @@ AIクラスタが大きくなるほど、
 GPUそのものより「データをどう運ぶか」が問題になる。
 
 銅→光への移行が進めば、
-次のボトルネックは光部品・InP・CPO周辺。
-
-メモリの次に光を見てる理由はここ。`,
+次のボトルネックは光部品・InP・CPO周辺。`,
 `AI半導体の次の主戦場、
 やっぱり「光」になりそう⚡️
 
-TSMCはCPO/シリコンフォトニクスで
-銅配線比10倍超の電力効率を狙う。
+TSMCはCPO/シリコンフォトニクスを強調。
 
 計算資源が増えるほど、
-帯域と消費電力がボトルネックになる。
-
-2027年はメモリ＋光を中心に見たい🦍`,
-`SEMICON Taiwanで感じたのは、
-AIインフラの課題が「計算」から「接続」に移っていること。
-
-TSMCもCPO・シリコンフォトニクスを強調。
-
-GPUが増える
-↓
-データ移動量が増える
-↓
-銅では電力効率が厳しくなる
-↓
-光が必要になる
-
-この流れはかなり大きい。`
+帯域と消費電力がボトルネックになる。`
 ];
-let idx=0;
+let idx = 0;
 function rewritePost(){
-  idx=(idx+1)%postVariants.length;
-  document.getElementById("postText").value=postVariants[idx];
+  idx = (idx + 1) % postVariants.length;
+  document.getElementById("postText").value = postVariants[idx];
 }
+
+loadStocks();
 </script>
 </body>
 </html>
