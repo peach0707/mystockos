@@ -1,0 +1,105 @@
+entity_id,name,ticker,exchange,asset_type,status,data_status,ipo_date,notes
+aaon,AAON,AAON,,equity,public,active,,exchange_to_be_verified_against_price_provider
+aerovironment,AeroVironment,AVAV,,equity,public,active,,exchange_to_be_verified_against_price_provider
+alphabet,Alphabet,GOOGL,,equity,public,active,,exchange_to_be_verified_against_price_provider
+amazon,Amazon,AMZN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+amd,Advanced Micro Devices,AMD,,equity,public,active,,exchange_to_be_verified_against_price_provider
+amkor,Amkor Technology,AMKR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+anthropic,Anthropic,,,private_company,private,no_market_data,,watch_only_no_price_score
+applied_digital,Applied Digital,APLD,,equity,public,active,,exchange_to_be_verified_against_price_provider
+applied_materials,Applied Materials,AMAT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+applied_optoelectronics,Applied Optoelectronics,AAOI,,equity,public,active,,exchange_to_be_verified_against_price_provider
+archer_aviation,Archer Aviation,ACHR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+arista_networks,Arista Networks,ANET,,equity,public,active,,exchange_to_be_verified_against_price_provider
+arm,Arm Holdings,ARM,,adr,public,active,,exchange_to_be_verified_against_price_provider
+ase_technology,ASE Technology Holding,ASX,,adr,public,active,,exchange_to_be_verified_against_price_provider
+asml,ASML,ASML,,adr,public,active,,exchange_to_be_verified_against_price_provider
+ast_spacemobile,AST SpaceMobile,ASTS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+astera_labs,Astera Labs,ALAB,,equity,public,active,,exchange_to_be_verified_against_price_provider
+axt,AXT,AXTI,,equity,public,active,,exchange_to_be_verified_against_price_provider
+broadcom,Broadcom,AVGO,,equity,public,active,,exchange_to_be_verified_against_price_provider
+bwx_technologies,BWX Technologies,BWXT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+cadence,Cadence Design Systems,CDNS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+carrier,Carrier Global,CARR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+centrus_energy,Centrus Energy,LEU,,equity,public,active,,exchange_to_be_verified_against_price_provider
+chronoscale,ChronoScale,CHRN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+ciena,Ciena,CIEN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+cisco,Cisco Systems,CSCO,,equity,public,active,,exchange_to_be_verified_against_price_provider
+cleanspark,CleanSpark,CLSK,,equity,public,active,,exchange_to_be_verified_against_price_provider
+coherent,Coherent,COHR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+coinbase,Coinbase Global,COIN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+constellation_energy,Constellation Energy,CEG,,equity,public,active,,exchange_to_be_verified_against_price_provider
+coreweave,CoreWeave,CRWV,,equity,public,active,,exchange_to_be_verified_against_price_provider
+credo_technology,Credo Technology,CRDO,,equity,public,active,,exchange_to_be_verified_against_price_provider
+crowdstrike,CrowdStrike,CRWD,,equity,public,active,,exchange_to_be_verified_against_price_provider
+cyberark,CyberArk Software,CYBR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+datadog,Datadog,DDOG,,equity,public,active,,exchange_to_be_verified_against_price_provider
+dwave,D-Wave Quantum,QBTS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+eaton,Eaton,ETN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+entegris,Entegris,ENTG,,equity,public,active,,exchange_to_be_verified_against_price_provider
+eve_holding,Eve Holding,EVEX,,equity,public,active,,exchange_to_be_verified_against_price_provider
+fabrinet,Fabrinet,FN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+fortinet,Fortinet,FTNT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+ge_vernova,GE Vernova,GEV,,equity,public,active,,exchange_to_be_verified_against_price_provider
+globalfoundries,GlobalFoundries,GFS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+hubbell,Hubbell,HUBB,,equity,public,active,,exchange_to_be_verified_against_price_provider
+intel,Intel,INTC,,equity,public,active,,exchange_to_be_verified_against_price_provider
+ionq,IonQ,IONQ,,equity,public,active,,exchange_to_be_verified_against_price_provider
+iren,IREN,IREN,,equity,public,active,,exchange_to_be_verified_against_price_provider
+joby_aviation,Joby Aviation,JOBY,,equity,public,active,,exchange_to_be_verified_against_price_provider
+johnson_controls,Johnson Controls,JCI,,equity,public,active,,exchange_to_be_verified_against_price_provider
+kioxia,Kioxia Holdings,KXIAY,,otc_adr,public,data_review,,verify_KXIAY_price_volume_history_before_score_eligibility
+kla,KLA,KLAC,,equity,public,active,,exchange_to_be_verified_against_price_provider
+kratos,Kratos Defense & Security Solutions,KTOS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+l3harris,L3Harris Technologies,LHX,,equity,public,active,,exchange_to_be_verified_against_price_provider
+lam_research,Lam Research,LRCX,,equity,public,active,,exchange_to_be_verified_against_price_provider
+lumentum,Lumentum,LITE,,equity,public,active,,exchange_to_be_verified_against_price_provider
+mara,MARA Holdings,MARA,,equity,public,active,,exchange_to_be_verified_against_price_provider
+marvell,Marvell Technology,MRVL,,equity,public,active,,exchange_to_be_verified_against_price_provider
+meta_platforms,Meta Platforms,META,,equity,public,active,,exchange_to_be_verified_against_price_provider
+micron,Micron Technology,MU,,equity,public,active,,exchange_to_be_verified_against_price_provider
+microsoft,Microsoft,MSFT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+mks_instruments,MKS Instruments,MKSI,,equity,public,active,,exchange_to_be_verified_against_price_provider
+mobileye,Mobileye Global,MBLY,,equity,public,active,,exchange_to_be_verified_against_price_provider
+modine,Modine Manufacturing,MOD,,equity,public,active,,exchange_to_be_verified_against_price_provider
+mongodb,MongoDB,MDB,,equity,public,active,,exchange_to_be_verified_against_price_provider
+nebius,Nebius Group,NBIS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+nuscale_power,NuScale Power,SMR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+nvent,nVent Electric,NVT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+nvidia,NVIDIA,NVDA,,equity,public,active,,exchange_to_be_verified_against_price_provider
+oklo,Oklo,OKLO,,equity,public,active,,exchange_to_be_verified_against_price_provider
+ondas,Ondas Holdings,ONDS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+openai,OpenAI,,,private_company,private,no_market_data,,watch_only_no_price_score
+oracle,Oracle,ORCL,,equity,public,active,,exchange_to_be_verified_against_price_provider
+palantir,Palantir Technologies,PLTR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+palo_alto_networks,Palo Alto Networks,PANW,,equity,public,active,,exchange_to_be_verified_against_price_provider
+planet_labs,Planet Labs,PL,,equity,public,active,,exchange_to_be_verified_against_price_provider
+poet_technologies,POET Technologies,POET,,equity,public,active,,exchange_to_be_verified_against_price_provider
+powell_industries,Powell Industries,POWL,,equity,public,active,,exchange_to_be_verified_against_price_provider
+qualcomm,Qualcomm,QCOM,,equity,public,active,,exchange_to_be_verified_against_price_provider
+quanta_services,Quanta Services,PWR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+quantum_computing_inc,Quantum Computing Inc.,QUBT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+red_cat,Red Cat Holdings,RCAT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+redwire,Redwire,RDW,,equity,public,active,,exchange_to_be_verified_against_price_provider
+rigetti,Rigetti Computing,RGTI,,equity,public,active,,exchange_to_be_verified_against_price_provider
+riot_platforms,Riot Platforms,RIOT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+robinhood,Robinhood Markets,HOOD,,equity,public,active,,exchange_to_be_verified_against_price_provider
+rocket_lab,Rocket Lab,RKLB,,equity,public,active,,exchange_to_be_verified_against_price_provider
+sandisk,Sandisk,SNDK,,equity,public,active,,exchange_to_be_verified_against_price_provider
+seagate,Seagate Technology,STX,,equity,public,active,,exchange_to_be_verified_against_price_provider
+sentinelone,SentinelOne,S,,equity,public,active,,exchange_to_be_verified_against_price_provider
+servicenow,ServiceNow,NOW,,equity,public,active,,exchange_to_be_verified_against_price_provider
+sk_hynix,SK hynix,SKHY,,adr,public,active,,exchange_to_be_verified_against_price_provider
+snowflake,Snowflake,SNOW,,equity,public,active,,exchange_to_be_verified_against_price_provider
+spacex,SpaceX,SPCX,,equity,public,active,,standalone_watch_overlay_not_official_space_basket
+strategy,Strategy,MSTR,,equity,public,active,,exchange_to_be_verified_against_price_provider
+symbotic,Symbotic,SYM,,equity,public,active,,exchange_to_be_verified_against_price_provider
+synopsys,Synopsys,SNPS,,equity,public,active,,exchange_to_be_verified_against_price_provider
+teradyne,Teradyne,TER,,equity,public,active,,exchange_to_be_verified_against_price_provider
+tesla,Tesla,TSLA,,equity,public,active,,exchange_to_be_verified_against_price_provider
+trane_technologies,Trane Technologies,TT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+tsmc,Taiwan Semiconductor Manufacturing,TSM,,adr,public,active,,exchange_to_be_verified_against_price_provider
+vertiv,Vertiv,VRT,,equity,public,active,,exchange_to_be_verified_against_price_provider
+vistra,Vistra,VST,,equity,public,active,,exchange_to_be_verified_against_price_provider
+western_digital,Western Digital,WDC,,equity,public,active,,exchange_to_be_verified_against_price_provider
+zscaler,Zscaler,ZS,,equity,public,active,,exchange_to_be_verified_against_price_provider
