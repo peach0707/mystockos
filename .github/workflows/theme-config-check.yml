@@ -1,0 +1,34 @@
+name: Validate theme config
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "config/themes.csv"
+      - "config/entities.csv"
+      - "config/memberships.csv"
+      - "config/validate_theme_config.py"
+      - ".github/workflows/theme-config-check.yml"
+  pull_request:
+    paths:
+      - "config/themes.csv"
+      - "config/entities.csv"
+      - "config/memberships.csv"
+      - "config/validate_theme_config.py"
+      - ".github/workflows/theme-config-check.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate Theme System v1.0 config
+        run: python config/validate_theme_config.py
