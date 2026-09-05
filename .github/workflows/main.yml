@@ -1,0 +1,95 @@
+name: Update stock data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  update-stock-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch stock data
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+
+          symbols = ["MU", "TSM", "AVGO", "COHR", "LITE"]
+          api_key = os.environ["TWELVE_DATA_API_KEY"]
+
+          def change(current, past):
+              return round((current / past - 1) * 100, 2)
+
+          stocks = []
+
+          for symbol in symbols:
+              params = urllib.parse.urlencode({
+                  "symbol": symbol,
+                  "interval": "1day",
+                  "outputsize": 70,
+                  "apikey": api_key
+              })
+
+              url = "https://api.twelvedata.com/time_series?" + params
+
+              with urllib.request.urlopen(url) as response:
+                  data = json.loads(response.read().decode())
+
+              if "values" not in data:
+                  raise Exception(f"{symbol}: {data}")
+
+              values = data["values"]
+
+              latest = float(values[0]["close"])
+              previous = float(values[1]["close"])
+
+              week_index = min(5, len(values) - 1)
+              month_index = min(21, len(values) - 1)
+              three_month_index = min(63, len(values) - 1)
+
+              stocks.append({
+                  "ticker": symbol,
+                  "price": round(latest, 2),
+                  "day": change(latest, previous),
+                  "week": change(latest, float(values[week_index]["close"])),
+                  "month": change(latest, float(values[month_index]["close"])),
+                  "three_month": change(latest, float(values[three_month_index]["close"])),
+                  "date": values[0]["datetime"]
+              })
+
+          output = {
+              "updated_at": datetime.now(timezone.utc).isoformat(),
+              "stocks": stocks
+          }
+
+          with open("data.json", "w") as f:
+              json.dump(output, f, ensure_ascii=False, indent=2)
+
+          print(json.dumps(output, indent=2))
+          PY
+
+      - name: Save updated stock data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update stock data"
+            git push
+          fi
