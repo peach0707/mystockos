@@ -1,0 +1,189 @@
+{
+  "profile_version": "1.0",
+  "strength": {
+    "window_days": 63,
+    "weights": {
+      "risk_adjusted_relative_strength": 0.7,
+      "relative_trend_consistency": 0.3
+    },
+    "risk_adjusted_relative_strength_anchors": [
+      [
+        -1.5,
+        0
+      ],
+      [
+        -0.5,
+        25
+      ],
+      [
+        0.0,
+        50
+      ],
+      [
+        0.5,
+        75
+      ],
+      [
+        1.5,
+        100
+      ]
+    ],
+    "relative_trend_consistency_anchors": [
+      [
+        0.35,
+        0
+      ],
+      [
+        0.45,
+        25
+      ],
+      [
+        0.5,
+        50
+      ],
+      [
+        0.55,
+        75
+      ],
+      [
+        0.65,
+        100
+      ]
+    ],
+    "labels": [
+      [
+        75,
+        "Strong"
+      ],
+      [
+        60,
+        "Bull"
+      ],
+      [
+        45,
+        "Neutral"
+      ],
+      [
+        30,
+        "Bear"
+      ],
+      [
+        0,
+        "Weak"
+      ]
+    ],
+    "min_eligible_members_ranked": 4,
+    "min_eligible_members_thin": 2
+  },
+  "velocity": {
+    "relative_level_ma_days": 63,
+    "relative_momentum_days": 21,
+    "confirmation_days": 5,
+    "min_eligible_members": 2
+  },
+  "heat": {
+    "return_days": 10,
+    "breadth_ma_days": 50,
+    "breadth_change_days": 10,
+    "dollar_volume_history_days": 60,
+    "dollar_volume_signal_days": 3,
+    "weights": {
+      "risk_adjusted_excess_return": 0.3333333333333333,
+      "breadth_change": 0.3333333333333333,
+      "dollar_volume_robust_z": 0.3333333333333333
+    },
+    "risk_adjusted_excess_return_anchors": [
+      [
+        -1.5,
+        0
+      ],
+      [
+        -0.5,
+        25
+      ],
+      [
+        0.0,
+        50
+      ],
+      [
+        0.5,
+        75
+      ],
+      [
+        1.5,
+        100
+      ]
+    ],
+    "breadth_change_anchors": [
+      [
+        -0.5,
+        0
+      ],
+      [
+        -0.2,
+        25
+      ],
+      [
+        0.0,
+        50
+      ],
+      [
+        0.2,
+        75
+      ],
+      [
+        0.5,
+        100
+      ]
+    ],
+    "dollar_volume_robust_z_anchors": [
+      [
+        -1.5,
+        0
+      ],
+      [
+        -0.5,
+        25
+      ],
+      [
+        0.0,
+        50
+      ],
+      [
+        1.0,
+        75
+      ],
+      [
+        2.5,
+        100
+      ]
+    ],
+    "hot_score_threshold": 75,
+    "leave_one_out_min_score": 60,
+    "max_single_stock_dollar_volume_share": 0.6,
+    "min_eligible_members": 2
+  },
+  "turning": {
+    "history_days": 252,
+    "relative_strength_window_days": 63,
+    "oversold_percentile_threshold": 0.15,
+    "drawdown_threshold": -0.25,
+    "breadth_recovery_min_change": 0.0,
+    "no_new_relative_low_days": 5,
+    "requires_prior_lagging": true
+  },
+  "selection": {
+    "return_window_days": 21,
+    "correlation_window_days": 20,
+    "high_dispersion_threshold": 0.04,
+    "low_dispersion_threshold": 0.02,
+    "high_max_median_correlation": 0.65,
+    "low_min_median_correlation": 0.85
+  },
+  "data": {
+    "twelve_data_outputsize": 380,
+    "request_spacing_seconds": 8.0,
+    "max_retries": 5,
+    "retry_wait_seconds": 20
+  }
+}
