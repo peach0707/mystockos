@@ -1023,6 +1023,8 @@ def append_history(payload: dict, prior_as_of: Optional[date]):
 
 def main():
     api_key = os.environ.get("TWELVE_DATA_API_KEY", "").strip()
+    dry_run = os.environ.get("THEME_DRY_RUN", "0").strip().lower() in {"1", "true", "yes", "on"}
+
     if not api_key:
         print("TWELVE_DATA_API_KEY is not set", file=sys.stderr)
         sys.exit(2)
@@ -1045,29 +1047,39 @@ def main():
     as_of = max(spy.index)
     print(f"[INFO] Official theme as_of = {as_of.isoformat()}")
 
-    active_themes = [
-        t for t in themes
-        if clean(t.get("status")) in {"active", "watch"}
-        and is_effective(t, as_of)
-    ]
-
-    if not active_themes:
-        future_dates = [
-            parse_iso_date(t.get("effective_from"))
-            for t in themes
-            if parse_iso_date(t.get("effective_from")) is not None
+    if dry_run:
+        # Test the full engine using the frozen v1 config without creating official history
+        # before effective_from. This never changes historical production data.
+        active_themes = [
+            t for t in themes
+            if clean(t.get("status")) in {"active", "watch"}
         ]
-        next_date = min((d for d in future_dates if d > as_of), default=None)
-        print(
-            "[INFO] Theme System v1.0 is not effective for this market date."
-            + (f" Next effective date: {next_date.isoformat()}." if next_date else "")
-        )
-        return
+        print("[INFO] DRY RUN enabled: effective_from is ignored for test execution only.")
+    else:
+        active_themes = [
+            t for t in themes
+            if clean(t.get("status")) in {"active", "watch"}
+            and is_effective(t, as_of)
+        ]
+
+        if not active_themes:
+            future_dates = [
+                parse_iso_date(t.get("effective_from"))
+                for t in themes
+                if parse_iso_date(t.get("effective_from")) is not None
+            ]
+            next_date = min((d for d in future_dates if d > as_of), default=None)
+            print(
+                "[INFO] Theme System v1.0 is not effective for this market date."
+                + (f" Next effective date: {next_date.isoformat()}." if next_date else "")
+            )
+            return
 
     theme_ids = {clean(t["theme_id"]) for t in active_themes}
     active_memberships = [
         m for m in memberships
-        if clean(m["theme_id"]) in theme_ids and is_effective(m, as_of)
+        if clean(m["theme_id"]) in theme_ids
+        and (dry_run or is_effective(m, as_of))
     ]
 
     core_tickers = sorted({
@@ -1261,6 +1273,33 @@ def main():
         "themes": theme_results,
         "data_source": "Twelve Data",
     }
+
+    if dry_run:
+        dry_path = Path("/tmp/themes-dry-run.json")
+        dry_path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        ok_n = sum(
+            1 for t in theme_results
+            if (t.get("data_quality") or {}).get("status") in {"ok", "thin"}
+        )
+        insufficient_n = sum(
+            1 for t in theme_results
+            if (t.get("data_quality") or {}).get("status") == "insufficient"
+        )
+        missing_symbols = sorted({
+            sym
+            for t in theme_results
+            for sym in ((t.get("data_quality") or {}).get("missing_core_data") or [])
+        })
+        print("[INFO] DRY RUN completed. No official data/history was written.")
+        print(f"[INFO] Test output: {dry_path}")
+        print(f"[INFO] Themes with usable data: {ok_n}")
+        print(f"[INFO] Themes insufficient: {insufficient_n}")
+        print(f"[INFO] Missing Core symbols: {missing_symbols}")
+        print(f"[INFO] Theme Selection: {selection['label']}")
+        return
 
     DATA.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(
