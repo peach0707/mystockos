@@ -1,0 +1,472 @@
+name: Update market regime
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 22 * * 1-5"
+
+permissions:
+  contents: write
+
+jobs:
+  update-market-regime:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Calculate regime scores
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import math
+          import os
+          import statistics
+          import urllib.parse
+          import urllib.request
+          from datetime import datetime, timezone
+
+          API_KEY = os.environ["TWELVE_DATA_API_KEY"]
+          SYMBOLS = ["QQQ", "SPY", "RSP", "HYG", "LQD", "SOXX", "VIX"]
+
+          def fetch(symbol):
+              params = urllib.parse.urlencode({
+                  "symbol": symbol,
+                  "interval": "1day",
+                  "outputsize": 260,
+                  "adjust": "all",
+                  "apikey": API_KEY,
+              })
+
+              url = "https://api.twelvedata.com/time_series?" + params
+
+              with urllib.request.urlopen(url, timeout=30) as response:
+                  data = json.loads(response.read().decode())
+
+              if "values" not in data:
+                  raise RuntimeError(f"{symbol}: {data}")
+
+              rows = list(reversed(data["values"]))
+
+              closes = [float(row["close"]) for row in rows]
+              dates = [row["datetime"][:10] for row in rows]
+
+              if len(closes) < 210:
+                  raise RuntimeError(f"{symbol}: only {len(closes)} rows")
+
+              return {
+                  "closes": closes,
+                  "dates": dates
+              }
+
+          data = {symbol: fetch(symbol) for symbol in SYMBOLS}
+
+          def c(symbol):
+              return data[symbol]["closes"]
+
+          def sma(values, n):
+              return sum(values[-n:]) / n
+
+          def ret(values, n):
+              return values[-1] / values[-1 - n] - 1
+
+          def score(x, anchors):
+              if x <= anchors[0][0]:
+                  return float(anchors[0][1])
+
+              if x >= anchors[-1][0]:
+                  return float(anchors[-1][1])
+
+              for (x0, y0), (x1, y1) in zip(anchors, anchors[1:]):
+                  if x0 <= x <= x1:
+                      return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+
+          def trend_label(x):
+              if x >= 75:
+                  return "Strong Bull"
+
+              if x >= 60:
+                  return "Bull"
+
+              if x >= 45:
+                  return "Neutral"
+
+              if x >= 30:
+                  return "Bear"
+
+              return "Strong Bear"
+
+          # -------------------------
+          # MARKET TREND SCORE
+          # -------------------------
+
+          qqq = c("QQQ")
+          spy = c("SPY")
+          rsp = c("RSP")
+          hyg = c("HYG")
+          lqd = c("LQD")
+
+          qqq_ma50 = sma(qqq, 50)
+          qqq_ma200 = sma(qqq, 200)
+
+          market_raw = {
+              "qqq_vs_200dma":
+                  qqq[-1] / qqq_ma200 - 1,
+
+              "qqq_63d_return":
+                  ret(qqq, 63),
+
+              "qqq_50dma_vs_200dma":
+                  qqq_ma50 / qqq_ma200 - 1,
+
+              "rsp_spy_63d_rs":
+                  ret(rsp, 63) - ret(spy, 63),
+
+              "hyg_lqd_63d_rs":
+                  ret(hyg, 63) - ret(lqd, 63),
+          }
+
+          market_scores = {
+              "qqq_vs_200dma":
+                  score(
+                      market_raw["qqq_vs_200dma"],
+                      [
+                          (-0.12, 0),
+                          (-0.06, 25),
+                          (0, 50),
+                          (0.08, 75),
+                          (0.16, 100)
+                      ]
+                  ),
+
+              "qqq_63d_return":
+                  score(
+                      market_raw["qqq_63d_return"],
+                      [
+                          (-0.18, 0),
+                          (-0.08, 25),
+                          (0, 50),
+                          (0.10, 75),
+                          (0.22, 100)
+                      ]
+                  ),
+
+              "qqq_50dma_vs_200dma":
+                  score(
+                      market_raw["qqq_50dma_vs_200dma"],
+                      [
+                          (-0.06, 0),
+                          (-0.02, 25),
+                          (0, 50),
+                          (0.02, 75),
+                          (0.06, 100)
+                      ]
+                  ),
+
+              "rsp_spy_63d_rs":
+                  score(
+                      market_raw["rsp_spy_63d_rs"],
+                      [
+                          (-0.08, 0),
+                          (-0.03, 25),
+                          (0, 50),
+                          (0.03, 75),
+                          (0.08, 100)
+                      ]
+                  ),
+
+              "hyg_lqd_63d_rs":
+                  score(
+                      market_raw["hyg_lqd_63d_rs"],
+                      [
+                          (-0.08, 0),
+                          (-0.03, 25),
+                          (0, 50),
+                          (0.03, 75),
+                          (0.08, 100)
+                      ]
+                  ),
+          }
+
+          market_total = (
+              market_scores["qqq_vs_200dma"] * 0.35
+              + market_scores["qqq_63d_return"] * 0.25
+              + market_scores["qqq_50dma_vs_200dma"] * 0.15
+              + market_scores["rsp_spy_63d_rs"] * 0.15
+              + market_scores["hyg_lqd_63d_rs"] * 0.10
+          )
+
+          # -------------------------
+          # SEMICONDUCTOR SCORE
+          # -------------------------
+
+          soxx = c("SOXX")
+          soxx_ma200 = sma(soxx, 200)
+
+          semi_raw = {
+              "soxx_vs_200dma":
+                  soxx[-1] / soxx_ma200 - 1,
+
+              "soxx_63d_return":
+                  ret(soxx, 63),
+
+              "soxx_qqq_63d_rs":
+                  ret(soxx, 63) - ret(qqq, 63),
+
+              "soxx_21d_return":
+                  ret(soxx, 21),
+          }
+
+          semi_scores = {
+              "soxx_vs_200dma":
+                  score(
+                      semi_raw["soxx_vs_200dma"],
+                      [
+                          (-0.15, 0),
+                          (-0.07, 25),
+                          (0, 50),
+                          (0.10, 75),
+                          (0.20, 100)
+                      ]
+                  ),
+
+              "soxx_63d_return":
+                  score(
+                      semi_raw["soxx_63d_return"],
+                      [
+                          (-0.24, 0),
+                          (-0.10, 25),
+                          (0, 50),
+                          (0.12, 75),
+                          (0.24, 100)
+                      ]
+                  ),
+
+              "soxx_qqq_63d_rs":
+                  score(
+                      semi_raw["soxx_qqq_63d_rs"],
+                      [
+                          (-0.10, 0),
+                          (-0.04, 25),
+                          (0, 50),
+                          (0.04, 75),
+                          (0.10, 100)
+                      ]
+                  ),
+
+              "soxx_21d_return":
+                  score(
+                      semi_raw["soxx_21d_return"],
+                      [
+                          (-0.12, 0),
+                          (-0.05, 25),
+                          (0, 50),
+                          (0.06, 75),
+                          (0.12, 100)
+                      ]
+                  ),
+          }
+
+          semi_total = (
+              semi_scores["soxx_vs_200dma"] * 0.30
+              + semi_scores["soxx_63d_return"] * 0.25
+              + semi_scores["soxx_qqq_63d_rs"] * 0.30
+              + semi_scores["soxx_21d_return"] * 0.15
+          )
+
+          # -------------------------
+          # INSTABILITY SCORE
+          # -------------------------
+
+          vix = c("VIX")
+
+          last21 = qqq[-21:]
+
+          daily_returns = [
+              last21[i] / last21[i - 1] - 1
+              for i in range(1, len(last21))
+          ]
+
+          rv20 = (
+              statistics.stdev(daily_returns)
+              * math.sqrt(252)
+          )
+
+          high20 = max(qqq[-20:])
+
+          dd20 = max(
+              0,
+              1 - qqq[-1] / high20
+          )
+
+          instability_scores = {
+              "vix":
+                  score(
+                      vix[-1],
+                      [
+                          (13, 0),
+                          (16, 25),
+                          (20, 50),
+                          (28, 75),
+                          (40, 100)
+                      ]
+                  ),
+
+              "qqq_rv20":
+                  score(
+                      rv20,
+                      [
+                          (0.10, 0),
+                          (0.14, 25),
+                          (0.18, 50),
+                          (0.28, 75),
+                          (0.40, 100)
+                      ]
+                  ),
+
+              "qqq_dd20":
+                  score(
+                      dd20,
+                      [
+                          (0, 0),
+                          (0.03, 25),
+                          (0.06, 50),
+                          (0.10, 75),
+                          (0.16, 100)
+                      ]
+                  ),
+          }
+
+          instability_total = (
+              instability_scores["vix"] * 0.40
+              + instability_scores["qqq_rv20"] * 0.35
+              + instability_scores["qqq_dd20"] * 0.25
+          )
+
+          if instability_total >= 85:
+              instability_label = "Stress"
+
+          elif instability_total >= 70:
+              instability_label = "Unstable"
+
+          elif instability_total >= 50:
+              instability_label = "Volatile"
+
+          elif instability_total >= 30:
+              instability_label = "Normal"
+
+          else:
+              instability_label = "Stable"
+
+          output = {
+              "as_of":
+                  data["QQQ"]["dates"][-1],
+
+              "updated_at":
+                  datetime.now(timezone.utc).isoformat(),
+
+              "market": {
+                  "score":
+                      round(market_total, 2),
+
+                  "label":
+                      trend_label(market_total),
+
+                  "raw":
+                      {
+                          k: round(v * 100, 3)
+                          for k, v in market_raw.items()
+                      },
+
+                  "factor_scores":
+                      {
+                          k: round(v, 2)
+                          for k, v in market_scores.items()
+                      },
+              },
+
+              "semiconductor": {
+                  "score":
+                      round(semi_total, 2),
+
+                  "label":
+                      trend_label(semi_total),
+
+                  "vs_qqq_63d_pt":
+                      round(
+                          semi_raw["soxx_qqq_63d_rs"] * 100,
+                          2
+                      ),
+
+                  "raw":
+                      {
+                          k: round(v * 100, 3)
+                          for k, v in semi_raw.items()
+                      },
+
+                  "factor_scores":
+                      {
+                          k: round(v, 2)
+                          for k, v in semi_scores.items()
+                      },
+              },
+
+              "instability": {
+                  "score":
+                      round(instability_total, 2),
+
+                  "label":
+                      instability_label,
+
+                  "vix":
+                      round(vix[-1], 2),
+
+                  "qqq_rv20_pct":
+                      round(rv20 * 100, 2),
+
+                  "qqq_dd20_pct":
+                      round(dd20 * 100, 2),
+
+                  "factor_scores":
+                      {
+                          k: round(v, 2)
+                          for k, v in instability_scores.items()
+                      },
+              },
+          }
+
+          with open("regime.json", "w") as f:
+              json.dump(
+                  output,
+                  f,
+                  ensure_ascii=False,
+                  indent=2
+              )
+
+          print(
+              json.dumps(
+                  output,
+                  ensure_ascii=False,
+                  indent=2
+              )
+          )
+
+          PY
+
+      - name: Save regime data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add regime.json
+
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update market regime"
+            git pull --rebase origin main
+            git push origin main
+          fi
