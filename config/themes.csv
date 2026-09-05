@@ -1,0 +1,30 @@
+theme_id,name,family,theme_class,score_mode,primary_benchmark,secondary_benchmark,status,definition_version,effective_from
+ai_networking_connectivity,AI Networking & Connectivity,Semiconductor,structural,ranked,SPY,SOXX,active,1.0,2026-09-08
+optical_photonics,Optical / Photonics,Semiconductor,structural,ranked,SPY,SOXX,active,1.0,2026-09-08
+semiconductor_equipment,Semiconductor Equipment,Semiconductor,structural,ranked,SPY,SOXX,active,1.0,2026-09-08
+hyperscaler_ai_capex,Hyperscaler / AI Capex,AI Demand,structural,ranked,SPY,QQQ,active,1.0,2026-09-08
+power_grid,Power & Grid,Energy Infrastructure,structural,ranked,SPY,,active,1.0,2026-09-08
+memory_hbm,Memory / HBM,Semiconductor,structural,thin,SPY,SOXX,active,1.0,2026-09-08
+datacenter_storage,Datacenter Storage,Semiconductor,structural,thin,SPY,SOXX,active,1.0,2026-09-08
+ai_compute_silicon,AI Compute Silicon,Semiconductor,structural,thin,SPY,SOXX,active,1.0,2026-09-08
+foundry_advanced_packaging,Foundry & Advanced Packaging,Semiconductor,structural,thin,SPY,SOXX,active,1.0,2026-09-08
+cooling_thermal,Cooling / Thermal,AI Infrastructure,structural,thin,SPY,QQQ,active,1.0,2026-09-08
+eda_semiconductor_ip,EDA / Semiconductor IP,Semiconductor,structural,thin,SPY,SOXX,active,1.0,2026-09-08
+nuclear_utilities_ai_power,Nuclear Utilities / AI Power,Energy Infrastructure,structural,thin,SPY,,active,1.0,2026-09-08
+ai_cloud_neocloud,AI Cloud / Neo Cloud,AI Infrastructure,structural,thin,SPY,QQQ,active,1.0,2026-09-08
+ai_software_data,AI Software / Data,AI Software,tactical,heat_only,SPY,QQQ,active,1.0,2026-09-08
+quantum_computing,Quantum Computing,Emerging Computing,tactical,heat_only,SPY,,active,1.0,2026-09-08
+defense_autonomy_drones,Defense Autonomy / Drones,Defense & Autonomy,tactical,heat_only,SPY,,active,1.0,2026-09-08
+nuclear_tech_smr_fuel,Nuclear Tech / SMR / Fuel,Energy,tactical,heat_only,SPY,,active,1.0,2026-09-08
+space_satellite,Space / Satellite,Space,tactical,heat_only,SPY,,active,1.0,2026-09-08
+crypto_equities,Crypto Equities,Digital Assets,tactical,heat_only,SPY,BTC,active,1.0,2026-09-08
+cybersecurity,Cybersecurity,Cybersecurity,tactical,heat_only,SPY,QQQ,active,1.0,2026-09-08
+evtol_aam,eVTOL / Advanced Air Mobility,Advanced Mobility,tactical,heat_only,SPY,,active,1.0,2026-09-08
+frontier_ai_labs,Frontier AI Labs,Frontier AI,watch,none,,,watch,1.0,2026-09-08
+physical_ai_autonomy,Physical AI / Autonomy,Physical AI,watch,none,,,watch,1.0,2026-09-08
+humanoid_robotics,Humanoid Robotics,Physical AI,watch,none,,,watch,1.0,2026-09-08
+fusion_energy,Fusion Energy,Energy,watch,none,,,watch,1.0,2026-09-08
+ai_drug_discovery,AI Drug Discovery,Life Sciences,watch,none,,,watch,1.0,2026-09-08
+critical_minerals,Critical Minerals,Materials,watch,none,,,watch,1.0,2026-09-08
+power_semiconductors_800vdc,Power Semiconductors / 800VDC,Semiconductor,watch,none,,,watch,1.0,2026-09-08
+datacenter_hpc_hosting,Data Center / HPC Hosting,Data Center Infrastructure,watch,none,,,watch,1.0,2026-09-08
