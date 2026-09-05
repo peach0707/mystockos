@@ -2,6 +2,12 @@ name: Update themes
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Full test only (ignore effective_from; do not write official theme data)"
+        required: true
+        default: true
+        type: boolean
   schedule:
     - cron: "30 23 * * 1-5"
 
@@ -35,9 +41,11 @@ jobs:
       - name: Calculate Theme System v1.0
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          THEME_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
         run: python scripts/update_themes.py
 
       - name: Commit updated theme data
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run == false }}
         run: |
           if [ -z "$(git status --porcelain -- data/themes.json data/theme_history.jsonl)" ]; then
             echo "No theme data changes to commit."
