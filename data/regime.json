@@ -1,0 +1,112 @@
+{
+  "model_version": "1.0",
+  "as_of": "2026-09-04",
+  "updated_at_utc": "2026-09-05T07:33:39.129644+00:00",
+  "market": {
+    "label": "Neutral",
+    "base_label": "Neutral",
+    "raw_label": "Bull",
+    "trend_score": 72.54,
+    "confidence": "Low",
+    "regime_duration": 1,
+    "factors": {
+      "qqq_vs_200dma": {
+        "raw": 0.094669,
+        "score": 79.58
+      },
+      "qqq_63d_return": {
+        "raw": 0.020835,
+        "score": 55.21
+      },
+      "qqq_50dma_vs_200dma": {
+        "raw": 0.082679,
+        "score": 100.0
+      },
+      "rsp_spy_63d_rs": {
+        "raw": 0.010386,
+        "score": 58.65
+      },
+      "hyg_lqd_63d_rs": {
+        "raw": 0.024974,
+        "score": 70.81
+      }
+    },
+    "pillars": {
+      "price_trend": 67.4,
+      "breadth": 58.65,
+      "credit": 70.81,
+      "sides": [
+        "Bull",
+        "Neutral",
+        "Bull"
+      ]
+    }
+  },
+  "instability": {
+    "label": "Stable",
+    "score": 15.08,
+    "factors": {
+      "vix": {
+        "raw": 14.53,
+        "score": 12.75
+      },
+      "qqq_realized_vol_20d": {
+        "raw": 0.128561,
+        "score": 17.85
+      },
+      "qqq_drawdown_20d": {
+        "raw": 0.017908,
+        "score": 14.92
+      }
+    }
+  },
+  "semiconductor": {
+    "label": "Neutral",
+    "score": 51.43,
+    "vs_qqq_63d": -0.056095,
+    "factors": {
+      "soxx_vs_200dma": {
+        "raw": 0.20538,
+        "score": 100.0
+      },
+      "soxx_63d_return": {
+        "raw": -0.036429,
+        "score": 40.89
+      },
+      "soxx_qqq_63d_rs": {
+        "raw": -0.056095,
+        "score": 18.29
+      },
+      "soxx_21d_return": {
+        "raw": -0.023774,
+        "score": 38.11
+      }
+    }
+  },
+  "market_stress": {
+    "active": false,
+    "trigger_now": false,
+    "clear_days": 0,
+    "conditions": {
+      "instability_ge_85": false,
+      "vix_ge_32_and_qqq_5d_le_minus_6pct": false,
+      "qqq_20d_drawdown_ge_12pct": false
+    }
+  },
+  "data": {
+    "symbols": [
+      "QQQ",
+      "SPY",
+      "RSP",
+      "HYG",
+      "LQD",
+      "SOXX",
+      "VIX"
+    ],
+    "market_data_source": "Twelve Data",
+    "vix_source": "Cboe",
+    "market_as_of": "2026-09-04",
+    "vix_as_of": "2026-09-04",
+    "missing_data": false
+  }
+}
