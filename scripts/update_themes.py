@@ -164,6 +164,13 @@ class TwelveDataClient:
         self.session = requests.Session()
         self.last_request_at = 0.0
 
+    def _safe_message(self, value):
+        # Never include request URLs or credentials in diagnostic output.
+        text = str(value)
+        if self.api_key:
+            text = text.replace(self.api_key, "[REDACTED]")
+        return " ".join(text.split())[:500]
+
     def _pace(self):
         elapsed = time.time() - self.last_request_at
         if elapsed < self.spacing:
@@ -185,7 +192,7 @@ class TwelveDataClient:
                 response = self.session.get(TWELVE_DATA_URL, params=params, timeout=30)
                 self.last_request_at = time.time()
             except requests.RequestException as exc:
-                print(f"[WARN] {symbol}: network error ({attempt}/{self.max_retries}): {exc}")
+                print(f"[WARN] {symbol}: network error ({attempt}/{self.max_retries}): {self._safe_message(exc)}")
                 if attempt < self.max_retries:
                     time.sleep(self.retry_wait)
                     continue
@@ -199,7 +206,14 @@ class TwelveDataClient:
                 return None
 
             if response.status_code != 200:
-                print(f"[WARN] {symbol}: HTTP {response.status_code}")
+                message = "No structured provider message"
+                try:
+                    error_payload = response.json()
+                    if isinstance(error_payload, dict):
+                        message = error_payload.get("message") or error_payload.get("code") or message
+                except ValueError:
+                    pass
+                print(f"[WARN] {symbol}: HTTP {response.status_code}; {self._safe_message(message)}")
                 if attempt < self.max_retries and response.status_code >= 500:
                     time.sleep(self.retry_wait)
                     continue
@@ -213,7 +227,7 @@ class TwelveDataClient:
 
             if payload.get("status") == "error" or "values" not in payload:
                 msg = payload.get("message") or payload.get("code") or "no values"
-                print(f"[WARN] {symbol}: provider error: {msg}")
+                print(f"[WARN] {symbol}: provider error: {self._safe_message(msg)}")
                 return None
 
             rows = payload["values"]
@@ -1244,6 +1258,24 @@ def main():
             "missing_core_data": missing_core,
         }
 
+        if qstatus == "insufficient" or missing_core:
+            print(
+                f"[DIAG] Theme={tid}; status={qstatus}; mode={score_mode}; "
+                f"Core={len(core)}; Strength eligible={strength_eligible}; "
+                f"Heat eligible={heat_eligible}; required={required}; "
+                f"Missing Core={missing_core}"
+            )
+            for ticker in core:
+                frame = price_data.get(ticker)
+                if frame is None or frame.empty:
+                    print(f"[DIAG] {tid}/{ticker}: no usable price data")
+                    continue
+                print(
+                    f"[DIAG] {tid}/{ticker}: rows={len(frame)}; "
+                    f"first={min(frame.index)}; last={max(frame.index)}; "
+                    f"volume rows={int(frame['volume'].notna().sum())}"
+                )
+
         # Official Space basket stays ex-SPCX; SPCX is a display-only overlay.
         if tid == "space_satellite" and "SPCX" in watch and price_data.get("SPCX") is not None:
             d = price_data["SPCX"].loc[price_data["SPCX"].index <= as_of]["close"].dropna()
@@ -1297,6 +1329,11 @@ def main():
         print(f"[INFO] Test output: {dry_path}")
         print(f"[INFO] Themes with usable data: {ok_n}")
         print(f"[INFO] Themes insufficient: {insufficient_n}")
+        insufficient_ids = [
+            t["theme_id"] for t in theme_results
+            if (t.get("data_quality") or {}).get("status") == "insufficient"
+        ]
+        print(f"[INFO] Insufficient theme IDs: {insufficient_ids}")
         print(f"[INFO] Missing Core symbols: {missing_symbols}")
         print(f"[INFO] Theme Selection: {selection['label']}")
         return
