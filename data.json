@@ -1,13 +1,13 @@
 {
-  "updated_at": "2026-09-08T22:41:41.213022+00:00",
+  "updated_at": "2026-09-08T23:14:49.023605+00:00",
   "stocks": [
     {
       "ticker": "MU",
-      "price": 999.94,
-      "day": -1.64,
-      "week": 4.3,
-      "month": 13.94,
-      "three_month": 5.34,
+      "price": 1000.26,
+      "day": -1.61,
+      "week": 4.33,
+      "month": 13.98,
+      "three_month": 5.37,
       "date": "2026-09-08"
     },
     {
@@ -39,11 +39,11 @@
     },
     {
       "ticker": "LITE",
-      "price": 978.24,
-      "day": 11.01,
-      "week": 6.94,
-      "month": 9.89,
-      "three_month": 9.25,
+      "price": 978.53,
+      "day": 11.04,
+      "week": 6.97,
+      "month": 9.93,
+      "three_month": 9.28,
       "date": "2026-09-08"
     }
   ]
