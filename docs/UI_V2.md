@@ -69,3 +69,9 @@ PDFの青いヘッダー、明るい背景、白いカード、青い選択状�
 `node --test tests/*.test.js`、`python -m unittest discover -s tests -p 'test_*.py'`、`python tests/check_frozen.py`、既存設定検証で確認。CIはpull_request時にAPIキー不要で実行。
 
 iPhone Safari実機の見た目と操作確認は未実施。ニュース自動収集、証券口座自動連携、価格/FX自動資産評価、未収配当、TWR/IRR、Forward Engineは今回未実装。現状は実記録がある項目だけを表示する。
+
+## 完全版レビュー指示への対応
+
+カレンダーの評価がない日は「—」、不明な内訳は「未分類」。入金日には評価の有無と独立して配当を表示し、比較期間内の配当とも区別する。ex_date/record_date/corporate_action_idは任意メタデータとして保存できるが、未収・Total Return計算はまだ行わない。
+
+[Safari実機確認](SAFARI_ACCEPTANCE.md)と[Forward基盤の実装計画](SHADOW_IMPLEMENTATION_PLAN.md)を参照。mainをマージせず再レビュー待ち。

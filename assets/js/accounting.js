@@ -1,6 +1,7 @@
 // Independent personal ledgers. Theme System v1.0 is never called or modified.
 import {boundary,eventPosition,intervalFlows,snapshotRecord} from './ledger.js';
 export const ordered=s=>s.snapshots.filter(x=>['recorded','closed'].includes(x.status)).map(x=>({...x,assets:x.assets_jpy,basis:x.valuation_basis})).sort((a,b)=>boundary(a)-boundary(b));
+export const paidOn=(s,date)=>s.dividends.filter(d=>d.status==='paid'&&d.payment_date===date);
 export function paidBetween(s,from,to){
  const a=typeof from==='string'?{date:from,timestamp:null}:from,b=typeof to==='string'?{date:to,timestamp:null}:to;
  let total=0;

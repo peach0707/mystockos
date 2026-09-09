@@ -24,3 +24,43 @@ test('migration or quota failure never overwrites valid original data',()=>{cons
 test('independent CSV formats, invalid dates, duplicate IDs and signs validated',()=>{const s=fresh();s.snapshots=snapshotsCSV('date,timestamp,assets_jpy,valuation_basis,status\r\n2026-09-11,,50000000,"NY close, same FX",recorded\r\n');s.cashFlows=cashFlowsCSV('id,date,timestamp,amount_jpy,type,note\na,2026-09-12,,1000000,deposit,weekend');validate(s);s.cashFlows.push({...s.cashFlows[0]});assert.throws(()=>validate(s));s.cashFlows.pop();s.cashFlows[0].type='withdrawal';assert.throws(()=>validate(s));s.cashFlows=[];s.snapshots[0].date='2026-02-30';assert.throws(()=>validate(s));});
 test('editing historical flows recomputes subsequent and YTD results',()=>{const s=setup();s.snapshots.unshift(snap('2025-12-31',40000000));s.cashFlows=[flow('a','2026-09-12',1000000)];assert.equal(dayResult(s,'2026-09-14').pnl,0);s.cashFlows[0].amount_jpy=500000;assert.equal(dayResult(s,'2026-09-14').pnl,500000);assert.equal(yearResult(s,2026).pnl,10500000);});
 test('new ledger, annual baseline and tax forms render without personal sample data',()=>{const s=fresh();for(const page of ['flows','year','entry','dividends'])assert.ok(portfolioView(s,page,'2026-09','2026-09-14',''));assert.ok(!portfolioView(s,'entry','2026-09','2026-09-14','').includes('name="netFlow"'));assert.ok(portfolioView(s,'flows','2026-09','2026-09-14','').includes('flow-quality-form'));});
+
+test('Case 3: explicitly closed holiday between valid valuations is not required',()=>{
+ const s=fresh();s.snapshots=[snap('2026-09-04',50000000),snap('2026-09-08',49820000)];
+ // Sept 7 is the supplied closed-session fixture; no market calendar lookup needed by accounting.
+ const r=dayResult(s,'2026-09-08');assert.equal(r.previous.date,'2026-09-04');assert.equal(r.pnl,-180000);
+ assert.equal(dayResult(s,'2026-09-07'),null);
+});
+test('calendar weekends without evaluation show dash, not a zero-return day',()=>{
+ const s=setup(),html=portfolioView(s,'calendar','2026-09','2026-09-12','');
+ for(const date of ['2026-09-12','2026-09-13']){
+  const cell=html.match(new RegExp(`data-date="${date}"[^>]*>([\\s\\S]*?)</button>`))[1];
+  assert.match(cell,/>—<\/b>/);assert.doesNotMatch(cell,/>0(?:%|円)?</);assert.match(cell,/評価なし/);
+ }
+});
+test('Case 6: cash dividend appears on actual payment date even without a valuation',()=>{
+ const s=setup();s.dividends=[{id:'d',ticker:'MU',payment_date:'2026-09-12',timestamp:null,net_amount:10,currency:'USD',fx:150,status:'paid',tax_information:{withheld:3,note:''}}];
+ const saturday=portfolioView(s,'calendar','2026-09','2026-09-12','');
+ assert.match(saturday,/MU · 2026-09-12 · ¥1,500/);assert.match(saturday,/総運用損益<\/h3><p[^>]*>データ不足/);
+ const monday=portfolioView(s,'calendar','2026-09','2026-09-14','');
+ assert.match(monday,/配当（比較期間内の入金分）<\/dt><dd>¥1,500/);
+ assert.match(monday,/この日の入金記録なし/);assert.equal(dayResult(s,'2026-09-14').pnl,1000000);
+ assert.equal(ordered(s).at(-1).assets,51000000);
+});
+test('all requested details render and missing components stay unclassified',()=>{
+ const s=setup(),html=portfolioView(s,'calendar','2026-09','2026-09-14','');
+ for(const label of ['総運用損益','期間損益率','株価要因','為替要因','配当','実現損益','その他','未分類差額','銘柄別寄与','テーマ別寄与'])assert.ok(html.includes(label),label);
+ assert.match(html,/株価要因<\/dt><dd>未分類/);assert.match(html,/未分類差額<\/dt><dd>¥1,000,000/);
+});
+test('future ex-date metadata is retained without introducing accrual or total-return double count',()=>{
+ const s=setup();s.dividends=[{id:'d',ticker:'MU',payment_date:'2026-09-12',timestamp:null,ex_date:'2026-08-28',record_date:'2026-08-31',corporate_action_id:'issuer-event-1',net_amount:10,currency:'USD',fx:150,status:'paid',tax_information:{withheld:3,note:''}}];
+ validate(s);assert.equal(migrate(s).dividends[0].ex_date,'2026-08-28');assert.equal(dayResult(s,'2026-09-14').pnl,1000000);
+ s.dividends[0].ex_date='bad';assert.throws(()=>validate(s));
+});
+test('explicit closed-day valuation is not displayed as a zero-return trading day',()=>{
+ const s=setup();s.snapshots.push(snap('2026-09-12',50000000,'closed'));
+ const html=portfolioView(s,'calendar','2026-09','2026-09-12','');
+ const cell=html.match(/data-date="2026-09-12"[^>]*>([\s\S]*?)<\/button>/)[1];
+ assert.match(cell,/>—<\/b>/);assert.match(cell,/休場記録/);assert.doesNotMatch(cell,/>0%?</);
+ assert.equal(dayResult(s,'2026-09-14').pnl,1000000);
+});

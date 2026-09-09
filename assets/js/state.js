@@ -24,6 +24,7 @@ export function validate(s){
  }
  if(new Set(s.snapshots.map(x=>x.date)).size!==s.snapshots.length)throw Error('日次評価の日付が重複しています。');
  for(const d of s.dividends)if(!str(d.id,100)||!dateValid(d.payment_date)||!timestampValid(d.timestamp,d.payment_date)||!ticker(d.ticker)||!finite(d.net_amount)||d.net_amount<0||!finite(d.fx)||d.fx<=0||!['JPY','USD'].includes(d.currency)||(d.currency==='JPY'&&d.fx!==1)||!['paid','pending','cancelled'].includes(d.status)||!d.tax_information||!(d.tax_information.withheld===null||finite(d.tax_information.withheld)&&d.tax_information.withheld>=0)||!str(d.tax_information.note))throw Error('配当の入金日・税引後金額・換算レートを確認してください。');
+ for(const d of s.dividends){for(const k of ['ex_date','record_date'])if(d[k]!=null&&!dateValid(d[k]))throw Error('配当の権利日付が不正です。');if(d.corporate_action_id!=null&&!str(d.corporate_action_id,200))throw Error('配当イベントIDが不正です。');}
  if(new Set(s.dividends.map(d=>d.id)).size!==s.dividends.length)throw Error('配当IDが重複しています。');
  for(const n of s.news)if(!str(n.id,100)||!str(n.title,300)||!dateValid(n.date)||!str(n.source,200)||!str(n.url,2000)||!str(n.why)||!Array.isArray(n.summary)||n.summary.length!==3||n.summary.some(x=>!str(x,1000))||!['high','normal','low'].includes(n.importance)||!['positive','negative','neutral'].includes(n.sentiment)||typeof n.verified!=='boolean'||!['themes','tickers'].every(k=>Array.isArray(n[k])&&n[k].every(v=>str(v,120))))throw Error('ニュースの形式を確認してください。');
  return s;
