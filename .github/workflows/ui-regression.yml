@@ -1,0 +1,25 @@
+name: UI v2 regression
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Preserve frozen v1.0
+        run: python tests/check_frozen.py
+      - name: Validate existing config
+        run: python config/validate_theme_config.py
+      - name: Accounting, rendering and fetch failures
+        run: node --test tests/*.test.js
+      - name: Preserve healthy data on failure
+        run: python -m unittest discover -s tests -p 'test_*.py'

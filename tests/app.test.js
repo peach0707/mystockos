@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {fresh,validate,commit,get,KEY} from '../assets/js/state.js';
+import {dayResult,yearResult,snapshotsCSV} from '../assets/js/accounting.js';
+import {loadPublic} from '../assets/js/data.js';
+import {themeName} from '../assets/js/display-ja.js';
+import {ranked,themesView} from '../assets/js/themes.js';
+import {homeView,stocksView,newsView,settingsView} from '../assets/js/views.js';
+import {portfolioView} from '../assets/js/portfolio.js';
+const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'));
+const themes=read('data/themes.json'),regime=read('data/regime.json'),stocks=read('data.json');
+const data={themes:{value:themes},regime:{value:regime},stocks:{value:stocks}};
+const snap=(date,assets,netFlow=0)=>({date,assets,netFlow,basis:'NY close + same-time FX, manual',status:'recorded',components:{price:null,fx:null,realized:null,other:null},stockContributions:[],themeContributions:[],allocation:[]});
+test('frozen scores, non-ranked exclusion, all 29 themes and escaped private text',()=>{assert.equal(ranked(data).length,5);assert.deepEqual(ranked(data).map(t=>t.strength.score),[...themes.themes.filter(t=>t.score_mode==='ranked')].map(t=>t.strength.score).sort((a,b)=>b-a));const html=themesView(data,'rank');for(const t of themes.themes)assert.ok(html.includes(themeName(t).replaceAll('&','&amp;')),t.theme_id);
+const s=fresh();s.policy='<script>alert(1)</script>';const home=homeView(data,s);assert.ok(!home.includes('<script>'));assert.ok(home.includes('&lt;script&gt;'));assert.ok(home.includes(regime.data.vix_as_of));assert.equal(JSON.stringify(themes),JSON.stringify(read('data/themes.json')));});
+test('every view renders empty and populated states without fake holdings',()=>{const s=fresh();for(const tab of ['held','watch','all'])assert.ok(stocksView(data,s,tab));for(const page of ['', 'edit','entry','calendar','year','dividends','summary'])assert.ok(portfolioView(s,page,'2026-09','2026-09-09',''));assert.ok(newsView(s).includes('自動収集は未接続'));assert.ok(settingsView(s,'').includes('バックアップ'));assert.ok(homeView({},s));assert.ok(!portfolioView(s,'','2026-09','2026-09-09','').includes('¥0'));});
+test('429, timeout and malformed response preserve last-good independent caches',async()=>{const store=new Map();globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};globalThis.fetch=async url=>({ok:true,json:async()=>String(url).endsWith('data/themes.json')?themes:String(url).endsWith('data/regime.json')?regime:stocks});await loadPublic();const before=new Map(store);globalThis.fetch=async url=>{if(String(url).includes('themes'))return {ok:false,status:429};if(String(url).includes('regime'))throw Object.assign(Error('timeout'),{name:'AbortError'});return {ok:true,json:async()=>({bad:true})};};const cached=await loadPublic();assert.equal(cached.themes.cached,true);assert.equal(cached.regime.error,'取得時間超過');assert.equal(cached.stocks.cached,true);assert.deepEqual(store,before);store.clear();const none=await loadPublic();assert.equal(none.themes.value,null);});
