@@ -8,7 +8,7 @@ const flow=(id,date,amount_jpy,timestamp=null)=>({id,date,timestamp,amount_jpy,t
 const setup=()=>({...fresh(),snapshots:[snap('2026-09-11',50000000),snap('2026-09-14',51000000)]});
 const memory=()=>{const values=new Map();globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};return values;};
 
-test('Friday to Monday without weekend valuations earns +1 million',()=>{const s=setup();validate(s);const r=dayResult(s,'2026-09-14');assert.equal(r.pnl,1000000);assert.equal(r.rate,2);assert.equal(r.previous.date,'2026-09-11');assert.match(portfolioView(s,'calendar','2026-09','2026-09-14',''),/2026-09-11 → 2026-09-14/);});
+test('Friday to Monday without weekend valuations earns +1 million',()=>{const s=setup();validate(s);const r=dayResult(s,'2026-09-14');assert.equal(r.pnl,1000000);assert.equal(r.rate,2);assert.equal(r.previous.date,'2026-09-11');assert.match(portfolioView(s,'day','2026-09','2026-09-14',''),/2026-09-11 → 2026-09-14/);});
 test('weekend deposit is subtracted; Monday evaluation need not own a flow',()=>{const s=setup();s.cashFlows=[flow('d','2026-09-12',1000000)];assert.equal(dayResult(s,'2026-09-14').pnl,0);assert.equal(dayResult(s,'2026-09-14').netFlow,1000000);assert.equal(dayResult(s,'2026-09-14').rate,null);});
 test('multiple deposits and withdrawals aggregate over holiday gaps',()=>{const s=setup();s.cashFlows=[flow('a','2026-09-12',2000000),flow('b','2026-09-13',-1000000),flow('c','2026-09-15',999)];assert.equal(dayResult(s,'2026-09-14').pnl,0);s.cashFlows.push(flow('old','2026-09-11',999));assert.equal(dayResult(s,'2026-09-14').netFlow,1000000);});
 test('offsetting gross cash movements do not yield an invented investment rate',()=>{const s=setup();s.cashFlows=[flow('a','2026-09-12',100),flow('b','2026-09-13',-100)];const d=dayResult(s,'2026-09-14');assert.equal(d.pnl,1000000);assert.equal(d.netFlow,0);assert.equal(d.rate,null);});
@@ -40,15 +40,15 @@ test('calendar weekends without evaluation show dash, not a zero-return day',()=
 });
 test('Case 6: cash dividend appears on actual payment date even without a valuation',()=>{
  const s=setup();s.dividends=[{id:'d',ticker:'MU',payment_date:'2026-09-12',timestamp:null,net_amount:10,currency:'USD',fx:150,status:'paid',tax_information:{withheld:3,note:''}}];
- const saturday=portfolioView(s,'calendar','2026-09','2026-09-12','');
+ const saturday=portfolioView(s,'day','2026-09','2026-09-12','');
  assert.match(saturday,/MU · 2026-09-12 · ¥1,500/);assert.match(saturday,/総運用損益<\/h3><p[^>]*>データ不足/);
- const monday=portfolioView(s,'calendar','2026-09','2026-09-14','');
+ const monday=portfolioView(s,'day','2026-09','2026-09-14','');
  assert.match(monday,/配当（比較期間内の入金分）<\/dt><dd>¥1,500/);
  assert.match(monday,/この日の入金記録なし/);assert.equal(dayResult(s,'2026-09-14').pnl,1000000);
  assert.equal(ordered(s).at(-1).assets,51000000);
 });
 test('all requested details render and missing components stay unclassified',()=>{
- const s=setup(),html=portfolioView(s,'calendar','2026-09','2026-09-14','');
+ const s=setup(),html=portfolioView(s,'day','2026-09','2026-09-14','');
  for(const label of ['総運用損益','期間損益率','株価要因','為替要因','配当','実現損益','その他','未分類差額','銘柄別寄与','テーマ別寄与'])assert.ok(html.includes(label),label);
  assert.match(html,/株価要因<\/dt><dd>未分類/);assert.match(html,/未分類差額<\/dt><dd>¥1,000,000/);
 });
