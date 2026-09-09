@@ -1,18 +1,22 @@
+import {DECISION_VERSION,validDecision,legacyDecision} from './decisions.js';
 import {dateValid} from './ui.js';
 import {timestampValid,snapshotRecord} from './ledger.js';
 export const LEGACY_KEY='mystockos.private.v2';
-export const KEY='mystockos.private.v3';
-export const fresh = () => ({version:3,cashFlows:[],cashFlowQuality:{status:'complete',note:''},yearBaselines:{},holdings:[],watch:['MU','TSM','AVGO','COHR','LITE'],snapshots:[],dividends:[],news:[],watchNotes:{},securities:{},policy:''});
+export const V3_KEY='mystockos.private.v3';
+export const KEY='mystockos.private.v4';
+export const fresh = () => ({version:4,decisionSchemaVersion:DECISION_VERSION,decisionHistory:[],watchDecisions:{},cashFlows:[],cashFlowQuality:{status:'complete',note:''},yearBaselines:{},holdings:[],watch:['MU','TSM','AVGO','COHR','LITE'],snapshots:[],dividends:[],news:[],watchNotes:{},securities:{},policy:''});
 let state=fresh();export let storageError='';
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const str=(s,n=3000)=>typeof s==='string'&&s.length<=n;
 const ticker=s=>typeof s==='string'&&/^[A-Z0-9.^=-]{1,20}$/.test(s);
 export function validate(s){
- if(!s||s.version!==3||!['holdings','watch','snapshots','cashFlows','dividends','news'].every(k=>Array.isArray(s[k])&&s[k].length<=10000)||!str(s.policy))throw Error('対応する形式は version: 3 のバックアップです。');
+ if(!s||s.version!==4||!['holdings','watch','snapshots','cashFlows','dividends','news'].every(k=>Array.isArray(s[k])&&s[k].length<=10000)||!str(s.policy))throw Error('対応する形式は version: 4 のバックアップです。');
  if(s.securities!==undefined&&(!s.securities||typeof s.securities!=='object'||Array.isArray(s.securities)||Object.entries(s.securities).some(([k,r])=>!ticker(k)||!r||r.symbol!==k||!str(r.id,200)||!str(r.name,300)||!str(r.exchange,100))))throw Error('銘柄・市場の登録情報が不正です。');
  if(!s.watchNotes||typeof s.watchNotes!=='object'||Array.isArray(s.watchNotes)||Object.entries(s.watchNotes).some(([k,v])=>!ticker(k)||!str(v)))throw Error('買い条件の形式が不正です。');
+ if(s.decisionSchemaVersion!==DECISION_VERSION||!s.watchDecisions||typeof s.watchDecisions!=='object'||Array.isArray(s.watchDecisions)||Object.entries(s.watchDecisions).some(([k,v])=>!ticker(k)||!validDecision('watch',v)))throw Error('判断の保存形式が不正です。');
+ if(!Array.isArray(s.decisionHistory)||s.decisionHistory.some(r=>!r||!str(r.id,100)||!r.id||!ticker(r.ticker)||!validDecision(r.scope,r.value)||r.source!=='manual'||r.enum_version!==DECISION_VERSION||typeof r.recorded_at!=='string'||!/^\d{4}-\d{2}-\d{2}T.*Z$/.test(r.recorded_at)||!Number.isFinite(Date.parse(r.recorded_at)))||new Set(s.decisionHistory.map(r=>r.id)).size!==s.decisionHistory.length)throw Error('判断履歴の形式が不正です。');
  if(s.watch.some(x=>!ticker(x))||new Set(s.watch).size!==s.watch.length)throw Error('監視銘柄が不正です。');
- if(s.holdings.some(h=>!ticker(h.ticker)||!finite(h.quantity)||h.quantity<=0||!finite(h.cost)||h.cost<0||!['USD','JPY'].includes(h.currency)||!['rationale','decision','buyCondition'].every(k=>str(h[k])) )||new Set(s.holdings.map(h=>h.ticker)).size!==s.holdings.length)throw Error('保有銘柄を確認してください。');
+ if(s.holdings.some(h=>!ticker(h.ticker)||!finite(h.quantity)||h.quantity<=0||!finite(h.cost)||h.cost<0||!['USD','JPY'].includes(h.currency)||!validDecision('held',h.decision) )||new Set(s.holdings.map(h=>h.ticker)).size!==s.holdings.length)throw Error('保有銘柄を確認してください。');
  if(!s.cashFlowQuality||!['complete','incomplete'].includes(s.cashFlowQuality.status)||!str(s.cashFlowQuality.note))throw Error('入出金履歴の完全性を確認してください。');
  if(!s.yearBaselines||typeof s.yearBaselines!=='object'||Array.isArray(s.yearBaselines))throw Error('年初基準が不正です。');
  for(const [year,date] of Object.entries(s.yearBaselines))if(!/^\d{4}$/.test(year)||!dateValid(date)||date<`${Number(year)-1}-12-01`||date>`${year}-01-01`||!s.snapshots.some(x=>x.date===date&&['recorded','closed'].includes(x.status)))throw Error('年初基準には前年12月〜元日の有効な評価を指定してください。');
@@ -31,8 +35,16 @@ export function validate(s){
  return s;
 }
 export function migrate(input) {
- if(input?.version===3)return validate(structuredClone(input));
- if(input?.version!==2)throw Error('対応する形式はversion 2 / 3です。');
+ if(input?.version===4)return validate(structuredClone(input));
+ if(input?.version===3){
+  const next=structuredClone(input);
+  if(!Array.isArray(next.holdings)||!next.watchNotes||typeof next.watchNotes!=='object')throw Error('旧データの形式が不正です。');
+  next.version=4;next.decisionSchemaVersion=DECISION_VERSION;next.watchDecisions={};next.decisionHistory=[];
+  for(const h of next.holdings){if(!h||typeof h.decision!=='string')throw Error('旧判断の形式が不正です。');h.legacyDecision=h.decision;h.decision=legacyDecision('held',h.decision);}
+  // Watch notes are buy-condition prose, not decisions. Never infer an enum from them.
+  return validate(next);
+ }
+ if(input?.version!==2)throw Error('対応する形式はversion 2 / 3 / 4です。');
  const next=structuredClone(input);
  next.version=3;next.cashFlows=[];next.yearBaselines={};
  next.cashFlowQuality={status:'incomplete',note:'旧版から移行しました。休日を含む入出金台帳を確認し、完全性を更新してください。'};
@@ -43,7 +55,7 @@ export function migrate(input) {
    return snapshotRecord({...x,assets_jpy:x.assets,valuation_basis:x.basis});
  });
  next.dividends=input.dividends.map(d=>({id:d.id,ticker:d.ticker,payment_date:d.date,timestamp:null,net_amount:d.net,currency:d.currency,fx:d.fx,status:d.status,tax_information:{withheld:null,note:'旧版では税額未記録。受取額は税引後。'}}));
- return validate(next);
+ return migrate(next);
 }
 export function read(){
  storageError='';
@@ -51,9 +63,9 @@ export function read(){
   const raw=localStorage.getItem(KEY);
   if(raw!==null)state=validate(JSON.parse(raw));
   else {
-   const old=localStorage.getItem(LEGACY_KEY);
+   const old=localStorage.getItem(V3_KEY)||localStorage.getItem(LEGACY_KEY);
    const next=old===null?fresh():migrate(JSON.parse(old));
-   // Keep the v2 key intact. Validate and persist v3 before activating it.
+   // Keep old keys intact; activate migrated data only after successful v4 persistence.
    if(old!==null)localStorage.setItem(KEY,JSON.stringify(next));
    state=next;
   }
@@ -63,4 +75,4 @@ export function read(){
 export const get=()=>state;
 export function commit(next){if(storageError)throw Error(storageError);validate(next);try{localStorage.setItem(KEY,JSON.stringify(next));}catch{throw Error('端末に保存できません。入力は保存されていません。');}state=next;return state;}
 export function mutate(fn){const next=structuredClone(state);fn(next);return commit(next);}
-export const rawBackup=()=>localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||JSON.stringify(state,null,2);
+export const rawBackup=()=>localStorage.getItem(KEY)||localStorage.getItem(V3_KEY)||localStorage.getItem(LEGACY_KEY)||JSON.stringify(state,null,2);

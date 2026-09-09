@@ -22,10 +22,10 @@ test('tinted theme row preserves score, unconfirmed state and input',()=>{
  assert.match(html,/未確認/);assert.match(html,/class="rank">—/);assert.equal(JSON.stringify(t),before);
 });
 test('decision pills style exact saved labels without inventing a decision',()=>{
- assert.match(decisionPill('保有継続'),/tint-green/);assert.match(decisionPill('監視中'),/tint-blue/);
- assert.match(decisionPill('押し目待ち'),/tint-yellow/);assert.match(decisionPill('判断未記入'),/tint-neutral/);
+ assert.match(decisionPill('hold'),/tint-green/);assert.match(decisionPill('watching','watch'),/tint-blue/);
+ assert.match(decisionPill('wait_pullback'),/tint-yellow/);assert.match(decisionPill('判断未記入'),/tint-neutral/);
  assert.match(decisionPill('保有継続とは限らない'),/tint-neutral/);
- assert.equal(decisionPill('<script>'),'<span class="decision-pill tint-neutral">&lt;script&gt;</span>');
+ assert.equal(decisionPill('<script>'),'<span class="decision-pill tint-neutral">未選択</span>');
 });
 test('app CSS does not use text smaller than 10px',()=>{
  const css=readFileSync(new URL('../assets/app.css',import.meta.url),'utf8');
