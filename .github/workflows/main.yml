@@ -23,6 +23,8 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import time
+          import urllib.error
           import urllib.parse
           import urllib.request
           from datetime import datetime, timezone
@@ -33,9 +35,33 @@ jobs:
           def change(current, past):
               return round((current / past - 1) * 100, 2)
 
+          def fetch_json(url, symbol, max_attempts=6):
+              for attempt in range(1, max_attempts + 1):
+                  try:
+                      with urllib.request.urlopen(url, timeout=30) as response:
+                          return json.loads(response.read().decode())
+                  except urllib.error.HTTPError as e:
+                      if e.code == 429 and attempt < max_attempts:
+                          retry_after = e.headers.get("Retry-After")
+                          try:
+                              wait = max(float(retry_after), 5.0) if retry_after else min(5 * (2 ** (attempt - 1)), 60)
+                          except (TypeError, ValueError):
+                              wait = min(5 * (2 ** (attempt - 1)), 60)
+                          print(f"{symbol}: rate limited (429). Retry {attempt}/{max_attempts} in {wait:.0f}s")
+                          time.sleep(wait)
+                          continue
+                      raise
+                  except (urllib.error.URLError, TimeoutError) as e:
+                      if attempt < max_attempts:
+                          wait = min(3 * (2 ** (attempt - 1)), 30)
+                          print(f"{symbol}: temporary network error {e}. Retry {attempt}/{max_attempts} in {wait}s")
+                          time.sleep(wait)
+                          continue
+                      raise
+
           stocks = []
 
-          for symbol in symbols:
+          for i, symbol in enumerate(symbols):
               params = urllib.parse.urlencode({
                   "symbol": symbol,
                   "interval": "1day",
@@ -44,14 +70,14 @@ jobs:
               })
 
               url = "https://api.twelvedata.com/time_series?" + params
-
-              with urllib.request.urlopen(url) as response:
-                  data = json.loads(response.read().decode())
+              data = fetch_json(url, symbol)
 
               if "values" not in data:
                   raise Exception(f"{symbol}: {data}")
 
               values = data["values"]
+              if len(values) < 2:
+                  raise Exception(f"{symbol}: insufficient price history")
 
               latest = float(values[0]["close"])
               previous = float(values[1]["close"])
@@ -69,6 +95,10 @@ jobs:
                   "three_month": change(latest, float(values[three_month_index]["close"])),
                   "date": values[0]["datetime"]
               })
+
+              # Avoid bursts against Twelve Data's per-minute API limits.
+              if i < len(symbols) - 1:
+                  time.sleep(1.5)
 
           output = {
               "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -91,5 +121,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "Update stock data"
+            git pull --rebase origin main
             git push
           fi
