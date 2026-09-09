@@ -2,13 +2,14 @@ import {dateValid} from './ui.js';
 import {timestampValid,snapshotRecord} from './ledger.js';
 export const LEGACY_KEY='mystockos.private.v2';
 export const KEY='mystockos.private.v3';
-export const fresh = () => ({version:3,cashFlows:[],cashFlowQuality:{status:'complete',note:''},yearBaselines:{},holdings:[],watch:['MU','TSM','AVGO','COHR','LITE'],snapshots:[],dividends:[],news:[],watchNotes:{},policy:''});
+export const fresh = () => ({version:3,cashFlows:[],cashFlowQuality:{status:'complete',note:''},yearBaselines:{},holdings:[],watch:['MU','TSM','AVGO','COHR','LITE'],snapshots:[],dividends:[],news:[],watchNotes:{},securities:{},policy:''});
 let state=fresh();export let storageError='';
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const str=(s,n=3000)=>typeof s==='string'&&s.length<=n;
 const ticker=s=>typeof s==='string'&&/^[A-Z0-9.^=-]{1,20}$/.test(s);
 export function validate(s){
  if(!s||s.version!==3||!['holdings','watch','snapshots','cashFlows','dividends','news'].every(k=>Array.isArray(s[k])&&s[k].length<=10000)||!str(s.policy))throw Error('対応する形式は version: 3 のバックアップです。');
+ if(s.securities!==undefined&&(!s.securities||typeof s.securities!=='object'||Array.isArray(s.securities)||Object.entries(s.securities).some(([k,r])=>!ticker(k)||!r||r.symbol!==k||!str(r.id,200)||!str(r.name,300)||!str(r.exchange,100))))throw Error('銘柄・市場の登録情報が不正です。');
  if(!s.watchNotes||typeof s.watchNotes!=='object'||Array.isArray(s.watchNotes)||Object.entries(s.watchNotes).some(([k,v])=>!ticker(k)||!str(v)))throw Error('買い条件の形式が不正です。');
  if(s.watch.some(x=>!ticker(x))||new Set(s.watch).size!==s.watch.length)throw Error('監視銘柄が不正です。');
  if(s.holdings.some(h=>!ticker(h.ticker)||!finite(h.quantity)||h.quantity<=0||!finite(h.cost)||h.cost<0||!['USD','JPY'].includes(h.currency)||!['rationale','decision','buyCondition'].every(k=>str(h[k])) )||new Set(s.holdings.map(h=>h.ticker)).size!==s.holdings.length)throw Error('保有銘柄を確認してください。');
