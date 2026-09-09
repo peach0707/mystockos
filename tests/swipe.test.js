@@ -1,71 +1,117 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {bindPageSwipe,SWIPE_ROUTES} from '../assets/js/swipe.js';
-
-function fixture(hash='#themes',{standalone=false,reduced=false}={}){
- const handlers={},windowHandlers={},animations=[],options=[];
- const main={parentElement:null,scrollWidth:390,clientWidth:390,closest:()=>null,isConnected:true,
-  addEventListener:(n,f,o)=>{handlers[n]=f;options.push(o);},removeEventListener:n=>delete handlers[n],
-  animate:(frames,timing)=>{const a={frames,timing,cancelled:false,cancel(){this.cancelled=true;}};animations.push(a);return a;}};
- const win={location:{hash},innerWidth:390,scrollY:0,navigator:{standalone},getComputedStyle:el=>({overflowX:el.overflowX||'visible'}),
-  matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),
-  addEventListener:(n,f)=>windowHandlers[n]=f,removeEventListener:n=>delete windowHandlers[n]};
- const doc={activeElement:{matches:()=>false},getSelection:()=>({toString:()=>''})};
- const cleanup=bindPageSwipe(main,win,doc);
- const touch=(x=220,y=200,id=1)=>({identifier:id,clientX:x,clientY:y});
- const emit=(name,touches,changedTouches=touches,extra={})=>handlers[name]?.({touches,changedTouches,timeStamp:100,target:main,defaultPrevented:false,...extra});
- const swipe=(dx=-110,dy=0,extra={})=>{emit('touchstart',[touch()],undefined,{timeStamp:0,...extra});emit('touchmove',[touch(220+dx,200+dy)]);emit('touchend',[],[touch(220+dx,200+dy)],{timeStamp:200});};
- return {main,win,doc,emit,touch,swipe,cleanup,options,animations,changed:()=>windowHandlers.hashchange()};
+class Element {
+ constructor(){this.style={transform:'',transition:'',willChange:''};this.handlers={};this.attrs={};this.parentElement=null;this.scrollWidth=390;this.clientWidth=390;this.isConnected=true;this.childNodes=[];}
+ closest(){return null;}
+ addEventListener(n,f,o){this.handlers[n]={f,o};}
+ removeEventListener(n){delete this.handlers[n];}
+ setAttribute(k,v){this.attrs[k]=v;}
+ append(el){el.parentElement=this;this.childNodes.push(el);}
+ remove(){if(this.parentElement)this.parentElement.childNodes=this.parentElement.childNodes.filter(x=>x!==this);this.parentElement=null;}
 }
-test('five parent screens navigate in order in Safari and standalone, without wrapping',()=>{
+function fixture(hash='#themes',{standalone=false,reduced=false}={}){
+ const main=new Element(),body=new Element(),raf=new Map(),timers=new Map(),windowHandlers={},renders=[];
+ let serial=0;
+ const win={location:{hash},innerWidth:390,scrollY:0,navigator:{standalone},performance:{now:()=>1000},
+  getComputedStyle:el=>({overflowX:el.overflowX||'visible'}),matchMedia:q=>({matches:q.includes('reduced-motion')?reduced:standalone}),
+  requestAnimationFrame:fn=>{raf.set(++serial,fn);return serial;},cancelAnimationFrame:id=>raf.delete(id),
+  setTimeout:fn=>{timers.set(++serial,fn);return serial;},clearTimeout:id=>timers.delete(id),
+  addEventListener:(n,f)=>windowHandlers[n]=f,removeEventListener:n=>delete windowHandlers[n]};
+ const doc={body,createElement:()=>new Element(),activeElement:{matches:()=>false},getSelection:()=>({toString:()=>''})};
+ const control=bindPageSwipe(main,win,doc,{preview:route=>{renders.push(route);return '<h1>'+route+'</h1>';}});
+ const touch=(x=220,y=200,id=1)=>({identifier:id,clientX:x,clientY:y});
+ const emit=(name,touches=[],changedTouches=touches,extra={})=>{
+  const event={touches,changedTouches,timeStamp:100,target:main,defaultPrevented:false,cancelable:true,preventDefault(){this.defaultPrevented=true;},stopImmediatePropagation(){this.stopped=true;},...extra};
+  main.handlers[name]?.f(event);return event;
+ };
+ const frame=()=>{const batch=[...raf.values()];raf.clear();batch.forEach(f=>f());};
+ const settle=()=>{frame();frame();const batch=[...timers.values()];timers.clear();batch.forEach(f=>f());};
+ const drag=(dx=-120,dy=0,extra={})=>{emit('touchstart',[touch()],undefined,{timeStamp:0,...extra});const event=emit('touchmove',[touch(220+dx,200+dy)],undefined,{timeStamp:100});frame();return event;};
+ const release=(dx=-120,dy=0,time=200)=>emit('touchend',[],[touch(220+dx,200+dy)],{timeStamp:time});
+ const swipe=(dx=-120,dy=0,extra={})=>{drag(dx,dy,extra);release(dx,dy);settle();};
+ return {main,win,doc,body,raf,timers,renders,control,touch,emit,frame,settle,drag,release,swipe,windowHandlers};
+}
+test('five-screen order and edges in Safari/standalone; router waits for snap completion',()=>{
  for(const standalone of [false,true])for(let i=0;i<5;i++)for(const dir of [-1,1]){
-  const f=fixture('#'+SWIPE_ROUTES[i],{standalone});f.swipe(-dir*110);
+  const f=fixture('#'+SWIPE_ROUTES[i],{standalone});f.drag(-dir*120);f.release(-dir*120);
+  assert.equal(f.win.location.hash,'#'+SWIPE_ROUTES[i]);f.settle();
   assert.equal(f.win.location.hash,'#'+(SWIPE_ROUTES[i+dir]||SWIPE_ROUTES[i]));
  }
- const root=fixture('');root.swipe();assert.equal(root.win.location.hash,'#themes');
+ const f=fixture('');f.swipe();assert.equal(f.win.location.hash,'#themes');
 });
-test('small, diagonal, vertical and slow gestures do not navigate',()=>{
- for(const [dx,dy]of [[-30,0],[-71,0],[-110,70],[0,150],[50,150]]){const f=fixture();f.swipe(dx,dy);assert.equal(f.win.location.hash,'#themes');}
- const f=fixture();f.emit('touchstart',[f.touch()],undefined,{timeStamp:0});f.emit('touchend',[],[f.touch(100)],{timeStamp:900});assert.equal(f.win.location.hash,'#themes');
+test('finger follows translate3d before release, coalesced into one RAF without repeated render',()=>{
+ const f=fixture();f.emit('touchstart',[f.touch()]);assert.equal(f.renders.length,0);
+ for(const x of [200,180,140])f.emit('touchmove',[f.touch(x)]);
+ assert.equal(f.main.style.transform,'');assert.equal(f.raf.size,1);f.frame();
+ assert.equal(f.main.style.transform,'translate3d(-80px,0,0)');assert.equal(f.main.style.transition,'none');assert.equal(f.main.style.willChange,'transform');
+ assert.deepEqual(f.renders,['stocks']);assert.equal(f.body.childNodes[0].style.transform,'translate3d(310px,0,0)');
+ for(const x of [130,120,110]){f.emit('touchmove',[f.touch(x)]);f.frame();}
+ assert.deepEqual(f.renders,['stocks']);assert.equal(f.win.location.hash,'#themes');
 });
-test('a gesture that starts vertically cannot later become a page swipe',()=>{
- const f=fixture();f.emit('touchstart',[f.touch()]);f.emit('touchmove',[f.touch(225,230)]);f.emit('touchend',[],[f.touch(80,230)],{timeStamp:200});assert.equal(f.win.location.hash,'#themes');
+test('release uses 240ms transition and hands existing neighbor DOM to the router',()=>{
+ const f=fixture();f.drag();const pane=f.body.childNodes[0];assert.equal(pane.attrs['aria-hidden'],'true');assert.ok(Object.hasOwn(pane.attrs,'inert'));
+ f.release();assert.equal(f.main.style.transition,'none');f.frame();f.frame();assert.match(f.main.style.transition,/transform 240ms/);
+ assert.equal(f.main.style.transform,'translate3d(-390px,0,0)');assert.equal(pane.style.transform,'translate3d(0px,0,0)');
+ f.emit('transitionend',[],[],{propertyName:'transform'});assert.equal(f.win.location.hash,'#stocks');assert.equal(f.main.style.willChange,'');
+ assert.equal(f.control.takePrepared('stocks'),pane);assert.equal(f.body.childNodes.length,0);assert.deepEqual(f.renders,['stocks']);
 });
-test('both edges remain available for native browser navigation',()=>{
- for(const x of [0,20,28,362,380,390]){const f=fixture();f.emit('touchstart',[f.touch(x)]);f.emit('touchend',[],[f.touch(x<200?x+110:x-110)],{timeStamp:200});assert.equal(f.win.location.hash,'#themes');}
+test('sub-threshold slow drag smoothly returns without route or DOM change',()=>{
+ const f=fixture();f.drag(-55);f.release(-55,0,400);f.frame();f.frame();
+ assert.match(f.main.style.transition,/240ms/);assert.equal(f.main.style.transform,'translate3d(0px,0,0)');
+ f.settle();assert.equal(f.win.location.hash,'#themes');assert.equal(f.body.childNodes.length,0);assert.equal(f.main.style.transform,'');assert.equal(f.main.style.willChange,'');
 });
-test('child screens, calendar, forms and settings never navigate between parents',()=>{
- for(const route of ['themes/memory_hbm','stocks/MU','portfolio/calendar','portfolio/day','portfolio/edit','settings','themes/','unknown']){const f=fixture('#'+route);f.swipe();assert.equal(f.win.location.hash,'#'+route);}
+test('recent flick can commit short movement; pauses and tiny flicks cannot',()=>{
+ const f=fixture();f.emit('touchstart',[f.touch()],undefined,{timeStamp:0});f.emit('touchmove',[f.touch(180)],undefined,{timeStamp:40});f.release(-40,0,60);f.settle();assert.equal(f.win.location.hash,'#stocks');
+ const paused=fixture();paused.drag(-55);paused.release(-55,0,800);paused.settle();assert.equal(paused.win.location.hash,'#themes');
+ const small=fixture();small.emit('touchstart',[small.touch()],undefined,{timeStamp:0});small.release(-25,0,20);small.settle();assert.equal(small.win.location.hash,'#themes');
 });
-test('interactive targets, their descendants and explicit opt-out regions are excluded',()=>{
+test('reversing direction shows only the relevant neighbor and builds each at most once',()=>{
+ const f=fixture();f.drag(-50);f.emit('touchmove',[f.touch(280)]);f.frame();assert.deepEqual(f.renders,['stocks','home']);
+ assert.equal(f.body.childNodes[0].style.visibility,'hidden');assert.equal(f.main.style.transform,'translate3d(60px,0,0)');
+ f.emit('touchmove',[f.touch(150)]);f.frame();assert.deepEqual(f.renders,['stocks','home']);f.control.cancel();assert.equal(f.body.childNodes.length,0);
+});
+test('vertical/diagonal motion releases immediately and is never prevented',()=>{
+ for(const [dx,dy]of [[-30,60],[-100,80],[0,100]]){
+  const f=fixture();const event=f.drag(dx,dy);assert.equal(event.defaultPrevented,false);f.release(dx,dy);f.settle();assert.equal(f.win.location.hash,'#themes');assert.equal(f.body.childNodes.length,0);
+ }
+ const f=fixture();f.drag(-30);const e=f.emit('touchmove',[f.touch(180,260)]);assert.equal(e.defaultPrevented,false);assert.equal(f.main.style.transform,'');assert.equal(f.body.childNodes.length,0);
+ f.release(-180,60);f.settle();assert.equal(f.win.location.hash,'#themes');
+});
+test('edges, child pages and settings do not start page drag',()=>{
+ for(const x of [0,20,28,362,380,390]){const f=fixture();f.emit('touchstart',[f.touch(x)]);f.release(-120);f.settle();assert.equal(f.win.location.hash,'#themes');assert.equal(f.renders.length,0);}
+ for(const route of ['themes/memory_hbm','stocks/MU','portfolio/calendar','portfolio/day','portfolio/edit','settings','themes/','unknown']){const f=fixture('#'+route);f.swipe();assert.equal(f.win.location.hash,'#'+route);assert.equal(f.renders.length,0);}
+});
+test('controls, focus, selection and horizontal scrolling regions remain native',()=>{
  for(const selector of ['input','textarea','select','button','a','label','summary','form','[role="slider"]','[role="dialog"]','[data-page-swipe="off"]','.calendar','.calendar-grid']){
-  const f=fixture();const target={...f.main,closest:s=>s.split(',').includes(selector)?{}:null};f.swipe(-110,0,{target});assert.equal(f.win.location.hash,'#themes',selector);
+  const f=fixture(),target=new Element();target.closest=s=>s.split(',').includes(selector)?{}:null;f.swipe(-120,0,{target});assert.equal(f.win.location.hash,'#themes',selector);
  }
- const f=fixture();f.doc.activeElement.matches=()=>true;f.swipe();assert.equal(f.win.location.hash,'#themes');
- const s=fixture();s.doc.getSelection=()=>({toString:()=> 'selected text'});s.swipe();assert.equal(s.win.location.hash,'#themes');
+ for(const kind of ['focus','selection','horizontal']){const f=fixture();if(kind==='focus')f.doc.activeElement.matches=()=>true;if(kind==='selection')f.doc.getSelection=()=>({toString:()=> 'selected'});if(kind==='horizontal'){f.main.overflowX='auto';f.main.scrollWidth=800;}f.swipe();assert.equal(f.renders.length,0);}
 });
-test('horizontal scrolling ancestors and changing vertical scroll take priority',()=>{
- const f=fixture();const target={...f.main,parentElement:f.main,overflowX:'auto',scrollWidth:800};f.swipe(-110,0,{target});assert.equal(f.win.location.hash,'#themes');
- const g=fixture();g.emit('touchstart',[g.touch()]);g.win.scrollY=50;g.emit('touchend',[],[g.touch(80)]);assert.equal(g.win.location.hash,'#themes');
-});
-test('multi-touch, cancellation, consumed events and route changes cancel the gesture',()=>{
- for(const reason of ['multi','cancel','consumed','route','detached','identifier']){
-  const f=fixture();f.emit('touchstart',[f.touch()]);
-  if(reason==='multi')f.emit('touchmove',[f.touch(),f.touch(150,210,2)]);
-  if(reason==='cancel')f.emit('touchcancel',[]);
-  if(reason==='consumed')f.emit('touchmove',[f.touch(150)],undefined,{defaultPrevented:true});
-  if(reason==='route')f.win.location.hash='#stocks/MU';
-  if(reason==='detached')f.main.isConnected=false;
-  f.emit('touchend',[],[f.touch(80,200,reason==='identifier'?2:1)],{timeStamp:200});
-  assert.equal(f.win.location.hash,reason==='route'?'#stocks/MU':'#themes',reason);
+test('cancel, multi-touch, resize, pagehide, scroll and external render remove all drag state',()=>{
+ for(const reason of ['multi','cancel','resize','pagehide','scroll','render','uncancelable','consumed','identifier']){
+  const f=fixture();f.drag(-70);
+  if(reason==='multi')f.emit('touchmove',[f.touch(120),f.touch(130,200,2)]);
+  if(reason==='cancel')f.emit('touchcancel');
+  if(['resize','pagehide'].includes(reason))f.windowHandlers[reason]();
+  if(reason==='scroll'){f.win.scrollY=40;f.windowHandlers.scroll();}
+  if(reason==='render')f.control.cancel();
+  if(reason==='uncancelable')f.emit('touchmove',[f.touch(100)],undefined,{cancelable:false});
+  if(reason==='consumed')f.emit('touchmove',[f.touch(100)],undefined,{defaultPrevented:true});
+  if(reason==='identifier')f.emit('touchmove',[f.touch(100,200,9)]);
+  f.release();f.settle();assert.equal(f.win.location.hash,'#themes',reason);assert.equal(f.body.childNodes.length,0);assert.equal(f.main.style.willChange,'');
  }
 });
-test('swipe animation runs after route change; reduced motion and ordinary navigation skip it',()=>{
- const f=fixture();f.swipe();assert.equal(f.animations.length,0);f.changed();assert.equal(f.animations.length,1);assert.equal(f.animations[0].frames[0].transform,'translateX(24px)');
- f.win.location.hash='#news';f.changed();assert.equal(f.animations.length,1);assert.equal(f.animations[0].cancelled,true);
- const r=fixture('#themes',{reduced:true});r.swipe();r.changed();assert.equal(r.animations.length,0);
- const back=fixture();back.swipe(110);back.changed();assert.equal(back.animations[0].frames[0].transform,'translateX(-24px)');
+test('route changes mid-gesture cannot commit stale data; pending prepared pane is discarded on render',()=>{
+ const f=fixture();f.drag();f.win.location.hash='#stocks/MU';f.release();f.settle();assert.equal(f.body.childNodes.length,0);assert.equal(f.win.location.hash,'#stocks/MU');
+ const g=fixture();g.swipe();assert.equal(g.body.childNodes.length,1);g.control.cancel();assert.equal(g.body.childNodes.length,0);assert.equal(g.control.takePrepared('stocks'),null);
 });
-test('listeners are passive and cleanup stops navigation',()=>{
- const f=fixture();assert.equal(f.options.length,4);assert.ok(f.options.every(o=>o.passive===true));f.cleanup();f.swipe();assert.equal(f.win.location.hash,'#themes');
+test('reduced motion still tracks finger but skips release transition; cleanup restores preexisting styles',()=>{
+ const f=fixture('#themes',{reduced:true});f.main.style.transition='opacity 100ms';f.drag();assert.equal(f.main.style.transform,'translate3d(-120px,0,0)');
+ f.release();assert.equal(f.win.location.hash,'#stocks');assert.equal(f.timers.size,0);assert.equal(f.main.style.transition,'opacity 100ms');f.control.destroy();assert.equal(f.body.childNodes.length,0);
+});
+test('start/end are passive, only horizontal move is consumed and post-drag ghost click is suppressed',()=>{
+ const f=fixture();assert.equal(f.main.handlers.touchstart.o.passive,true);assert.equal(f.main.handlers.touchend.o.passive,true);assert.equal(f.main.handlers.touchmove.o.passive,false);
+ assert.equal(f.drag().defaultPrevented,true);f.release();const click=f.emit('click');assert.equal(click.defaultPrevented,true);assert.equal(click.stopped,true);
+ f.control.destroy();f.settle();assert.equal(f.win.location.hash,'#themes');assert.equal(f.body.childNodes.length,0);assert.equal(f.raf.size,0);
 });
