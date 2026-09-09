@@ -1,6 +1,6 @@
 // Navigation and presentation only. No business or saved-state dependencies.
 export const SWIPE_ROUTES=Object.freeze(['home','themes','stocks','news','portfolio']);
-const BLOCKED='input,textarea,select,button,a,label,summary,form,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="tab"],[role="dialog"],dialog,[data-page-swipe="off"],.calendar,.calendar-grid';
+const BLOCKED='input,textarea,select,button,label,summary,form,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="tab"],[role="dialog"],dialog,[data-page-swipe="off"],.calendar,.calendar-grid';
 const EDITABLE='input,textarea,select,[contenteditable]:not([contenteditable="false"])';
 const routeOf=hash=>SWIPE_ROUTES.includes(hash.replace(/^#/,''))?hash.replace(/^#/,''):hash===''||hash==='#'?'home':null;
 const duration=240;
@@ -27,6 +27,8 @@ export function bindPageSwipe(main,win=window,doc=document,{preview=()=>null}={}
  function cancel(){const g=gesture;gesture=null;prepared?.pane.remove();prepared=null;cleanup(g);}
  function start(event){
   if(gesture?.phase==='settling')return;
+  // A new physical touch is not the compatibility click of the last drag.
+  suppressClickUntil=0;
   cancel();
   const route=routeOf(win.location.hash),touch=event.touches[0];
   if(!route||event.defaultPrevented||event.touches.length!==1||blocked(event.target)||doc.activeElement?.matches(EDITABLE)||selected())return;
@@ -38,10 +40,12 @@ export function bindPageSwipe(main,win=window,doc=document,{preview=()=>null}={}
  function track(touch,time){
   const g=gesture;if(!g)return false;
   const dx=touch.clientX-g.x,dy=touch.clientY-g.y,x=Math.abs(dx),y=Math.abs(dy);
-  // Release immediately on vertical/diagonal intent, even after horizontal lock.
-  if((Math.max(x,y)>=10&&x<=y*1.6)||selected()){cancel();return false;}
+  // Resolve intent early, but retain horizontal lock through ordinary wobble.
+  // Ambiguous diagonals remain pending; only clearly vertical intent cancels.
+  const vertical=g.phase==='pending'?y>=6&&y>x*1.35:y>=32&&y>x*2;
+  if(vertical||selected()){cancel();return false;}
   g.dx=dx;g.dy=dy;
-  if(g.phase==='pending'&&x>=10){
+  if(g.phase==='pending'&&x>=6&&x>y*1.1){
    g.phase='dragging';
    g.original={transform:main.style.transform,transition:main.style.transition,willChange:main.style.willChange};
    main.style.transition='none';main.style.willChange='transform';
@@ -105,9 +109,9 @@ export function bindPageSwipe(main,win=window,doc=document,{preview=()=>null}={}
   paint(g);g.phase='settling';suppressClickUntil=win.performance.now()+400;
   const sample=g.samples[0],elapsed=event.timeStamp-sample.t;
   const velocity=elapsed>0?(g.dx-sample.x)/elapsed:0;
-  const distance=Math.abs(g.dx),horizontal=distance>Math.abs(g.dy)*1.8;
-  const flick=distance>=32&&Math.abs(velocity)>=0.5&&Math.sign(velocity)===Math.sign(g.dx);
-  const commit=!!g.next&&horizontal&&(distance>=Math.max(72,g.width*0.25)||flick);
+  const distance=Math.abs(g.dx);
+  const flick=distance>=24&&Math.abs(velocity)>=0.4&&Math.sign(velocity)===Math.sign(g.dx);
+  const commit=!!g.next&&(distance>=g.width*0.17||flick);
   const reduced=win.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduced){finish(g,commit);return;}
   // Two RAFs let the final drag position paint before enabling transitions;
@@ -130,7 +134,7 @@ export function bindPageSwipe(main,win=window,doc=document,{preview=()=>null}={}
  }
  function abort(){prepared?.pane.remove();cancel();}
  const scroll=()=>{if(gesture&&Math.abs(win.scrollY-gesture.scroll)>12)abort();};
- const click=event=>{if(win.performance.now()<suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}};
+ const click=event=>{if(event.detail!==0&&(gesture?.phase==='dragging'||win.performance.now()<suppressClickUntil)){event.preventDefault();event.stopImmediatePropagation();}};
  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:abort};
  for(const [name,handler]of Object.entries(listeners))main.addEventListener(name,handler,{passive:name!=='touchmove'});
  main.addEventListener('click',click,true);
