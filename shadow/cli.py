@@ -2,6 +2,7 @@
 import argparse
 import json
 import sys
+from uuid import uuid4
 from pathlib import Path
 from .store import Store, now, digest
 from .engine import Engine
@@ -33,6 +34,30 @@ def ingest_bundle(store, filename):
     return store.capture(sources)
 
 
+def run_cycle(store, repo, prices=None, price_manifest=None):
+    """Persist operational attempts without editing any prediction/outcome record."""
+    run_id = str(uuid4())
+    store.append('run_started', run_id, {'run_id':run_id, 'started_at':store.clock(), 'operation':'cycle'})
+    result = {'run_id':run_id}
+    try:
+        try:
+            result['observation_id'] = capture_repository(store, repo)
+        except (OSError, ValueError, KeyError) as error:
+            result['capture_error'] = str(error)
+        if price_manifest:
+            try:
+                prices = ingest_bundle(store, price_manifest)
+            except (OSError, ValueError, KeyError) as error:
+                result['price_capture_error'] = str(error)
+        result['scoring'] = Engine(store).score_due(prices)
+        result['health'] = 'degraded' if ('capture_error' in result or 'price_capture_error' in result or result['scoring']['unresolved']) else 'ok'
+    except Exception as error:
+        store.append('run_finished', run_id, {**result, 'finished_at':store.clock(), 'health':'failed', 'error':str(error)})
+        raise
+    store.append('run_finished', run_id, {**result, 'finished_at':store.clock()})
+    return result
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description='Forward Data / Shadow research storage; no trading signals')
     parser.add_argument('--db',required=True,help='Durable private SQLite path; never inside public web assets')
@@ -61,15 +86,7 @@ def main(argv=None):
         elif args.command=='issue':result={'prediction_id':engine.issue(**json.loads(Path(args.request).read_text()))}
         elif args.command=='score':result=engine.score_due(args.prices,correction_reason=args.correction_reason)
         elif args.command=='cycle':
-            # Capture failure never destroys previous data or prevents scoring old due records.
-            result={}
-            try:result['observation_id']=capture_repository(store,args.repo)
-            except (OSError,ValueError,KeyError) as error:result['capture_error']=str(error)
-            prices=args.prices
-            if args.price_manifest:
-                try:prices=ingest_bundle(store,args.price_manifest)
-                except (OSError,ValueError,KeyError) as error:result['price_capture_error']=str(error)
-            result['scoring']=engine.score_due(prices)
+            result=run_cycle(store,args.repo,args.prices,args.price_manifest)
         elif args.command=='report':result=engine.report()
         elif args.command=='audit':result=store.audit()
         elif args.command=='backup':store.backup(args.output);result={'backup':args.output}
@@ -79,7 +96,7 @@ def main(argv=None):
             output.write_text(json.dumps(generate(args.start,args.end),ensure_ascii=False,indent=2))
             result={'calendar':str(output)}
         print(json.dumps(result,ensure_ascii=False,indent=2))
-        return 0
+        return 2 if result.get('health')=='degraded' else 0
     except (ValueError,KeyError,OSError) as error:
         print(json.dumps({'error':str(error),'previous_records_preserved':True},ensure_ascii=False),file=sys.stderr)
         return 1

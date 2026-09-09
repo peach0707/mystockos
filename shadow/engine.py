@@ -198,4 +198,8 @@ class Engine:
             self.store.get('prediction',status['prediction_id'])
             if status['outcome_id']:self.store.get('outcome',status['outcome_id'])
         rows=[{'prediction_id':p['prediction_id'],'theme_id':p['theme_id'],'horizon':p['horizon'],'model_version':p['model_version'],'factor_version':p['factor_version'],'status':self.status(p['prediction_id']),'due':p['sessions'][-1]['close']} for p in self.store.records('prediction')]
-        return {'namespace':self.store.namespace,'observations':len(self.store.records('observation')),'predictions':rows,'counts':{k:sum(r['status']==k for r in rows) for k in ('pending','scored','unresolved')},'champion':None,'production_signals':False}
+        starts=self.store.records('run_started')
+        finishes=self.store.records('run_finished')
+        finished_ids={r['run_id'] for r in finishes}
+        operations={'completed':len(finishes),'unfinished_run_ids':[r['run_id'] for r in starts if r['run_id'] not in finished_ids],'last_result':finishes[-1] if finishes else None}
+        return {'namespace':self.store.namespace,'observations':len(self.store.records('observation')),'predictions':rows,'counts':{k:sum(r['status']==k for r in rows) for k in ('pending','scored','unresolved')},'operations':operations,'champion':None,'production_signals':False}

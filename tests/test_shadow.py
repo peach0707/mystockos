@@ -213,4 +213,43 @@ class ShadowTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.issue(20,cost_model={'version':'bad','theme_roundtrip_rate':-0.1,'benchmark_roundtrip_rate':0,'assumption':'bad'})
         with self.assertRaises(ValueError):self.issue(20,prediction={'expected_excess_return':float('nan')})
 
+    def test_cycle_failure_is_persisted_and_old_due_predictions_still_score(self):
+        from shadow.cli import run_cycle
+        pid=self.issue();self.mature(pid)
+        prices=self.capture({'prices':self.prices(pid)})
+        result=run_cycle(self.store,Path(self.temp.name)/'missing-repository',prices)
+        self.assertEqual(result['health'],'degraded')
+        self.assertEqual(self.engine.status(pid),'scored')
+        self.assertEqual(self.store.get('run_finished',result['run_id'])['scoring']['scored'],1)
+        self.assertEqual(self.engine.report()['operations']['unfinished_run_ids'],[])
+
+    def test_cycle_records_failure_and_detects_interrupted_attempt_without_rewriting(self):
+        from shadow.cli import run_cycle
+        self.time='2026-09-09T23:00:00Z'
+        repo=Path(__file__).resolve().parents[1]
+        with patch.object(Engine,'score_due',side_effect=RuntimeError('injected failure')):
+            with self.assertRaises(RuntimeError):run_cycle(self.store,repo)
+        finished=self.store.records('run_finished')
+        self.assertEqual(finished[-1]['health'],'failed')
+        with patch.object(Engine,'score_due',side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):run_cycle(self.store,repo)
+        self.assertEqual(len(self.engine.report()['operations']['unfinished_run_ids']),1)
+        result=run_cycle(self.store,repo)
+        self.assertEqual(result['health'],'ok')
+        self.assertEqual(self.store.records('run_finished')[0],finished[0])
+        self.assertEqual(len(self.engine.report()['operations']['unfinished_run_ids']),1)
+
+    def test_degraded_cycle_cli_returns_nonzero_and_logs_missing_price_bundle(self):
+        from shadow.cli import main
+        from contextlib import redirect_stdout
+        from io import StringIO
+        output=StringIO()
+        with redirect_stdout(output):
+            code=main(['--db',str(self.path),'--namespace','synthetic','cycle','--repo',self.temp.name,'--price-manifest',str(Path(self.temp.name)/'absent.json')])
+        self.assertEqual(code,2)
+        result=json.loads(output.getvalue())
+        self.assertEqual(result['health'],'degraded')
+        self.assertIn('price_capture_error',result)
+        self.assertEqual(self.store.get('run_finished',result['run_id'])['health'],'degraded')
+
 if __name__=='__main__':unittest.main()
