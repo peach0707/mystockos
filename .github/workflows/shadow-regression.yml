@@ -1,0 +1,29 @@
+name: Forward Shadow foundation regression
+on:
+  pull_request:
+    paths:
+      - 'shadow/**'
+      - 'tests/test_shadow.py'
+      - 'tests/fixtures/shadow_calendar_2026.json'
+      - '.github/workflows/shadow-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frozen theme boundary
+        run: python tests/check_frozen.py
+      - name: Offline ledger regression
+        run: python -m unittest tests.test_shadow -v
+      - name: Synthetic automatic maturity smoke test
+        run: python -m shadow.demo --directory "$RUNNER_TEMP/shadow-demo"
+      - name: Verify operational database and WAL-safe backup
+        run: |
+          python -m shadow.cli --db "$RUNNER_TEMP/shadow-demo/synthetic.sqlite3" --namespace synthetic audit
+          python -m shadow.cli --db "$RUNNER_TEMP/shadow-demo/backup.sqlite3" --namespace synthetic report
