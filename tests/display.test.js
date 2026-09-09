@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {fresh} from '../assets/js/state.js';
+import {themeNames,themeName} from '../assets/js/display-ja.js';
+import {themesView} from '../assets/js/themes.js';
+import {stocksView,homeView,settingsView} from '../assets/js/views.js';
+import {portfolioView} from '../assets/js/portfolio.js';
+const load=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url)));
+const data={themes:{value:load('data/themes.json')},regime:{value:load('data/regime.json')},stocks:{value:load('data.json')}};
+const text=h=>h.replace(/<[^>]*>/g,' ');
+test('all frozen themes have Japanese display names; identifiers and input data remain intact',()=>{const before=JSON.stringify(data);assert.equal(Object.keys(themeNames).length,29);const h=themesView(data,'rank');for(const t of data.themes.value.themes){assert.ok(themeNames[t.theme_id]);assert.ok(h.includes(themeName(t)));assert.ok(!text(h).includes(t.name));}assert.equal(JSON.stringify(data),before);});
+test('compact theme disclosures retain scores, no unverified forward values, no legacy English labels',()=>{const s=fresh(),html=[themesView(data,'rank'),themesView(data,'early'),themesView(data,'weak'),stocksView(data,s,'all'),homeView(data,s),settingsView(s,'')].join('');for(const word of ['Strength','Velocity','Heat','Turning','Weakening','Improving','Leading','Lagging','Hot','Core','Related','Watch','Overlay','Theme System','Strong','Weak','deep drawdown'])assert.ok(!new RegExp('\\b'+word+'\\b').test(text(html)),word);assert.match(html,/class="theme-row"/);assert.match(html,/先行/);assert.match(html,/class="future">—/);assert.match(html,/参考情報（スコア対象外）/);});
+test('home follows the six agreed sections and stock notes stay in expandable details',()=>{const s=fresh(),h=homeView(data,s);let prev=-1;for(const title of ['市場環境','今日の方針','今強いテーマ','初動検知','保有銘柄','重要ニュース']){const i=h.indexOf('<h2>'+title);assert.ok(i>prev,title);prev=i;}assert.match(stocksView(data,s,'watch'),/<details class="stock-row">/);assert.match(stocksView(data,s,'watch'),/watch-note-form/);});
+test('calendar summary never fabricates missing monthly data and personal state is not changed by views',()=>{const s=fresh(),before=JSON.stringify(s);const h=portfolioView(s,'calendar','2026-09','2026-09-14','');assert.match(h,/今月損益/);assert.match(h,/今月損益率/);assert.match(h,/データ不足/);assert.equal(JSON.stringify(s),before);});
