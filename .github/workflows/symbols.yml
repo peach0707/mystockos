@@ -1,0 +1,42 @@
+name: Update symbol reference
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 21 * * *'
+  pull_request:
+    paths:
+      - 'scripts/update_symbols.py'
+      - '.github/workflows/symbols.yml'
+permissions:
+  contents: write
+concurrency:
+  group: symbols-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  symbols:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch and validate public reference
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: python scripts/update_symbols.py
+      - name: Save reference on the selected branch only
+        env:
+          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/symbols.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update public symbol reference'
+            git pull --rebase origin "$TARGET_BRANCH"
+            git push origin "HEAD:$TARGET_BRANCH"
+          fi
