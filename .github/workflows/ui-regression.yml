@@ -20,6 +20,6 @@ jobs:
       - name: Validate existing config
         run: python config/validate_theme_config.py
       - name: Accounting, rendering and fetch failures
-        run: node --test tests/app.test.js
+        run: node --test tests/*.test.js
       - name: Preserve healthy data on failure
         run: python -m unittest discover -s tests -p 'test_*.py'
