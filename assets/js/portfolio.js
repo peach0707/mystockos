@@ -21,8 +21,9 @@ function calendar(s,month,selected,detail=false){
  let cells=Array.from({length:offset},()=>'<span></span>').join('');
  for(let i=1;i<=days;i++){
   const date=`${month}-${String(i).padStart(2,'0')}`,d=dayResult(s,date),receipts=paidOn(s,date),closed=d?.current.status==='closed';
-  cells+=`<button class="day ${date===selected?'selected':''}" data-date="${date}" aria-label="${date} ${d?.pnl!=null?yen(d.pnl):'評価なし・データ不足'}${receipts.length?' 配当入金あり':''}"><span>${i}</span>${closed?'<span class="sr-only">休場記録</span>':!d?'<span class="sr-only">評価なし</span>':''}<b class="${tone(d?.pnl)}">${!closed&&d?.pnl!=null?compactMoney(d.pnl):'—'}</b><small>${!closed&&d?.pnl!=null?pct(d.rate):'—'}</small>${receipts.length?'<small>配当入金</small>':''}</button>`;
+  cells+=`<button class="day ${date===selected?'selected':''}" data-date="${date}" aria-label="${date} ${d?.pnl!=null?yen(d.pnl):'評価なし・データ不足'}${receipts.length?' 配当入金あり':''}"><span>${i}</span>${closed?'<span class="sr-only">休場記録</span>':!d?'<span class="sr-only">評価なし</span>':''}<b class="${tone(d?.pnl)}">${!closed&&d?.pnl!=null?compactMoney(d.pnl):'—'}</b><small class="${tone(d?.rate)}">${!closed&&d?.pnl!=null?pct(d.rate):'—'}</small>${receipts.length?'<small>配当入金</small>':''}</button>`;
  }
+ cells+=Array.from({length:(7-(offset+days)%7)%7},()=>'<span></span>').join('');
  const d=selected?dayResult(s,selected):null,receipts=selected?paidOn(s,selected):[];
  const unclassified=v=>v==null?'未分類':yen(v);
  const components=d?.current.components||{};
