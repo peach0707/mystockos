@@ -24,7 +24,7 @@
 
 表示・選択肢・検証は `assets/js/decisions.js` を共通で使用します。定義済みenumの意味は変更・再利用しません。表示名の変更でも保存値は維持します。未知のenumや別用途のenumは保存・バックアップ読込時に拒否します。
 
-個人データは localStorage `mystockos.private.v5` のみに保存します（投資根拠タグ追加後）。判断enumのバージョンは1のままです。
+個人データは localStorage `mystockos.private.v6` のみに保存します（投資根拠タグ追加後）。判断enumのバージョンは1のままです。
 - `holdings[].decision`: 保有enum
 - `watchDecisions[ticker]`: 監視enum（未設定はunset）
 - `decisionSchemaVersion`: 1

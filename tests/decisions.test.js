@@ -26,7 +26,7 @@ test('free text, wrong-scope enums, unregistered tickers and invalid imported en
 test('v3 migration maps only exact decisions, preserves old prose and does not fabricate dated history',()=>{
  const old={...fresh(),version:3,holdings:[{...holding(),decision:'保有継続',rationale:'旧根拠',buyCondition:'旧条件'},{...holding(),ticker:'TSM',decision:'保有継続かも'}],watchNotes:{MU:'押し目で買いたい'}};
  const raw=JSON.stringify(old),s=migrate(old);assert.equal(JSON.stringify(old),raw);assert.equal(s.holdings[0].decision,'hold');assert.equal(s.holdings[1].decision,'unset');assert.equal(s.holdings[1].legacyDecision,'保有継続かも');assert.equal(s.holdings[0].rationale,'旧根拠');assert.deepEqual(s.watchDecisions,{});assert.deepEqual(s.decisionHistory,[]);
- const values=new Map([[V3_KEY,raw]]);globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};read();assert.equal(values.get(V3_KEY),raw);assert.equal(get().version,5);assert.ok(values.has(KEY));
+ const values=new Map([[V3_KEY,raw]]);globalThis.localStorage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};read();assert.equal(values.get(V3_KEY),raw);assert.equal(get().version,6);assert.ok(values.has(KEY));
  values.delete(KEY);globalThis.localStorage.setItem=()=>{throw Error('quota');};read();assert.ok(storageError);assert.equal(values.get(V3_KEY),raw);assert.ok(!values.has(KEY));
 });
 test('stock forms are selection only and watch list reflects the saved enum',()=>{
