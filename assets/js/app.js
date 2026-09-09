@@ -1,3 +1,4 @@
+import {bindPageSwipe} from './swipe.js';
 import {recordRationales,toggleRationale,MAX_RATIONALES} from './rationales.js';
 import {recordDecision} from './decisions.js';
 import {loadSymbols,bindSymbolPickers,fromForm,manyFromForm,remember,registerWatch,ensureUnique,verifyIncoming} from './symbols.js';
@@ -12,6 +13,7 @@ let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=t
 read();bindSymbolPickers();
 function render(focus=false){const [route='home',page='']=location.hash.slice(1).split('/'),s=get();const main=document.querySelector('#main');const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(s),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError)};main.innerHTML=Object.entries(data).filter(([,d])=>d.error).map(([k,d])=>`<p class="warning">${esc({regime:'市場',themes:'テーマ',stocks:'株価'}[k])}：${d.cached?'前回の端末保存を表示中':'取得できません'}（${esc(d.error)}）</p>`).join('')+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();document.querySelectorAll('.bottom a').forEach(a=>{a.classList.toggle('active',a.hash===`#${route}`);if(a.hash===`#${route}`)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});document.title=`株ゴリラ🦍 · ${{home:'ホーム',themes:'テーマ',stocks:'銘柄',news:'ニュース',portfolio:'保有',settings:'設定'}[route]||'ホーム'}`;if(focus){main.focus();window.scrollTo(0,0);}}
 window.addEventListener('hashchange',()=>render(true));
+bindPageSwipe(document.querySelector('#main'));
 async function refresh(){notice('公開データを確認しています…');[data]=await Promise.all([loadPublic(),loadSymbols()]);render();notice(Object.values(data).some(x=>x.error)?'一部取得できませんでした。保存データと基準日を確認してください。':'公開データを読み込みました。');}
 const run=fn=>{try{fn();render();notice('端末に保存しました。');}catch(e){notice(e.message);}};
 const number=(f,k)=>{const v=f.get(k);if(v===null||String(v).trim()==='')throw Error('金額・株数を入力してください。');const n=Number(v);if(!Number.isFinite(n))throw Error('数値が不正です。');return n;};
