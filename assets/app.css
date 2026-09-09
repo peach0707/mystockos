@@ -2,8 +2,13 @@
 
 .rationale-fields{border:1px solid var(--line);border-radius:4px;margin:0;padding:10px;min-width:0}.rationale-fields legend{font-size:12px;font-weight:650}.rationale-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}.rationale-option{display:flex;align-items:center;gap:6px;min-height:44px;padding:6px;border:1px solid var(--line);border-radius:5px;font-size:12px}.rationale-option input{width:18px;height:18px;min-height:18px;margin:0;flex-shrink:0;accent-color:var(--blue)}.rationale-toggle{min-height:44px;padding:8px 4px;border:1px solid var(--line);border-radius:999px;background:#F0F3F6;color:#657484;font-size:12px}.rationale-toggle[aria-pressed=true]{background:#EAF3FF;color:#1766B5;border-color:#B6D5FF}.rationale-detail{padding:12px 0;border-bottom:1px solid var(--line);margin-bottom:10px}.rationale-detail .row strong{font-size:14px;color:var(--blue)}.rationale-event{padding:7px 0;border-bottom:1px solid var(--line)}.rationale-event time{font-size:11px;color:var(--muted)}
 
-/* Keep page-slide animation inside the viewport; nested horizontal scrollers remain native. */
-html{overflow-x:clip}
-
-/* One inert adjacent viewport, created only after horizontal intent. */
-.page-swipe-neighbor{position:fixed;inset:0;z-index:8;width:100%;height:100dvh;overflow:hidden;pointer-events:none;background:#F7F9FC;padding:calc(50px + env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) calc(76px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+/* Native, retained tab pages. Browser edge navigation is not intercepted. */
+html,body{height:100%;overflow:hidden}
+#main{position:fixed;inset:calc(var(--app-header) + env(safe-area-inset-top)) 0 calc(var(--app-nav) + 3px + env(safe-area-inset-bottom));width:100%;padding:0;margin:0 auto;overflow:hidden}
+.tab-pager{display:flex;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:auto}
+.tab-pager::-webkit-scrollbar{display:none}
+.tab-page{flex:0 0 100%;width:100%;min-width:0;height:100%;overflow-y:auto;overflow-x:hidden;scroll-snap-align:start;scroll-snap-stop:always;-webkit-overflow-scrolling:touch}
+.tab-page,.detail-page{padding:6px max(8px,env(safe-area-inset-right)) 28px max(8px,env(safe-area-inset-left));background:#F7F9FC}
+.detail-page{height:100%;overflow-y:auto;overflow-x:hidden;outline:none}
+.tab-pager[hidden],.detail-page[hidden]{display:none}
+.tab-page textarea{touch-action:pan-y pinch-zoom}
