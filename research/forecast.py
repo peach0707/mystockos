@@ -298,6 +298,9 @@ def score(store, request_id, prices):
             max_favorable_movement=max([0.]+path), max_adverse_movement=min([0.]+path),
             movement_basis='session_close_relative_to_entry_open',
             prediction_error=excess-prediction['prediction']['expected_excess_return'],
+            direction_correct=None if prediction['prediction']['expected_excess_return']==0
+                else excess*prediction['prediction']['expected_excess_return']>0,
+            direction_target=TARGET,
             price_references=references, result_quality='provider_basis_not_independently_reconciled',
             **{k:prediction[k] for k in BASIS}))
         with store.transaction():

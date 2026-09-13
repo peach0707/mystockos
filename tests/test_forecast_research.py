@@ -195,6 +195,8 @@ class ForecastResearchTests(unittest.TestCase):
             result=score(store,'r1',prices)
             self.assertEqual(result['status'],'scored')
             self.assertAlmostEqual(result['excess_return'],.01)
+            self.assertTrue(result['direction_correct'])
+            self.assertEqual(result['direction_target'],TARGET)
             self.assertFalse(result['dividend_adjusted'])
             self.assertEqual(score(store,'r1',{}),result)
             self.assertEqual(store.get('research_prediction','r1'),p)
