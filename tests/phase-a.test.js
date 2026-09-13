@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {phaseDetails,rankChange,sortedMembers,memberRows} from '../assets/js/phase-a.js';
 test('missing metrics show dashes, not zero returns or invented rank',()=>{
  const html=phaseDetails(null,null);assert.match(html,/取得待ち/);assert.doesNotMatch(html,/NaN|undefined|0\.0%/);assert.match(rankChange(null),/—/);
+ assert.doesNotMatch(phaseDetails({rvol:{total_n:1,eligible_n:'<script>'},rvol_elevated_n:'<script>'},'2026-09-11'),/<script>/);
 });
 test('member sorting supports four keys, null last, stable ties and no mutation',()=>{
  for(const key of ['return_1d','return_5d','return_21d','rvol']){
