@@ -4,6 +4,32 @@ import {validTags,RATIONALE_VERSION} from './rationales.js';
 export const USAGE_PREFIX='mystockos.usage.v1.';
 export const USAGE_BUDGET_BYTES=1_000_000;
 const LAST_KEY='mystockos.usage-last.v1';
+let databasePromise;
+async function preferredStorage(){
+ if(typeof indexedDB==='undefined')return localStorage;
+ if(!databasePromise)databasePromise=new Promise((resolve,reject)=>{
+  const request=indexedDB.open('mystockos-device-usage-v1',1);
+  request.onupgradeneeded=()=>request.result.createObjectStore('records');
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error);
+  request.onblocked=()=>reject(Error('利用履歴の保存領域を開けません。'));
+ }).catch(e=>{databasePromise=null;throw e;});
+ const db=await databasePromise;
+ const read=(method,key)=>new Promise((resolve,reject)=>{
+  const request=db.transaction('records','readonly').objectStore('records')[method](key);
+  request.onsuccess=()=>resolve(request.result??null);request.onerror=()=>reject(request.error);
+ });
+ return {kind:'indexeddb',keys:()=>read('getAllKeys'),getItem:k=>read('get',k),
+  setItem:async(k,v)=>{
+   try{await new Promise((resolve,reject)=>{
+    const tx=db.transaction('records','readwrite'),store=tx.objectStore('records');
+    // Immutable snapshot keys use add; only the last-event pointer uses put.
+    store[k.startsWith(USAGE_PREFIX)?'add':'put'](v,k);
+    tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+   });}catch(e){if(await read('get',k)!==v)throw e;}
+  }};
+}
+const keys=async storage=>storage.keys?await storage.keys():Array.from({length:storage.length},(_,i)=>storage.key(i));
 export const stable=value=>JSON.stringify(value,(_k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
 const hash=async text=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))].map(x=>x.toString(16).padStart(2,'0')).join('');
 const dayJST=stamp=>new Date(new Date(stamp).getTime()+9*3600000).toISOString().slice(0,10);
@@ -62,22 +88,22 @@ export async function saveUsage(input,sourceValues,storage,stamp){
  const snapshot={...input,source_hashes:hashes};
  const fingerprint=await hash(stable(snapshot));
  let previous=null;
- try{previous=JSON.parse(storage.getItem(LAST_KEY)||'null');}catch{}
+ try{previous=JSON.parse(await storage.getItem(LAST_KEY)||'null');}catch{}
  // Compare to the last event, not every historical record: A -> B -> A is a real change.
- if(previous?.fingerprint===fingerprint&&storage.getItem(USAGE_PREFIX+previous.record_id))return {status:'unchanged'};
+ if(previous?.fingerprint===fingerprint&&await storage.getItem(USAGE_PREFIX+previous.record_id))return {status:'unchanged'};
  const body={...snapshot,recorded_at:stamp,previous_record_id:previous?.record_id??null};
  const record_id=await hash(stable(body)),key=USAGE_PREFIX+record_id;
  const record={record_id,payload:body},encoded=JSON.stringify(record);
- const prior=storage.getItem(key);
+ const prior=await storage.getItem(key);
  if(prior&&prior!==encoded)throw Error('利用履歴の整合性を確認してください。');
- if(!prior){
+ if(!prior&&storage.kind!=='indexeddb'){
   let usage=0,total=0;
-  for(let i=0;i<storage.length;i++){const k=storage.key(i),size=2*(k.length+(storage.getItem(k)||'').length);total+=size;if(k.startsWith(USAGE_PREFIX))usage+=size;}
+  for(const k of await keys(storage)){const size=2*(k.length+(await storage.getItem(k)||'').length);total+=size;if(k.startsWith(USAGE_PREFIX))usage+=size;}
   const added=2*(key.length+encoded.length);
   if(usage+added>USAGE_BUDGET_BYTES||total+added>3_000_000)throw Error('利用履歴の保存上限です。既存データは削除していません。');
  }
- if(!prior)storage.setItem(key,encoded); // Per-record append, no rewriting or silent pruning.
- storage.setItem(LAST_KEY,JSON.stringify({record_id,fingerprint}));
+ if(!prior)await storage.setItem(key,encoded); // Per-record append, no rewriting or silent pruning.
+ await storage.setItem(LAST_KEY,JSON.stringify({record_id,fingerprint}));
  return {status:'recorded',record_id};
 }
 
@@ -89,7 +115,7 @@ export function captureUsage(state,data,onError=()=>{},stamp=new Date().toISOStr
  try{input=usageInput(state,data,stamp);sources=structuredClone({themes:data.themes?.value??null,
   regime:data.regime?.value??null,stocks:data.stocks?.value??null,phaseA:data.phaseA??null});}
  catch(e){onError(e.message);return;}
- queue=queue.then(()=>saveUsage(input,sources,localStorage,stamp)).then(()=>{lastError='';}).catch(()=>{
+ queue=queue.then(async()=>saveUsage(input,sources,await preferredStorage(),stamp)).then(()=>{lastError='';}).catch(()=>{
   const message='利用履歴を端末に保存できませんでした。設定からバックアップを確認してください。保有・会計の保存とは別です。';
   if(lastError!==message)onError(message);
   lastError=message;
@@ -97,15 +123,18 @@ export function captureUsage(state,data,onError=()=>{},stamp=new Date().toISOStr
  return queue;
 }
 
-export async function usageBackup(storage=localStorage){
+export async function usageBackup(storage){
  await queue;
+ const target=storage??await preferredStorage();
+ const stores=!storage&&target.kind==='indexeddb'?[target,localStorage]:[target];
  const records=[];
- for(let i=0;i<storage.length;i++){
-  const key=storage.key(i);
+ const seen=new Set();
+ for(const source of stores)for(const key of await keys(source)){
   if(!key?.startsWith(USAGE_PREFIX))continue;
-  const record=JSON.parse(storage.getItem(key));
+  const record=JSON.parse(await source.getItem(key));
   if(record.record_id!==await hash(stable(record.payload))||key!==USAGE_PREFIX+record.record_id)throw Error('利用履歴の整合性を確認してください。');
-  records.push(record);
+  if(!seen.has(record.record_id))records.push(record);
+  seen.add(record.record_id);
  }
  records.sort((a,b)=>a.payload.recorded_at.localeCompare(b.payload.recorded_at)||a.record_id.localeCompare(b.record_id));
  return JSON.stringify({schema_version:1,namespace:'device_usage',exported_at:new Date().toISOString(),records},null,2);

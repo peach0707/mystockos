@@ -67,3 +67,11 @@ test('Export detects corruption and preserves source hashes',async()=>{
  const row=JSON.parse(db.getItem(USAGE_PREFIX+record_id));row.payload.decisions=[];db.setItem(USAGE_PREFIX+record_id,JSON.stringify(row));
  await assert.rejects(usageBackup(db),/整合性/);
 });
+
+test('Asynchronous database adapter records and exports without using accounting storage',async()=>{
+ const map=new Map(),db={kind:'indexeddb',keys:async()=>[...map.keys()],getItem:async k=>map.get(k)??null,setItem:async(k,v)=>{map.set(k,v);}};
+ const s=fixture(),stamp='2026-09-13T01:00:00Z',input=usageInput(s,data,stamp);
+ assert.equal((await saveUsage(input,values,db,stamp)).status,'recorded');
+ assert.equal((await saveUsage(input,values,db,stamp)).status,'unchanged');
+ assert.equal(JSON.parse(await usageBackup(db)).records.length,1);
+});
