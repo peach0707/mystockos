@@ -1,0 +1,6 @@
+.phase-b{min-width:0;margin:12px 0;padding-top:10px;border-top:1px solid #e7ecf2;overflow-wrap:anywhere}
+.phase-b h2{font-size:15px;margin:0 0 6px}.phase-b p{font-size:12px;line-height:1.55;margin:6px 0}
+.phase-b small{font-size:11px}.phase-b-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.phase-b-grid>div{display:flex;flex-direction:column;gap:4px;padding:8px 4px;background:#f7f9fc;border-radius:4px;text-align:center;min-width:0}
+.phase-b-grid b{font-size:18px;font-variant-numeric:tabular-nums}.phase-b-stock{grid-template-columns:repeat(2,minmax(0,1fr))}
+.phase-b-early{border-bottom:1px solid #e7ecf2;padding:10px 0}.phase-b-early>a{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px}.phase-b-early .badge{flex-shrink:0}
