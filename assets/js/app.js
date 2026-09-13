@@ -1,3 +1,4 @@
+import {captureUsage,usageBackup} from './usage.js';
 import {loadPhaseA,bindPhaseSort} from './phase-a.js';
 import {createPager,createNavigation,TAB_ROUTES,parseRoute} from './pager.js';
 import {recordRationales,toggleRationale,MAX_RATIONALES} from './rationales.js';
@@ -12,6 +13,7 @@ import {homeView,stocksView,newsView,settingsView} from './views.js';
 import {portfolioView} from './portfolio.js';
 let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editTicker='',editFlow='';
 read();bindSymbolPickers();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)captureUsage(get(),data,notice);});
 bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
 function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(s,page),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError)};return Object.entries(data).filter(([,d])=>d.error).map(([k,d])=>`<p class="warning">${esc({regime:'市場',themes:'テーマ',stocks:'株価'}[k])}：${d.cached?'前回の端末保存を表示中':'取得できません'}（${esc(d.error)}）</p>`).join('')+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
@@ -23,7 +25,7 @@ function syncTab(route){
 const pager=createPager(main,{html:screenHTML,onTab:route=>{navigation.sync(route);syncTab(route);}});
 const navigation=createNavigation({onTop:route=>pager.select(route),onDetail:(route,page)=>{pager.showDetail(route,page);syncTab(TAB_ROUTES.includes(route)?route:history.state?.kabugorilla?.tab||'home');}});
 const navigate=hash=>navigation.go(hash);
-function render(){pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}}
+function render(){pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}captureUsage(get(),data,notice);}
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editTicker='',editFlow='';navigate(a.hash);
 });
@@ -57,6 +59,7 @@ document.addEventListener('click',event=>{const b=event.target.closest('button')
  if(b.dataset.editHolding){editTicker=b.dataset.editHolding;navigate('#portfolio/edit');return;}
  if(b.id==='refresh-data'){refresh();return;}
  if(b.id==='export-private'){try{download(`mystockos-private-${today()}.json`,rawBackup());}catch{notice('保存済みデータを書き出せませんでした。');}return;}
+ if(b.id==='export-usage'){usageBackup().then(raw=>download(`mystockos-usage-${today()}.json`,raw)).catch(e=>notice(`利用履歴を書き出せませんでした：${e.message}`));return;}
  if(b.id==='csv-template'){download('mystockos-daily-template.csv','date,timestamp,assets_jpy,valuation_basis,status\n','text/csv');return;}
  if(b.id==='flow-csv-template'){download('mystockos-cashflows-template.csv','id,date,timestamp,amount_jpy,type,note\n','text/csv');return;}
  const remove=[['removeFlow','cashFlows','id'],['removeHolding','holdings','ticker'],['removeDividend','dividends','id'],['removeNews','news','id']].find(([key])=>b.dataset[key]);
