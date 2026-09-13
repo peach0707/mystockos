@@ -176,13 +176,24 @@ class ShadowTests(unittest.TestCase):
         with self.assertRaises((ValueError,TypeError)):self.store.audit()
 
     def test_real_repo_capture_is_observation_only_and_failed_capture_preserves_old(self):
-        self.time='2026-09-09T23:00:00Z';repo=Path(__file__).resolve().parents[1]
+        repo=Path(__file__).resolve().parents[1];self.repository_clock(repo)
         mid=capture_repository(self.store,repo);observation=self.store.get('observation',mid)
         self.assertNotIn('holdings',observation['inputs']);self.assertEqual(len(observation['inputs']),7)
         self.assertEqual(len(self.store.records('prediction')),0)
         baseline=self.store.audit()
         with self.assertRaises(FileNotFoundError):capture_repository(self.store,Path(self.temp.name))
         self.assertEqual(self.store.audit(),baseline)
+
+    def repository_clock(self,repo):
+        # This integration test reads moving public data, not a fixed-date fixture.
+        # Keep the production future-information guard intact; advance only the test clock.
+        from datetime import date, timedelta
+        dates=['2026-09-09']
+        for filename in ('data/regime.json','data/themes.json','data.json'):
+            value=json.loads((repo/filename).read_text())
+            if value.get('as_of'):dates.append(value['as_of'])
+            dates.extend(s['date'] for s in value.get('stocks',[]) if s.get('date'))
+        self.time=(date.fromisoformat(max(dates))+timedelta(days=1)).isoformat()+'T00:00:00Z'
 
 
     def test_multiple_writers_retry_the_same_request_without_duplicate_prediction(self):
@@ -225,8 +236,8 @@ class ShadowTests(unittest.TestCase):
 
     def test_cycle_records_failure_and_detects_interrupted_attempt_without_rewriting(self):
         from shadow.cli import run_cycle
-        self.time='2026-09-09T23:00:00Z'
         repo=Path(__file__).resolve().parents[1]
+        self.repository_clock(repo)
         with patch.object(Engine,'score_due',side_effect=RuntimeError('injected failure')):
             with self.assertRaises(RuntimeError):run_cycle(self.store,repo)
         finished=self.store.records('run_finished')
