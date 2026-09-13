@@ -1,3 +1,4 @@
+import {loadPhaseA,bindPhaseSort} from './phase-a.js';
 import {createPager,createNavigation,TAB_ROUTES,parseRoute} from './pager.js';
 import {recordRationales,toggleRationale,MAX_RATIONALES} from './rationales.js';
 import {recordDecision} from './decisions.js';
@@ -11,6 +12,7 @@ import {homeView,stocksView,newsView,settingsView} from './views.js';
 import {portfolioView} from './portfolio.js';
 let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editTicker='',editFlow='';
 read();bindSymbolPickers();
+bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
 function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(s,page),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError)};return Object.entries(data).filter(([,d])=>d.error).map(([k,d])=>`<p class="warning">${esc({regime:'市場',themes:'テーマ',stocks:'株価'}[k])}：${d.cached?'前回の端末保存を表示中':'取得できません'}（${esc(d.error)}）</p>`).join('')+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
 const main=document.querySelector('#main');
@@ -25,7 +27,7 @@ function render(){pager.refresh();const {route,page}=parseRoute(location.hash);i
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editTicker='',editFlow='';navigate(a.hash);
 });
-async function refresh(){notice('公開データを確認しています…');[data]=await Promise.all([loadPublic(),loadSymbols()]);render();notice(Object.values(data).some(x=>x.error)?'一部取得できませんでした。保存データと基準日を確認してください。':'公開データを読み込みました。');}
+async function refresh(){notice('公開データを確認しています…');{const [publicData,phaseA]=await Promise.all([loadPublic(),loadPhaseA(),loadSymbols()]);data={...publicData};if(phaseA)data.phaseA=phaseA;}render();notice(Object.values(data).some(x=>x.error)?'一部取得できませんでした。保存データと基準日を確認してください。':'公開データを読み込みました。');}
 const run=fn=>{try{fn();render();notice('端末に保存しました。');}catch(e){notice(e.message);}};
 const number=(f,k)=>{const v=f.get(k);if(v===null||String(v).trim()==='')throw Error('金額・株数を入力してください。');const n=Number(v);if(!Number.isFinite(n))throw Error('数値が不正です。');return n;};
 const optional=(f,k)=>String(f.get(k)||'').trim()===''?null:number(f,k);

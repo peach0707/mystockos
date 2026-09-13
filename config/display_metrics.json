@@ -1,0 +1,11 @@
+{
+  "version": "phase_a_v1",
+  "return_sessions": [1, 5, 21, 63],
+  "rvol_sessions": 20,
+  "rvol_elevated_above": 1.0,
+  "theme_aggregation": "equal_weight_valid_core",
+  "theme_rvol": "median_valid_core",
+  "rank_offsets": [0, 1, 3, 5],
+  "calendar": "XNYS",
+  "price_basis": "price_return"
+}
