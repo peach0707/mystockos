@@ -10,7 +10,7 @@ export const tabs = (items,current,key) => `<div class="tabs" role="group" aria-
 export const field = (name,label,type='text',extra='') => `<label>${label}<input name="${name}" type="${type}" ${extra}></label>`;
 export const today = () => new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
 export const dateValid = s => typeof s==='string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0,10)===s;
-export const labels = {Bull:'強気',Bear:'弱気',Neutral:'中立',Stable:'安定',Medium:'中',High:'高',Low:'低',Leading:'先行',Improving:'改善',Weakening:'弱化',Lagging:'出遅れ',ranked:'ランキング対象',thin:'少数構成',heat_only:'過熱度のみ',none:'観察のみ'};
+export const labels = {Bull:'強気',Bear:'弱気','Strong Bear':'強い弱気',Neutral:'中立',Stable:'安定',Medium:'中',High:'高',Low:'低',Leading:'先行',Improving:'改善',Weakening:'弱化',Lagging:'出遅れ',ranked:'ランキング対象',thin:'少数構成',heat_only:'過熱度のみ',none:'観察のみ'};
 export const label = s => labels[s] || ja(s) || '未判定';
 export function safeURL(s){try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 export function notice(message){const el=document.querySelector('#notice');el.textContent=message;clearTimeout(notice.timer);notice.timer=setTimeout(()=>{el.textContent='';},7000);}
