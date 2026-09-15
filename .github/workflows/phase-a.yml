@@ -18,9 +18,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -p 'test_display_metrics.py' -v
+      - run: python -m unittest discover -s tests -p 'test_publish_display_metrics.py' -v
       - run: python tests/check_frozen.py
   collect:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -39,9 +40,6 @@ jobs:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
       - name: Save only display and observation artifacts
         run: |
-          git add -- data/phase_a.json data/phase-a-observations
-          git diff --cached --quiet && exit 0
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Append Phase A observation and update display metrics'
-          git push origin HEAD:${{ github.ref_name }}
+          python scripts/publish_display_metrics.py
