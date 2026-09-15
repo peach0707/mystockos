@@ -1,4 +1,5 @@
 import copy
+from datetime import date, timedelta
 import importlib.util
 import json
 from pathlib import Path
@@ -29,14 +30,16 @@ class SafetyTest(unittest.TestCase):
                 safe.validate_candidate(BASE, candidate, b'old\n', b'old\n')
 
     def test_history_append_only_and_matches(self):
-        c = copy.deepcopy(BASE); c['as_of'] = '2026-09-09'
+        c = copy.deepcopy(BASE)
+        c['as_of'] = (date.fromisoformat(BASE['as_of']) + timedelta(days=1)).isoformat()
         hist = b'old\n' + (json.dumps({'as_of':c['as_of'], 'themes':c['themes']})+'\n').encode()
         safe.validate_candidate(BASE, c, b'old\n', hist)
         for bad in (b'changed\n', b'old\n', hist+hist):
             with self.assertRaises(ValueError): safe.validate_candidate(BASE,c,b'old\n',bad)
 
     def test_regressing_date_rejected(self):
-        c=copy.deepcopy(BASE);c['as_of']='2026-09-01'
+        c=copy.deepcopy(BASE)
+        c['as_of']=(date.fromisoformat(BASE['as_of']) - timedelta(days=1)).isoformat()
         with self.assertRaises(ValueError):safe.validate_candidate(BASE,c,b'',b'')
 
     def test_real_runner_failure_and_degradation_never_write_original(self):
