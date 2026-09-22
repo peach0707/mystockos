@@ -6,6 +6,7 @@ import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 from stock_setups import describe, merge_snapshot
 from collect_news import parse_feed, assemble, classify
+from collect_valuation import normalize_fx, normalize_etfs
 
 
 class BriefingTests(unittest.TestCase):
@@ -37,6 +38,39 @@ class BriefingTests(unittest.TestCase):
         self.assertEqual(d['stocks']['TEST']['price'],old['price'])
         self.assertEqual(d['stocks']['TEST']['quality'],'stale')
         self.assertEqual(d['stocks']['NONE']['quality'],'missing')
+
+    def test_short_listing_retains_quote_and_only_eligible_indicators(self):
+        for length in (1, 2, 14, 20, 21, 49, 50, 63):
+            p = dict(self.price, bars=self.price['bars'][-length:])
+            row = describe(p, self.sessions, self.sessions[-1])
+            self.assertEqual(row['price'], 163)
+            self.assertEqual(row['quality'], 'ok')
+            self.assertEqual(row['history_sessions'], length)
+            self.assertEqual(row['analysis_ready'], length >= 50)
+            self.assertEqual(row['ma50'] is not None, length >= 50)
+            self.assertEqual(row['prior_high20'] is not None, length >= 21)
+            self.assertEqual(row['day'] is not None, length >= 2)
+            self.assertIsNone(row['returns']['63'])
+            json.dumps(row, allow_nan=False)
+
+    def test_fx_excludes_unfinished_day_and_validates_currency(self):
+        payload = {'status':'ok', 'meta':{'symbol':'USD/JPY','interval':'1day'},
+                   'values':[{'datetime':'2026-09-22','close':'999'},
+                             {'datetime':'2026-09-21','close':'150'}]}
+        result = normalize_fx(payload, 'fixture', '2026-09-21', self.now)
+        self.assertEqual(result['rate'],150)
+        self.assertEqual(result['as_of'],'2026-09-21')
+        payload['meta']['symbol']='JPY/USD'
+        with self.assertRaises(ValueError): normalize_fx(payload,'fixture','2026-09-21',self.now)
+
+    def test_etf_reference_requires_real_us_currency_listings(self):
+        rows = [dict(symbol=f'ETF{i}',name='Fixture',exchange='NASDAQ',mic_code='XNAS',country='United States',currency='USD') for i in range(500)]
+        rows.append(dict(rows[0],symbol='MUU'))
+        rows.append(dict(rows[0],symbol='OTHER',country='South Korea',currency='KRW'))
+        output = normalize_etfs({'status':'ok','data':rows})
+        self.assertEqual(len(output),501)
+        self.assertTrue(any(row['symbol']=='MUU' and row['type']=='ETF' for row in output))
+        with self.assertRaises(ValueError): normalize_etfs({'status':'ok','data':rows[:50]})
 
     def test_feed_dates_dedupe_and_failure_preservation(self):
         raw=b'<rss><channel><item><title>Example reports results</title><link>https://example.com/a?utm_source=x</link><pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate></item><item><title>Future</title><link>https://example.com/f</link><pubDate>Wed, 23 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>'

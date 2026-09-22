@@ -2,10 +2,11 @@ name: Update decision checks and semiconductor news
 on:
   workflow_dispatch:
   push:
-    branches: [main, codex/decision-news-home]
+    branches: [main, codex/decision-news-home, codex/holdings-coverage]
     paths:
       - 'scripts/collect_briefing.py'
       - 'scripts/stock_setups.py'
+      - 'scripts/collect_valuation.py'
       - 'scripts/collect_news.py'
       - 'config/briefing.json'
       - '.github/workflows/briefing.yml'
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,7 +49,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in data/news.json data/stock_setups.json data/market_calendar.json; do
+          for file in data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json; do
             if test -f "$file"; then git add -- "$file"; fi
           done
           if ! git diff --cached --quiet; then
