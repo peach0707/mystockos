@@ -43,6 +43,38 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.locator('.bottom a[href="#portfolio"]').click();
  await page.waitForURL('**/#portfolio');
  assert.equal(await page.locator('.bottom a[aria-current="page"]').textContent(),'保有');
+ // Synthetic input in a disposable browser; never uploads a user's holdings.
+ for(const ticker of ['MU','SKHY','MUU']){
+  await page.getByRole('link',{name:'＋ 保有銘柄を登録',exact:true}).click();
+  await page.getByRole('textbox',{name:'銘柄名またはティッカーを検索'}).fill(ticker);
+  await page.locator(`[data-symbol-id^="${ticker}|"]`).first().click();
+  await page.getByLabel('株数',{exact:true}).fill('2');
+  await page.getByLabel('1株あたり取得単価',{exact:true}).fill('20');
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  await page.waitForURL('**/#portfolio');
+ }
+ assert.equal(await page.locator('.tab-page[data-route="portfolio"] .holding-card').count(),3);
+ const total=await page.locator('[data-valuation-total]').textContent();
+ assert.match(total,/¥[\d,]+/,'registered holdings immediately have a JPY valuation');
+ assert.ok(!(await page.locator('[data-holding="SKHY"]').innerText()).includes('価格未取得'));
+ assert.ok(!(await page.locator('[data-holding="MUU"]').innerText()).includes('価格未取得'));
+ await page.screenshot({path:`test-artifacts/${name}-holdings.png`});
+ await page.getByRole('link',{name:'＋ 現金も含める',exact:true}).click();
+ await page.getByLabel('日本円の現金残高').fill('1000');
+ await page.getByLabel('米ドルの現金残高').fill('10');
+ await page.getByRole('button',{name:'現金を含めて保存',exact:true}).click();
+ await page.waitForURL('**/#portfolio');
+ await page.getByRole('heading',{name:'資産総額（登録株＋現金）',exact:true}).waitFor();
+ assert.notEqual(await page.locator('[data-valuation-total]').textContent(),total);
+ await page.getByRole('link',{name:'評価の自動記録',exact:true}).click();
+ await page.getByRole('heading',{name:'保有評価カレンダー',exact:true}).waitFor();
+ assert.ok((await page.locator('.auto-calendar-summary').innerText()).includes('1日の記録'));
+ await page.screenshot({path:`test-artifacts/${name}-auto-calendar.png`});
+ await page.reload();
+ await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);
+ await page.locator('.bottom a[href="#portfolio"]').click();
+ assert.equal(await page.locator('.tab-page[data-route="portfolio"] .holding-card').count(),3);
+ await page.getByRole('heading',{name:'資産総額（登録株＋現金）',exact:true}).waitFor();
  await page.locator('.bottom a[href="#stocks"]').click();
  await page.getByRole('link',{name:'監視銘柄を追加',exact:true}).click();
  await page.getByRole('textbox',{name:'銘柄名またはティッカーを検索'}).fill('NVD');
@@ -64,5 +96,5 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  }
  assert.deepEqual(errors,[]);
  await browser.close();
- console.log(`${name}: mobile navigation, source links, registration, persistence and 320–1024px layouts passed`);
+ console.log(`${name}: navigation, sources, MU/SKHY/MUU holdings, FX, cash, calendar, persistence and 320–1024px layouts passed`);
 }

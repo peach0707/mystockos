@@ -2,6 +2,7 @@ import {RATIONALE_VERSION,validTags} from './rationales.js';
 import {DECISION_VERSION,validDecision,legacyDecision} from './decisions.js';
 import {dateValid} from './ui.js';
 import {timestampValid,snapshotRecord} from './ledger.js';
+import {validateValuationState} from './valuation.js';
 export const LEGACY_KEY='mystockos.private.v2';
 export const V3_KEY='mystockos.private.v3';
 export const V4_KEY='mystockos.private.v4';
@@ -13,6 +14,7 @@ const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const str=(s,n=3000)=>typeof s==='string'&&s.length<=n;
 const ticker=s=>typeof s==='string'&&/^[A-Z0-9.^=-]{1,20}$/.test(s);
 export function validate(s){
+ validateValuationState(s||{});
  if(!s||s.version!==6||!['holdings','watch','snapshots','cashFlows','dividends','news'].every(k=>Array.isArray(s[k])&&s[k].length<=10000)||!str(s.policy))throw Error('対応する形式は version: 6 のバックアップです。');
  if(s.securities!==undefined&&(!s.securities||typeof s.securities!=='object'||Array.isArray(s.securities)||Object.entries(s.securities).some(([k,r])=>!ticker(k)||!r||r.symbol!==k||!str(r.id,200)||!str(r.name,300)||!str(r.exchange,100))))throw Error('銘柄・市場の登録情報が不正です。');
  if(!s.watchNotes||typeof s.watchNotes!=='object'||Array.isArray(s.watchNotes)||Object.entries(s.watchNotes).some(([k,v])=>!ticker(k)||!str(v)))throw Error('買い条件の形式が不正です。');

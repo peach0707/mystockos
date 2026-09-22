@@ -12,6 +12,7 @@ import {snapshotsCSV,cashFlowsCSV,parseCSV} from './accounting.js';
 import {themesView} from './themes.js';
 import {homeView,stocksView,newsView,settingsView} from './views.js?v=20260922';
 import {portfolioView} from './portfolio.js';
+import {nextObservation,saveObservation} from './valuation.js';
 let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editTicker='',editFlow='',newsFilter='all';
 read();bindSymbolPickers();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){captureUsage(get(),data,notice);autoRefresh();}});
@@ -19,7 +20,7 @@ window.addEventListener('pageshow',event=>{if(event.persisted)autoRefresh();});
 window.addEventListener('online',()=>autoRefresh());
 bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
-function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
+function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow,data),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
 const main=document.querySelector('#main');
 function syncTab(route){
  document.querySelectorAll('.bottom a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
@@ -28,7 +29,8 @@ function syncTab(route){
 const pager=createPager(main,{html:screenHTML,onTab:route=>{navigation.sync(route);syncTab(route);}});
 const navigation=createNavigation({onTop:route=>pager.select(route),onDetail:(route,page)=>{pager.showDetail(route,page);syncTab(TAB_ROUTES.includes(route)?route:history.state?.kabugorilla?.tab||'home');}});
 const navigate=hash=>navigation.go(hash);
-function render(){pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}captureUsage(get(),data,notice);}
+function recordCurrentValuation(){if(storageError)return;try{const row=nextObservation(get(),data);if(row)mutate(s=>saveObservation(s,row));}catch{notice('保有評価の自動記録を保存できませんでした。保有登録は変更していません。');}}
+function render(){recordCurrentValuation();pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}captureUsage(get(),data,notice);}
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editTicker='',editFlow='';navigate(a.hash);
 });
@@ -43,6 +45,7 @@ async function refresh({silent=false}={}){
   if(symbols?.length)symbolsLoaded=true;
   data={...publicData,checkedAt:new Date().toISOString()};
   if(phaseA)data.phaseA=phaseA;
+  recordCurrentValuation();
   const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;
   if(!editing)render();
   if(!silent)notice(Object.values(data).some(x=>x?.error)?'一部取得できませんでした。更新状況をご確認ください。':editing?'最新データを取得しました。入力内容を残し、画面を切り替えたときに表示を更新します。':'確認しました。データの基準日を表示しています。');
@@ -64,6 +67,7 @@ const rows=v=>parseCSV(v).map(r=>{if(r.length!==2||!r[1].trim()||!Number.isFinit
 document.addEventListener('submit',event=>{event.preventDefault();const id=event.target.dataset.form||event.target.id,f=new FormData(event.target);run(()=>{
  if(id==='watch-form'){const r=fromForm(f);mutate(s=>registerWatch(s,r));}
  else if(id==='policy-form')mutate(s=>s.policy=text(f,'policy'));
+ else if(id==='cash-balance-form')mutate(s=>s.cashBalance={JPY:number(f,'JPY'),USD:number(f,'USD'),updatedAt:today()});
  else if(id==='holding-form')mutate(s=>{const r=fromForm(f);if(editTicker&&r.symbol!==editTicker)throw Error('編集では銘柄を変更できません。新しい保有として登録してください。');if(!editTicker)ensureUnique(r.symbol,s.holdings.map(h=>h.ticker));remember(s,r);const previous=s.holdings.find(x=>x.ticker===r.symbol);const h={...previous,ticker:r.symbol,quantity:number(f,'quantity'),cost:number(f,'cost'),currency:text(f,'currency'),decision:previous?.decision||'unset'};s.holdings=s.holdings.filter(x=>x.ticker!==h.ticker);s.holdings.push(h);recordDecision(s,'held',h.ticker,text(f,'decision'));recordRationales(s,h.ticker,f.getAll('rationaleTags'));});
  else if(id==='watch-decision-form')mutate(s=>recordDecision(s,'watch',text(f,'ticker'),text(f,'decision')));
  else if(id==='snapshot-form')mutate(s=>{const x={date:text(f,'date'),timestamp:text(f,'timestamp')||null,assets_jpy:number(f,'assets'),valuation_basis:text(f,'basis'),status:text(f,'status'),components:Object.fromEntries(['price','fx','realized','other'].map(k=>[k,optional(f,k)])),...Object.fromEntries(['allocation','stockContributions','themeContributions'].map(k=>[k,rows(text(f,k))]))};s.snapshots=s.snapshots.filter(d=>d.date!==x.date);s.snapshots.push(x);selected=x.date;month=x.date.slice(0,7);});
@@ -72,12 +76,14 @@ document.addEventListener('submit',event=>{event.preventDefault();const id=event
  else if(id==='flow-quality-form')mutate(s=>s.cashFlowQuality={status:text(f,'status'),note:text(f,'note')});
  else if(id==='baseline-form')mutate(s=>s.yearBaselines[text(f,'year')]=text(f,'date'));
  else if(id==='news-form')mutate(s=>{const refs=manyFromForm(f);if(text(f,'tickers_query'))throw Error('関連銘柄は候補から選択してください。');refs.forEach(r=>remember(s,r));s.news.push({id:crypto.randomUUID(),title:text(f,'title'),date:text(f,'date'),source:text(f,'source'),url:text(f,'url'),importance:text(f,'importance'),sentiment:text(f,'sentiment'),tickers:refs.map(r=>r.symbol),themes:split(text(f,'themes')),summary:text(f,'summary').split('\n').map(x=>x.trim()).filter(Boolean),why:text(f,'why'),verified:f.get('verified')==='on'});});
+ if(['holding-form','cash-balance-form'].includes(id))navigate('#portfolio');
  });});
 document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;
  if(b.dataset.rationaleTag){run(()=>mutate(s=>toggleRationale(s,b.dataset.rationaleTicker,b.dataset.rationaleTag)));const next=[...document.querySelectorAll('[data-rationale-tag]')].find(x=>x.dataset.rationaleTag===b.dataset.rationaleTag);next?.focus({preventScroll:true});return;}
  if(b.dataset.tab){if(b.dataset.tab==='themeTab')themeTab=b.dataset.value;else stockTab=b.dataset.value;render();return;}
  if(b.dataset.month){const [y,m]=month.split('-').map(Number);month=new Date(Date.UTC(y,m-1+Number(b.dataset.month),1)).toISOString().slice(0,7);render();return;}
  if(b.dataset.date){selected=b.dataset.date;navigate('#portfolio/day');return;}
+ if(b.dataset.autoDate){selected=b.dataset.autoDate;navigate('#portfolio/auto-day');return;}
  if(b.dataset.entryDate){selected=b.dataset.entryDate;navigate('#portfolio/entry');return;}
  if(b.dataset.editFlow){editFlow=b.dataset.editFlow;render();return;}
  if(b.dataset.editHolding){editTicker=b.dataset.editHolding;navigate('#portfolio/edit');return;}

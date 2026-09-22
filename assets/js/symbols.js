@@ -7,7 +7,20 @@ export function selectedSymbol(rows,query,id){const r=rows.find(r=>r.id===id&&r.
 export function ensureUnique(symbol,existing){if(existing.some(x=>normalizeTicker(x)===normalizeTicker(symbol)))throw Error(`${normalizeTicker(symbol)}は登録済みです。`);}
 export const registerWatch=(s,r)=>{ensureUnique(r.symbol,s.watch);s.watch.push(r.symbol);remember(s,r);};
 export const remember=(s,r)=>{s.securities??={};if(s.securities[r.symbol]&&s.securities[r.symbol].id!==r.id)throw Error('同じティッカーが別市場で登録済みです。市場を確認してください。');s.securities[r.symbol]={...r};};
-export async function loadSymbols(){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const res=await fetch(new URL('../../data/symbols.json',import.meta.url),{cache:'no-store',signal:controller.signal});if(!res.ok)throw Error();const d=await res.json();master=validateMaster(d);masterStatus=`米国市場・銘柄一覧 ${d.as_of} 時点。価格の取得可否とは異なります。`;}catch{master=[];masterStatus='銘柄一覧を取得できません。新規登録を停止しています。設定から再読み込みしてください。';}finally{clearTimeout(timer);}return master;}
+export async function loadSymbols(){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+ try{
+  const results=await Promise.allSettled(['symbols','etfs'].map(async name=>{
+   const res=await fetch(new URL(`../../data/${name}.json`,import.meta.url),{cache:'no-store',signal:controller.signal});
+   if(!res.ok)throw Error();const d=await res.json();return {name,rows:validateMaster(d),asOf:d.as_of};
+  }));
+  const loaded=results.filter(r=>r.status==='fulfilled').map(r=>r.value);
+  master=[...new Map(loaded.flatMap(d=>d.rows).map(r=>[r.id,r])).values()];
+  masterStatus=master.length?`米国の株式・ETF ${master.length.toLocaleString('ja-JP')}件。${loaded.map(d=>d.asOf).sort()[0]} 時点。${loaded.length<2?'一部の銘柄一覧は取得待ち。':''}価格の自動取得対象とは異なります。`:'銘柄一覧を取得できません。新規登録を停止しています。設定から再読み込みしてください。';
+ }finally{clearTimeout(timer);}return master;
+}
+export const listingFor=ticker=>master.find(r=>r.symbol===ticker);
+export const isLeveraged=record=>!!record&&/\b[23]x\b|\bbull\b|\bbear\b|\bultra|\binverse\b/i.test(record.name);
 export function picker(name='ticker',value='',multi=false,record=null){return `<div class="symbol-picker" data-symbol-picker="${name}" ${multi?'data-multi="true"':''}><label>${multi?'関連銘柄を検索・選択':'銘柄を検索・選択'}<input name="${multi?name+'_query':name}" data-symbol-query autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：NVD、NVIDIA" value="${esc(value)}" maxlength="80" ${multi?'':'required'} aria-label="銘柄名またはティッカーを検索"></label><input type="hidden" name="${multi?name:name+'_id'}" value="${multi?'[]':esc(record?.id||'')}"><div class="symbol-results" aria-live="polite">${record?`${esc(record.symbol)} · ${esc(record.name)} · ${esc(record.exchange)}`:'候補をタップして市場を選択してください。'}</div><div class="symbol-chips"></div><small class="master-status">${esc(masterStatus)}</small></div>`;}
 export function fromForm(f,name='ticker'){return selectedSymbol(master,f.get(name),f.get(name+'_id'));}
 export function manyFromForm(f,name='tickers'){const ids=JSON.parse(String(f.get(name)||'[]'));if(!Array.isArray(ids))throw Error('関連銘柄を選択してください。');return [...new Set(ids)].map(id=>{const r=master.find(x=>x.id===id);if(!r)throw Error('関連銘柄を確認できません。');return r;});}
