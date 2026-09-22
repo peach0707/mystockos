@@ -11,6 +11,7 @@ on:
       - '.github/workflows/briefing.yml'
   schedule:
     - cron: '13 */3 * * *'
+    - cron: '11 22 * * 1-5'
     - cron: '11 4 * * 2-6'
 permissions:
   contents: write
@@ -33,10 +34,10 @@ jobs:
       - name: Collect official news feeds
         run: python scripts/collect_news.py
       - name: Install market calendar
-        if: github.event_name != 'schedule' || github.event.schedule == '11 4 * * 2-6'
+        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
         run: pip install exchange_calendars==4.11.3 pandas==2.2.3 numpy==2.2.6
       - name: Collect closing price checks
-        if: github.event_name != 'schedule' || github.event.schedule == '11 4 * * 2-6'
+        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
         run: python scripts/collect_briefing.py

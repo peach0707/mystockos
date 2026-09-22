@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {expectedSession,dateState} from '../assets/js/freshness.js';
-import {setupFor} from '../assets/js/setups.js';
+import {setupFor,quoteFor} from '../assets/js/setups.js';
 import {fresh} from '../assets/js/state.js';
 import {stocksView} from '../assets/js/views.js';
 
@@ -16,11 +16,19 @@ test('exchange sessions handle Labor Day and the close publication grace',()=>{
  assert.equal(dateState('2026-09-09',cal,now).state,'invalid');
  assert.equal(dateState('2026-09-08',cal,Date.parse('2026-11-01')).state,'unknown');
 });
-test('stale, cached, malformed and mismatched-price dates block check labels',()=>{
+test('stale, cached and malformed data block check labels',()=>{
  const good=input();assert.equal(setupFor(good,'TEST',now).code,'breakout');
- for(const alter of [d=>d.setups.value.stocks.TEST.as_of='2026-09-04',d=>d.setups.cached=true,d=>d.setups.value.stocks.TEST.ma50=null,d=>d.stocks={value:{stocks:[{ticker:'TEST',date:'2026-09-09',price:120}]}}]){
+ for(const alter of [d=>d.setups.value.stocks.TEST.as_of='2026-09-04',d=>d.setups.cached=true,d=>d.setups.value.stocks.TEST.ma50=null]){
   const d=input();alter(d);assert.equal(setupFor(d,'TEST',now).ready,false);
  }
+});
+test('an unfinished daily quote does not replace the last completed closing check',()=>{
+ const d=input();d.stocks={value:{stocks:[{ticker:'TEST',date:'2026-09-09',price:120}]}};
+ assert.equal(quoteFor(d,'TEST',now).price,110);
+ assert.equal(setupFor(d,'TEST',now).ready,true);
+ delete d.setups;
+ assert.equal(quoteFor(d,'TEST',now).closed,false);
+ assert.equal(setupFor(d,'TEST',now).ready,false);
 });
 test('checks never modify saved user decisions or frozen outputs',()=>{
  const s=fresh();s.watch=['TEST'];s.watchDecisions.TEST='wait_results';

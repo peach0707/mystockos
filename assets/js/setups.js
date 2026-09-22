@@ -1,13 +1,17 @@
 import {dateState} from './freshness.js';
 
-export function quoteFor(data,ticker){
+export function quoteFor(data,ticker,now=Date.now()){
   const basic=data.stocks?.value?.stocks?.find(x=>x.ticker===ticker), setup=data.setups?.value?.stocks?.[ticker];
-  if(setup&&Number.isFinite(setup.price)&&setup.price>0&&(!basic||setup.as_of>=basic.date))return {...setup,date:setup.as_of};
-  return basic||null;
+  const basicState=dateState(basic?.date,data.calendar?.value,now),setupState=dateState(setup?.as_of,data.calendar?.value,now);
+  const completed=state=>['current','stale'].includes(state.state);
+  // The legacy quote job can include today's unfinished daily candle. Use the
+  // last completed session for a closing-price check instead of calling it a close.
+  if(setup&&Number.isFinite(setup.price)&&setup.price>0&&(!basic||setup.as_of>=basic.date||completed(setupState)&&!completed(basicState)))return {...setup,date:setup.as_of,closed:completed(setupState)};
+  return basic?{...basic,closed:completed(basicState)}:null;
 }
 export function setupFor(data,ticker,now=Date.now()){
   const setup=data.setups?.value?.stocks?.[ticker];
-  const quote=quoteFor(data,ticker);
+  const quote=quoteFor(data,ticker,now);
   const fresh=dateState(setup?.as_of,data.calendar?.value,now);
   const valid=setup?.quality==='ok'&&['price','ma20','ma50','prior_high20','prior_low20','rsi14_simple','distance_ma20_pct'].every(k=>typeof setup[k]==='number'&&Number.isFinite(setup[k]));
   if(!valid||fresh.state!=='current'||data.setups?.cached||quote?.date!==setup.as_of){
