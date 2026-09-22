@@ -40,6 +40,7 @@ test('quote refresh updates only the price notice, never shares, cost, brokerage
  const before=JSON.stringify(form.elements);updateHoldingQuoteNotice(form,fixture());assert.match(target.innerHTML,/対象外/);
  target.innerHTML='unchanged notice with checked consent';updateHoldingQuoteNotice(form,fixture());assert.match(target.innerHTML,/checked consent/);
  assert.equal(JSON.stringify(form.elements),before);
+ form.elements.ticker.value='OTHER';updateHoldingQuoteNotice(form,fixture());assert.match(target.innerHTML,/OTHER：/);assert.ok(!target.innerHTML.includes('checked consent'));
  form.elements.ticker_id.value='';updateHoldingQuoteNotice(form,fixture());assert.match(target.innerHTML,/銘柄を選ぶと/);
 });
 test('SNDU uses its own price and combines two brokers without an underlying-price substitution',()=>{

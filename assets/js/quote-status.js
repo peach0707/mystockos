@@ -27,7 +27,7 @@ export function quoteStatus(data,ticker,now=Date.now()){
 export function holdingQuoteNotice(ticker,data,editing=false){
  if(!ticker)return '<p class="holding-help">銘柄を選ぶと価格の取得状況を確認できます。</p>';
  const status=quoteStatus(data,ticker);
- return `<div class="${status.code==='current'?'holding-help':'warning'}"><b>${esc(status.label)}</b><p>${esc(status.detail)}</p>${!status.usable&&!editing?'<label><input type="checkbox" name="quote_ack" required> 評価額が未表示になることを確認し、保有情報だけ保存する</label>':''}</div>`;
+ return `<div class="${status.code==='current'?'holding-help':'warning'}"><b>${esc(ticker)}：${esc(status.label)}</b><p>${esc(status.detail)}</p>${!status.usable&&!editing?'<label class="quote-confirm"><input type="checkbox" name="quote_ack" required><span>評価額が未表示になることを確認し、保有情報だけ保存する</span></label>':''}</div>`;
 }
 
 export function validateQuoteConsent(data,ticker,acknowledged,editing=false){
@@ -38,5 +38,5 @@ export function updateHoldingQuoteNotice(form,data){
  const target=form?.querySelector('[data-holding-quote]');if(!target)return;
  const ticker=form.elements.ticker_id.value?form.elements.ticker.value:'';
  const html=holdingQuoteNotice(ticker,data,!!form.elements.holding_id.value);
- if(target.dataset.noticeHtml!==html){target.innerHTML=html;target.dataset.noticeHtml=html;}
+ if(target.dataset.noticeHtml!==html){if(target.innerHTML!==html)target.innerHTML=html;target.dataset.noticeHtml=html;}
 }
