@@ -53,6 +53,13 @@ class BriefingTests(unittest.TestCase):
             self.assertIsNone(row['returns']['63'])
             json.dumps(row, allow_nan=False)
 
+    def test_missing_null_date_recovers_to_a_valid_price(self):
+        old={'stocks':{'TEST':{'ticker':'TEST','as_of':None,'quality':'missing'}}}
+        row=describe(self.price,self.sessions,self.sessions[-1])
+        result=merge_snapshot(old,{'TEST':row},[],self.sessions[-1],self.now.isoformat(),['TEST'])
+        self.assertEqual(result['stocks']['TEST']['price'],163)
+        self.assertEqual(result['coverage'],{'ok':1,'total':1})
+
     def test_fx_excludes_unfinished_day_and_validates_currency(self):
         payload = {'status':'ok', 'meta':{'symbol':'USD/JPY','interval':'1day'},
                    'values':[{'datetime':'2026-09-22','close':'999'},

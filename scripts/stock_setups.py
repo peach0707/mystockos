@@ -73,7 +73,7 @@ def merge_snapshot(previous, fresh, failures, as_of, now, universe):
     for ticker in universe:
         candidate = fresh.get(ticker)
         old = prior.get(ticker)
-        if candidate and (not old or candidate['as_of'] >= old.get('as_of','')):
+        if candidate and (not old or candidate['as_of'] >= (old.get('as_of') or '')):
             output[ticker] = candidate
         elif old:
             output[ticker] = dict(old, quality='stale', failure=reasons.get(ticker,'not_refreshed'))

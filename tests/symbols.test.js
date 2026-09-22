@@ -10,6 +10,13 @@ test('ETF listings merge independently and exact MUU is selectable; stock failur
  globalThis.fetch=async url=>String(url).includes('etfs.json')?{ok:true,json:async()=>({schema_version:1,symbols:[muu]})}:{ok:false,status:503};
  assert.equal((await loadSymbols()).length,1);assert.equal(fromForm(f).symbol,'MUU');
 });
+test('release import map keeps cached UI dependencies and the shared symbol master on one version',()=>{
+ const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const map=JSON.parse(html.match(/<script type="importmap">(.*?)<\/script>/s)[1]).imports;
+ assert.equal(map['./assets/js/symbols.js'],'./assets/js/symbols.js?v=holdings2');
+ assert.equal(map['./assets/js/data.js'],map['./assets/js/data.js?v=20260922']);
+ assert.ok(html.indexOf('type="importmap"')<html.indexOf('type="module"'));
+});
 test('NVDA and whitespace/lowercase normalize; NVD offers company and market, but selection is required',()=>{for(const value of ['NVDA','nvda',' NVDA ']){assert.equal(normalizeTicker(value),'NVDA');assert.equal(selectedSymbol(rows,value,nvda.id).symbol,'NVDA');}assert.ok(searchSymbols(rows,'NVD').some(r=>r.id===nvda.id&&r.name==='NVIDIA Corporation'));assert.throws(()=>selectedSymbol(rows,'NVDA',''));assert.throws(()=>selectedSymbol(rows,'NVDAAAA',nvda.id));assert.equal(searchSymbols(rows,'NVDAAAA').length,0);});
 test('duplicate watch ticker cannot be saved twice; non-theme AAPL can be registered',()=>{const s=fresh();registerWatch(s,nvda);assert.throws(()=>registerWatch(s,nvda),/登録済み/);assert.equal(s.watch.filter(x=>x==='NVDA').length,1);const a=rows.find(x=>x.symbol==='AAPL'&&x.exchange==='NASDAQ');assert.ok(!fs.readFileSync(new URL('../config/entities.csv',import.meta.url),'utf8').includes(',AAPL,'));registerWatch(s,a);assert.ok(s.watch.includes('AAPL'));assert.equal(s.securities.AAPL.exchange,'NASDAQ');validate(s);});
 test('same symbol in different markets requires the selected listing ID',()=>{const other={...nvda,id:'NVDA|TEST',exchange:'TEST'};assert.equal(selectedSymbol([nvda,other],'nvda',other.id).exchange,'TEST');assert.throws(()=>selectedSymbol([nvda,other],'NVDA',''));});
