@@ -3,6 +3,7 @@ import {quoteFor} from './setups.js';
 import {dateState} from './freshness.js';
 import {dateValid} from './ui.js';
 import {aggregateHoldings} from './holdings.js';
+import {quoteStatus} from './quote-status.js';
 
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const positive=x=>finite(x)&&x>0;
@@ -35,9 +36,10 @@ export function valueHoldings(s,data,now=Date.now()){
   const pnl=good&&h.currency===quoteCurrency?value-cost:null;
   const pnlJpy=valueJpy!==null&&costJpy!==null?valueJpy-costJpy:null;
   const stale=good&&(dateState(q.date,data.calendar?.value,now).state!=='current'||q.quality==='stale'||!!data.setups?.cached);
-  const reason=!q||!positive(q.price)?'価格未取得':!q.closed?'確定した終値を確認中':!['USD','JPY'].includes(quoteCurrency)?'未対応の価格通貨':!finite(q.price*h.quantity)?'数量・価格の計算範囲を確認':valueJpy===null?'為替を確認中':stale?'前回の終値で概算':'';
+  const reason=!q||!positive(q.price)?quoteStatus(data,h.ticker,now).label:!q.closed?'確定した終値を確認中':!['USD','JPY'].includes(quoteCurrency)?'未対応の価格通貨':!finite(q.price*h.quantity)?'数量・価格の計算範囲を確認':valueJpy===null?'為替を確認中':stale?'前回の終値で概算':'';
+  const priceHelp=!good?quoteStatus(data,h.ticker,now).detail:'';
   return {...h,price,quoteCurrency,asOf:q?.date||null,value,valueJpy,costJpy,pnl,pnlJpy,
-   pnlRate:pnl!==null&&cost>0?pnl/cost*100:null,stale,reason};
+   pnlRate:pnl!==null&&cost>0?pnl/cost*100:null,stale,reason,priceHelp};
  });
  const priced=rows.filter(r=>r.value!==null),converted=rows.filter(r=>r.valueJpy!==null);
  const subtotal=converted.reduce((a,r)=>a+r.valueJpy,0);
