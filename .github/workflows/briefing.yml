@@ -1,0 +1,58 @@
+name: Update decision checks and semiconductor news
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, codex/decision-news-home]
+    paths:
+      - 'scripts/collect_briefing.py'
+      - 'scripts/stock_setups.py'
+      - 'scripts/collect_news.py'
+      - 'config/briefing.json'
+      - '.github/workflows/briefing.yml'
+  schedule:
+    - cron: '13 */3 * * *'
+    - cron: '11 22 * * 1-5'
+    - cron: '11 4 * * 2-6'
+permissions:
+  contents: write
+concurrency:
+  group: briefing-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: News parser and price checks
+        run: python -m unittest discover -s tests -p 'test_briefing.py'
+      - name: Collect official news feeds
+        run: python scripts/collect_news.py
+      - name: Install market calendar
+        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        run: pip install exchange_calendars==4.11.3 pandas==2.2.3 numpy==2.2.6
+      - name: Collect closing price checks
+        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: python scripts/collect_briefing.py
+      - name: Publish public brief only
+        if: always() && !cancelled()
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for file in data/news.json data/stock_setups.json data/market_calendar.json; do
+            if test -f "$file"; then git add -- "$file"; fi
+          done
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh public decision checks and semiconductor news'
+            git pull --rebase origin "$TARGET_BRANCH"
+            git push origin "HEAD:$TARGET_BRANCH"
+          fi

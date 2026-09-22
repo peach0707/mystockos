@@ -1,3 +1,4 @@
+import {reportText,weeklyReportText} from './news-ui.js';
 import {captureUsage,usageBackup} from './usage.js';
 import {loadPhaseA,bindPhaseSort} from './phase-a.js';
 import {createPager,createNavigation,TAB_ROUTES,parseRoute} from './pager.js';
@@ -6,17 +7,19 @@ import {recordDecision} from './decisions.js';
 import {loadSymbols,bindSymbolPickers,fromForm,manyFromForm,remember,registerWatch,ensureUnique,verifyIncoming} from './symbols.js';
 import {esc,notice,download,today} from './ui.js';
 import {read,get,mutate,commit,validate,rawBackup,storageError,migrate} from './state.js';
-import {loadPublic} from './data.js';
+import {loadPublic} from './data.js?v=20260922';
 import {snapshotsCSV,cashFlowsCSV,parseCSV} from './accounting.js';
 import {themesView} from './themes.js';
-import {homeView,stocksView,newsView,settingsView} from './views.js';
+import {homeView,stocksView,newsView,settingsView} from './views.js?v=20260922';
 import {portfolioView} from './portfolio.js';
-let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editTicker='',editFlow='';
+let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editTicker='',editFlow='',newsFilter='all';
 read();bindSymbolPickers();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)captureUsage(get(),data,notice);});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){captureUsage(get(),data,notice);autoRefresh();}});
+window.addEventListener('pageshow',event=>{if(event.persisted)autoRefresh();});
+window.addEventListener('online',()=>autoRefresh());
 bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
-function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(s,page),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError)};return Object.entries(data).filter(([,d])=>d.error).map(([k,d])=>`<p class="warning">${esc({regime:'市場',themes:'テーマ',stocks:'株価'}[k])}：${d.cached?'前回の端末保存を表示中':'取得できません'}（${esc(d.error)}）</p>`).join('')+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
+function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editTicker,editFlow),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
 const main=document.querySelector('#main');
 function syncTab(route){
  document.querySelectorAll('.bottom a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
@@ -29,8 +32,29 @@ function render(){pager.refresh();const {route,page}=parseRoute(location.hash);i
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editTicker='',editFlow='';navigate(a.hash);
 });
-async function refresh(){notice('公開データを確認しています…');{const [publicData,phaseA]=await Promise.all([loadPublic(),loadPhaseA(),loadSymbols()]);data={...publicData};if(phaseA)data.phaseA=phaseA;}render();notice(Object.values(data).some(x=>x.error)?'一部取得できませんでした。保存データと基準日を確認してください。':'公開データを読み込みました。');}
+let refreshTask=null,lastRefresh=0,symbolsLoaded=false;
+async function refresh({silent=false}={}){
+ if(refreshTask)return refreshTask;
+ lastRefresh=Date.now();
+ if(!silent)notice('最新データを確認しています…');
+ document.querySelectorAll('[data-refresh]').forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
+ refreshTask=(async()=>{
+  const [publicData,phaseA,symbols]=await Promise.all([loadPublic(),loadPhaseA(),symbolsLoaded?Promise.resolve(null):loadSymbols()]);
+  if(symbols?.length)symbolsLoaded=true;
+  data={...publicData,checkedAt:new Date().toISOString()};
+  if(phaseA)data.phaseA=phaseA;
+  const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;
+  if(!editing)render();
+  if(!silent)notice(Object.values(data).some(x=>x?.error)?'一部取得できませんでした。更新状況をご確認ください。':editing?'最新データを取得しました。入力内容を残し、画面を切り替えたときに表示を更新します。':'確認しました。データの基準日を表示しています。');
+ })().finally(()=>{refreshTask=null;document.querySelectorAll('[data-refresh]').forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');});});
+ return refreshTask;
+}
+function autoRefresh(){if(!document.hidden&&Date.now()-lastRefresh>60000)refresh({silent:true});}
+setInterval(()=>{if(!document.hidden)refresh({silent:true});},5*60*1000);
+
 const run=fn=>{try{fn();render();notice('端末に保存しました。');}catch(e){notice(e.message);}};
+const copyReport=async text=>{try{if(!navigator.clipboard?.writeText)throw Error('unavailable');await navigator.clipboard.writeText(text);notice('レポートをコピーしました。');}catch{download(`semiconductor-report-${today()}.txt`,text,'text/plain');notice('レポートをテキストで保存しました。');}};
+for(const type of ['input','change'])document.addEventListener(type,event=>{if(event.target.form)event.target.form.dataset.dirty='true';});
 const number=(f,k)=>{const v=f.get(k);if(v===null||String(v).trim()==='')throw Error('金額・株数を入力してください。');const n=Number(v);if(!Number.isFinite(n))throw Error('数値が不正です。');return n;};
 const optional=(f,k)=>String(f.get(k)||'').trim()===''?null:number(f,k);
 const text=(f,k)=>String(f.get(k)||'').trim();
@@ -57,7 +81,11 @@ document.addEventListener('click',event=>{const b=event.target.closest('button')
  if(b.dataset.entryDate){selected=b.dataset.entryDate;navigate('#portfolio/entry');return;}
  if(b.dataset.editFlow){editFlow=b.dataset.editFlow;render();return;}
  if(b.dataset.editHolding){editTicker=b.dataset.editHolding;navigate('#portfolio/edit');return;}
- if(b.id==='refresh-data'){refresh();return;}
+ if(b.id==='refresh-data'||b.hasAttribute('data-refresh')){refresh();return;}
+ if(b.dataset.stockScope){stockTab=b.dataset.stockScope;render();navigate('#stocks');return;}
+ if(b.dataset.newsFilter){newsFilter=b.dataset.newsFilter;render();return;}
+ if(b.hasAttribute('data-copy-week')){copyReport(weeklyReportText(data,get(),newsFilter));return;}
+ if(b.dataset.copyReport){const n=data.news?.value?.articles?.find(n=>n.id===b.dataset.copyReport);if(n)copyReport(reportText(n));return;}
  if(b.id==='export-private'){try{download(`mystockos-private-${today()}.json`,rawBackup());}catch{notice('保存済みデータを書き出せませんでした。');}return;}
  if(b.id==='export-usage'){usageBackup().then(raw=>download(`mystockos-usage-${today()}.json`,raw)).catch(e=>notice(`利用履歴を書き出せませんでした：${e.message}`));return;}
  if(b.id==='csv-template'){download('mystockos-daily-template.csv','date,timestamp,assets_jpy,valuation_basis,status\n','text/csv');return;}
@@ -71,3 +99,5 @@ document.addEventListener('click',event=>{if(event.target.closest('a[href="#port
 document.addEventListener('change',event=>{const input=event.target;if(input.name==='rationaleTags'&&input.checked&&input.form.querySelectorAll('[name="rationaleTags"]:checked').length>MAX_RATIONALES){input.checked=false;notice('投資根拠は最大3個まで選択できます。');}});
 document.addEventListener('change',async event=>{const input=event.target;if(!['import-private','import-csv','import-flows-csv'].includes(input.id)||!input.files?.length)return;try{const file=input.files[0];if(file.size>5_000_000)throw Error('ファイルは5MB以内にしてください。');const raw=await file.text();let next;if(input.id==='import-private'){next=migrate(JSON.parse(raw));}else if(input.id==='import-flows-csv'){next=structuredClone(get());const entries=cashFlowsCSV(raw);if(new Set(entries.map(f=>f.id)).size!==entries.length)throw Error('CSV内の入出金IDが重複しています。');for(const x of entries){next.cashFlows=next.cashFlows.filter(y=>y.id!==x.id);next.cashFlows.push(x);}validate(next);}else{next=structuredClone(get());for(const x of snapshotsCSV(raw)){const old=next.snapshots.find(y=>y.date===x.date);next.snapshots=next.snapshots.filter(y=>y.date!==x.date);next.snapshots.push(old?{...old,...x,components:old.components,allocation:old.allocation,stockContributions:old.stockContributions,themeContributions:old.themeContributions}:x);}validate(next);}verifyIncoming(next,get());if(confirm(`内容を検証しました。保有 ${next.holdings.length}銘柄・評価 ${next.snapshots.length}件・入出金 ${next.cashFlows.length}件。端末の記録に反映しますか？`)){commit(next);render();notice('読み込みが完了しました。');}}catch(e){notice(`保存していません：${e.message}`);}finally{input.value='';}});
 render();navigation.show();refresh();
+
+document.addEventListener('input',event=>{if(!event.target.matches('[data-stock-search]'))return;const root=event.target.closest('.tab-page'),q=event.target.value.trim().toUpperCase();let shown=0;root.querySelectorAll('[data-stock-ticker]').forEach(row=>{const show=row.dataset.stockTicker.includes(q);row.hidden=!show;if(show)shown++;});root.querySelector('[data-no-stock-results]').hidden=shown!==0;});
