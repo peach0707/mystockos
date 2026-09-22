@@ -1,0 +1,15 @@
+{
+  "version": "decision-checks-v1",
+  "symbols": ["MU", "TSM", "NVDA", "AVGO", "COHR", "LITE", "CRDO", "NBIS", "SKHY", "SNDK", "WDC", "STX", "AMD", "MRVL", "AAOI", "AMAT", "LRCX", "KLAC", "ASML", "VRT"],
+  "sources": [
+    {"id":"micron","name":"Micron IR","company":"Micron","tickers":["MU"],"topic":"memory","urls":["https://investors.micron.com/rss/pressrelease.aspx?LanguageId=1"]},
+    {"id":"nvidia","name":"NVIDIA Newsroom","company":"NVIDIA","tickers":["NVDA"],"topic":"compute","urls":["https://nvidianews.nvidia.com/releases.xml"]},
+    {"id":"amd","name":"AMD IR","company":"AMD","tickers":["AMD"],"topic":"compute","urls":["https://ir.amd.com/news-events/press-releases/rss"]},
+    {"id":"broadcom","name":"Broadcom IR","company":"Broadcom","tickers":["AVGO"],"topic":"compute","urls":["https://investors.broadcom.com/rss/news-releases.xml"]},
+    {"id":"lumentum","name":"Lumentum IR","company":"Lumentum","tickers":["LITE"],"topic":"optical","urls":["https://investor.lumentum.com/rss/pressrelease.aspx?LanguageId=1"]},
+    {"id":"coherent","name":"Coherent IR","company":"Coherent","tickers":["COHR"],"topic":"optical","urls":["https://investor.coherent.com/rss/pressrelease.aspx?LanguageId=1"]},
+    {"id":"lam","name":"Lam Research Newsroom","company":"Lam Research","tickers":["LRCX"],"topic":"equipment","urls":["https://newsroom.lamresearch.com/news-releases?pagetemplate=rss"]},
+    {"id":"skhynix","name":"SK hynix Newsroom","company":"SK hynix","tickers":["SKHY"],"topic":"memory","urls":["https://news.skhynix.com/feed/","https://newsroom.skhynix.com/feed/"]},
+    {"id":"samsung","name":"Samsung Newsroom","company":"Samsung","tickers":[],"topic":"memory","require_keywords":true,"urls":["https://news.samsung.com/global/feed"]}
+  ]
+}
