@@ -59,5 +59,11 @@ class BriefingTests(unittest.TestCase):
         raw=b'<rss><channel><item><title>bad</title><link>javascript:alert(1)</link><pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>'
         self.assertEqual(parse_feed(raw,self.source,self.now),[])
 
+    def test_official_http_and_relative_feed_links_are_normalized(self):
+        source=dict(self.source,urls=['https://example.com/rss'])
+        for link in ['http://example.com/news/a','/news/a']:
+            raw=f'<rss><channel><item><title>Results</title><link>{link}</link><pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>'.encode()
+            self.assertEqual(parse_feed(raw,source,self.now)[0]['url'],'https://example.com/news/a')
+
 
 if __name__=='__main__': unittest.main()

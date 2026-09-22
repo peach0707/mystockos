@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import re
 import time
-from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode, urljoin
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
 
@@ -104,6 +104,11 @@ def parse_feed(raw, source, now):
         links = [e for e in item if e.tag.split('}')[-1]=='link']
         link = next((e.get('href') for e in links if e.get('rel','alternate')=='alternate' and e.get('href')),None) or text('link')
         try:
+            base = source.get('urls',[''])[0]
+            link = urljoin(base,unescape(link or ''))
+            parts = urlsplit(link)
+            if parts.scheme == 'http' and parts.netloc == urlsplit(base).netloc:
+                link = urlunsplit(('https',parts.netloc,parts.path,parts.query,parts.fragment))
             url = canonical(link)
             published = date_of(text('pubDate') or text('published') or text('updated') or text('date'))
         except (ValueError, TypeError, AttributeError):
@@ -130,7 +135,7 @@ def fetch_source(source, now):
                 root = ET.fromstring(raw)
                 first = next((e for e in root.iter() if e.tag.split('}')[-1] in ('item','entry')), None)
                 latest = {e.tag.split('}')[-1]:clean(''.join(e.itertext()))[:180] for e in first} if first is not None else {}
-                return records,{'id':source['id'],'name':source['name'],'status':'ok','checked_at':now.isoformat(),'count':len(records),'latest_title':latest.get('title'),'latest_date_raw':latest.get('pubDate') or latest.get('published') or latest.get('updated')}
+                return records,{'id':source['id'],'name':source['name'],'status':'ok','checked_at':now.isoformat(),'count':len(records),'latest_title':latest.get('title'),'latest_date_raw':latest.get('pubDate') or latest.get('published') or latest.get('updated'),'latest_link':latest.get('link')}
             except Exception as error:
                 failure = 'http_'+str(error.code) if hasattr(error,'code') else type(error).__name__
                 if not attempt:
