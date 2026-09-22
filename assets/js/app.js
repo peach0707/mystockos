@@ -50,7 +50,8 @@ async function refresh({silent=false}={}){
   updateHoldingQuoteNotice(main.querySelector('#holding-form'),data);
   if(phaseA)data.phaseA=phaseA;
   recordCurrentValuation();
-  const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;
+  const route=parseRoute(location.hash);
+  const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||(route.route==='stocks'&&!route.page&&main.querySelector('[data-stock-search]')?.value);
   if(!editing)render();
   if(!silent)notice(Object.values(data).some(x=>x?.error)?'一部取得できませんでした。更新状況をご確認ください。':editing?'最新データを取得しました。入力内容を残し、画面を切り替えたときに表示を更新します。':'確認しました。データの基準日を表示しています。');
  })().finally(()=>{refreshTask=null;document.querySelectorAll('[data-refresh]').forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');});});

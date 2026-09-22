@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import {fresh,KEY} from '../assets/js/state.js';
 const root=process.env.APP_TEST_URL||'http://127.0.0.1:4173';
 const symbols=JSON.parse(await fs.readFile(new URL('../data/symbols.json',import.meta.url)));
+const setups=JSON.parse(await fs.readFile(new URL('../data/stock_setups.json',import.meta.url)));
 const mu=symbols.symbols.find(s=>s.symbol==='MU'&&s.exchange==='NASDAQ');
 const seed=fresh();seed.holdings=[{ticker:'MU',quantity:100,cost:100,currency:'USD',decision:'hold'}];
 seed.securities.MU=mu;seed.rationales.MU=['theme_growth'];
@@ -94,6 +95,17 @@ for(const [name,engine] of engines){
   assert.match(await noPrice.innerText(),/自動取得の対象外/);
   assert.equal(await noPrice.getByRole('button',{name:'価格の取得状況を再確認'}).count(),1);
   assert.equal((await state()).holdings.length,beforeMissing+1);
+  // An inactive stock search must not freeze valuation rendering after refresh.
+  await page.locator('.bottom a[href="#stocks"]').click();
+  await page.getByRole('searchbox',{name:'表示銘柄を絞り込む'}).fill('MU');
+  await page.locator('.bottom a[href="#portfolio"]').click();
+  const recovered={...setups,stocks:{...setups.stocks,AAPL:{ticker:'AAPL',price:17.25,currency:'USD',as_of:setups.as_of,quality:'ok',source:'synthetic test fixture'}}};
+  await page.route('**/data/stock_setups.json',route=>route.fulfill({json:recovered}));
+  await noPrice.getByRole('button',{name:'価格の取得状況を再確認'}).click();
+  await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
+  assert.match(await noPrice.innerText(),/\$51\.75/);
+  assert.ok(!(await noPrice.innerText()).includes('価格自動取得の対象外'));
+  assert.equal((await state()).holdings.find(h=>h.ticker==='AAPL').quantity,3);
   assert.deepEqual(errors,[]);
   console.log(`${name}: legacy data, two brokerages, weighted average, exact-row edits/deletes, reload, backup and layouts passed`);
  }finally{await browser.close();}
