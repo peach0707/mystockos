@@ -7,9 +7,46 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'scripts'))
 from stock_setups import describe, merge_snapshot
 from collect_news import parse_feed, assemble, classify
 from collect_valuation import normalize_fx, normalize_etfs
+from collect_briefing import quote_universe, pending_symbols
 
 
 class BriefingTests(unittest.TestCase):
+    def test_reference_etfs_are_discovered_without_individual_ticker_changes(self):
+        config = {'symbols':['SNDK','MU','S'], 'automatic_etfs':{
+            'enabled':True, 'topics':['memory','photonics'], 'underlying_names':['NVIDIA']}}
+        def etf(symbol, name, **kw):
+            return dict(symbol=symbol, name=name, country='United States', currency='USD',
+                        type='ETF', mic_code='XNAS', **kw)
+        records = [etf('SNDU','T-REX 2X Long SNDK Daily Target ETF'),
+                   etf('NEWX','New 2X Long MU Daily ETF'),
+                   etf('NVDX','T-Rex 2X Long NVIDIA Daily Target ETF'),
+                   etf('DISK','Tema Memory ETF'), etf('LYTE','Photonics ETF'),
+                   etf('WRONG','2X Long SNDKX ETF'), etf('OTHER','U.S. Growth 2x ETF'),
+                   etf('FUNDX','Memory Mutual Fund')]
+        bad = dict(records[0], symbol='BAD', currency='EUR')
+        foreign = dict(records[0], symbol='LOCAL', mic_code='XETR')
+        symbols, auto = quote_universe(config, {'symbols':records+[bad,foreign,records[0]]})
+        self.assertEqual(auto, ['DISK','LYTE','NEWX','NVDX','SNDU'])
+        self.assertEqual(symbols[:3], config['symbols'])
+        self.assertEqual(len(symbols),len(set(symbols)))
+        # Refreshing an incomplete reference cannot silently drop existing quotes.
+        self.assertEqual(quote_universe(config, {}, {'universe':{'automatic_symbols':auto}})[1], auto)
+
+    def test_pending_queue_retries_missing_without_starving_new_etfs(self):
+        universe=['MU','SNDU','AAA','NEWX','ZZZ']
+        previous={'stocks':{'AAA':{'last_attempt_at':'2026-09-22T00:00:00Z'},
+                            'ZZZ':{'last_attempt_at':'2026-09-21T00:00:00Z'}}}
+        self.assertEqual(pending_symbols(universe,['MU','SNDU'],{'MU':{}},previous),['SNDU','NEWX','ZZZ','AAA'])
+
+    def test_real_catalog_covers_reported_and_related_etfs(self):
+        root=Path(__file__).resolve().parents[1]
+        config=json.loads((root/'config/briefing.json').read_text())
+        catalog=json.loads((root/'data/etfs.json').read_text())
+        universe, auto=quote_universe(config,catalog)
+        self.assertTrue({'SNDU','DRAM','MUU','DISK','LYTE','PSOX','COHX','LITU','NVDX'}<=set(universe))
+        self.assertIn('SNXX',auto)
+        self.assertLess(len(universe),250, 'Unexpected discovery explosion must be reviewed')
+
     def setUp(self):
         self.sessions = [(datetime(2026,1,1)+timedelta(days=n)).date().isoformat() for n in range(64)]
         self.price = dict(ticker='TEST',as_of=self.sessions[-1],currency='USD',exchange='NASDAQ',data_source='fixture',source_hash='fixture',retrieved_at='2026-03-05T22:00:00Z',price_basis='price_return',adjustment_type='split',bars=[dict(session=d,close=100+n,volume=1000) for n,d in enumerate(self.sessions)])

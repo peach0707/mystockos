@@ -11,6 +11,7 @@
     "NBIS",
     "SKHY",
     "DRAM",
+    "SNDU",
     "SNDK",
     "WDC",
     "STX",
@@ -42,6 +43,12 @@
     "SMH",
     "SOXX"
   ],
+  "automatic_etfs": {
+    "enabled": true,
+    "topics": ["semiconductor", "semiconductors", "memory", "dram", "photonics", "optics", "mlcc", "powersemi"],
+    "underlying_names": ["Micron", "NVIDIA", "Sandisk", "SK Hynix", "Broadcom", "Coherent", "Lumentum", "Credo", "Nebius", "Taiwan Semiconductor", "Seagate", "Western Digital"]
+  },
+  "max_requests_per_run": 120,
   "sources": [
     {
       "id": "micron",
