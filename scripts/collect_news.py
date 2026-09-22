@@ -27,7 +27,32 @@ TOPICS = {
  'foundry':('先端半導体',['TSM','ASML','AMAT'],'先端ノードとパッケージの稼働率・供給能力を確認。数量と利益率の両方を追います。'),
  'compute':('AI半導体 / インフラ',['NVDA','AMD','AVGO','TSM','MU','NBIS'],'導入規模・稼働時期・資金計画を確認。GPU、メモリ、通信部品への波及は採用構成次第です。')
 }
-KEYWORDS = re.compile(r'\b(hbm\w*|dram|nand|memory|semiconductor|chip\w*|ai|gpu\w*|ssd|photon\w*|optical|data.?cent\w*)\b', re.I)
+KEYWORDS = re.compile(r'\b(hbm\w*|dram|nand|memory|semiconductor|chip\w*|gpu\w*|ssd|photon\w*|optical|data.?cent\w*)\b', re.I)
+
+
+def relevant(title, source):
+    if source.get('require_keywords') and not KEYWORDS.search(title):
+        return False
+    return not (source['id'] == 'nvidia' and re.search(r'geforce now', title, re.I))
+
+
+def context_of(title):
+    """Label only subjects present in the headline; do not invent deal terms."""
+    rules = [
+        (r'\b(power|cooling|energy)\b','電力・冷却'),
+        (r'\b(ventures|venture capital)\b','ベンチャー投資'),
+        (r'\b(hbm\w*)\b','HBM'),(r'\b(dram|lpddr\w*)\b','DRAM'),
+        (r'\b(nand|ssd)\b','NAND・SSD'),
+        (r'\b(vcsel|d2d)\b','VCSEL・チップ間光接続'),
+        (r'\b(dwdm|elsfp|laser)\b','レーザー・光モジュール'),
+        (r'\b(cpo|photon\w*|optical|transceiver\w*)\b','光通信'),
+        (r'\b(mlperf|benchmark\w*)\b','性能評価'),
+        (r'\b(rubin|blackwell|gpu\w*)\b','AI計算基盤'),
+        (r'\b(data.?cent\w*|ai factories|ai infrastructure)\b','AIインフラ'),
+        (r'\b(manufacturing|factory|fab|capacity)\b','生産能力'),
+        (r'\b(results|earnings)\b','決算'),
+    ]
+    return [label for regex,label in rules if re.search(regex,title,re.I)][:2]
 
 
 def clean(text):
@@ -68,20 +93,40 @@ def classify(title, source):
         event,label,impact = 'regulation','規制・取引条件に関する発表','対象地域・製品・発効日で影響が変わります。売上への制約と代替需要を確認します。'
     elif re.search(r'\b(results|earnings)\b',lower):
         event,label,impact = 'results','決算を発表','売上・粗利益率・次期見通しを前回予想と比較。決算発表という事実だけでは好悪を判定しません。'
+    elif re.search(r'\b(appoint\w*|retir\w*|board of directors|chief executive|chief financial)\b',lower):
+        event,label,impact = 'governance','人事・経営体制の変更','担当領域と事業方針の変化を確認。人事発表だけで需要や利益の増減は判断できません。'
+    elif re.search(r'\b(dividend\w*|repurchase\w*|buyback\w*)\b',lower):
+        event,label,impact = 'capital_return','配当・自社株買いの発表','金額・実施期間と営業キャッシュフローを確認。事業成長と株主還元を分けて評価します。'
+    elif re.search(r'\b(demonstrat\w*|showcas\w*|exhibit\w*)\b',lower):
+        event,label,impact = 'demonstration','技術の実演・展示に関する発表','実演・展示は量産受注とは別の段階です。評価する顧客、量産時期、既存製品に対する利点を確認します。'
+    elif re.search(r'\b(qualify|qualification|certif\w*)\b',lower):
+        event,label,impact = 'qualification','認定・適合評価に関する発表','認定の対象と参加企業、採用に必要な条件を確認。適合認定だけでは売上・受注は確定しません。'
     elif re.search(r'\b(expand\w*|invest\w*|manufacturing|fab|capacity)\b',lower):
         event,label,impact = 'capacity','投資・供給能力に関する発表','短期の投資負担と中期の供給増を分けて確認。稼働時期と顧客の需要が重要です。'
-    elif re.search(r'\b(partner\w*|collaborat\w*|agreement|deploy\w*)\b',lower):
+    elif re.search(r'\b(partner\w*|collaborat\w*|agreement|alliance)\b',lower):
         event,label,impact = 'partnership','提携・導入に関する発表','契約の拘束力・数量・売上計上時期を確認。計画段階と確定受注を区別します。'
-    elif re.search(r'\b(launch\w*|introduc\w*|unveil\w*|announc\w*|deliver\w*)\b',lower):
+    elif re.search(r'\b(launch\w*|introduc\w*|unveil\w*|deliver\w*)\b',lower):
         event,label,impact = 'product','製品・技術などを発表','性能・顧客採用・量産開始を確認。技術発表から業績への寄与は未確定です。'
     else:
         event,label,impact = 'other','企業情報を公表','投資判断が変わる材料かを本文で確認します。株価への方向は未判定です。'
+    subjects = context_of(title)
     name,related,follow = TOPICS[topic]
-    return {'topic':topic,'topic_label':name,'event':event,'headline_ja':source['company']+'：'+label,
-            'summary_ja':source['company']+'の公式発表。'+label+'。',
+    if '電力・冷却' in subjects:
+        related = ['VRT','NVDA','NBIS']
+        follow = '電源・冷却能力がAI設備の稼働制約を緩めるかが論点です。認定・提携から実受注、設備稼働までの進捗を追います。'
+    if 'ベンチャー投資' in subjects:
+        label = 'ベンチャー投資に関する発表'
+        impact = '投資先・出資額・協業内容を確認。投資枠の拡大は、メモリ需要や工場の増産が確定したことを意味しません。'
+    if event in ('calendar','governance','capital_return'):
+        related = []
+        follow = 'まず発表企業への影響を確認します。この発表だけから半導体業界全体への波及は判断しません。'
+    headline = source['company']+'：'+(' / '.join(subjects)+' · ' if subjects else '')+label
+    return {'topic':topic,'topic_label':name,'event':event,'headline_ja':headline,
+            'summary_ja':source['company']+'の公式見出しを整理。'+('論点は「'+' / '.join(subjects)+'」。' if subjects else '')+label+'。',
+            'subjects':subjects,
             'impact':impact,'follow_up':follow,'direct_tickers':source['tickers'],
             'related_tickers':[t for t in related if t not in source['tickers']],
-            'direction':'要確認','horizon':'発表直後〜次回決算','importance':'high' if event in ('results','regulation','capacity','partnership') else 'normal'}
+            'direction':'要確認','horizon':'発表直後〜次回決算','importance':'high' if event in ('results','regulation','capacity','partnership','demonstration','qualification') else 'normal'}
 
 
 def parse_feed(raw, source, now):
@@ -99,7 +144,7 @@ def parse_feed(raw, source, now):
         def text(key):
             return ''.join(fields[key].itertext()).strip() if key in fields else ''
         title = clean(text('title'))[:500]
-        if not title or source.get('require_keywords') and not KEYWORDS.search(title):
+        if not title or not relevant(title,source):
             continue
         links = [e for e in item if e.tag.split('}')[-1]=='link']
         link = next((e.get('href') for e in links if e.get('rel','alternate')=='alternate' and e.get('href')),None) or text('link')
@@ -143,7 +188,7 @@ def fetch_source(source, now):
     return [],{'id':source['id'],'name':source['name'],'status':'failed','checked_at':now.isoformat(),'count':0,'reason':failure}
 
 
-def assemble(previous, results, now):
+def assemble(previous, results, now, sources=None):
     existing = {n['id']:n for n in previous.get('articles',[])}
     articles = dict(existing)
     health = []
@@ -152,12 +197,22 @@ def assemble(previous, results, now):
         for row in records:
             row['first_seen_at'] = existing.get(row['id'],{}).get('first_seen_at',row['first_seen_at'])
             articles[row['id']] = row
-    recent = [n for n in articles.values() if now-timedelta(days=90) <= date_of(n['published_at']) <= now+timedelta(minutes=5)]
+    by_source = {s['id']:s for s in sources or []}
+    recent = []
+    for n in articles.values():
+        if not now-timedelta(days=90) <= date_of(n['published_at']) <= now+timedelta(minutes=5):
+            continue
+        source = by_source.get(n['source_id'])
+        if source:
+            if not relevant(n['title'],source):
+                continue
+            n = dict(n,**classify(n['title'],source))
+        recent.append(n)
     ordered = sorted(recent,key=lambda n:n['published_at'],reverse=True)
     seen = set()
     unique = []
     for n in ordered:
-        key = (re.sub(r'\W+','',n['title'].lower()),n['published_at'][:10])
+        key = re.sub(r'\W+','',n['title'].lower())
         if key not in seen:
             unique.append(n)
             seen.add(key)
@@ -176,7 +231,7 @@ def main():
     previous = json.loads(dest.read_text()) if dest.exists() else {}
     with ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(lambda s:fetch_source(s,now),sources))
-    output = assemble(previous,results,now)
+    output = assemble(previous,results,now,sources)
     atomic_json(dest,output)
     print(json.dumps({'status':output['status'],'articles':len(output['articles']),'sources':output['sources']}))
 

@@ -1,4 +1,4 @@
-import {reportText} from './news-ui.js';
+import {reportText,weeklyReportText} from './news-ui.js';
 import {captureUsage,usageBackup} from './usage.js';
 import {loadPhaseA,bindPhaseSort} from './phase-a.js';
 import {createPager,createNavigation,TAB_ROUTES,parseRoute} from './pager.js';
@@ -43,9 +43,9 @@ async function refresh({silent=false}={}){
   if(symbols?.length)symbolsLoaded=true;
   data={...publicData,checkedAt:new Date().toISOString()};
   if(phaseA)data.phaseA=phaseA;
-  const editing=main.querySelector('.detail-page:not([hidden]) form')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;
-  if(!silent||!editing)render();
-  if(!silent)notice(Object.values(data).some(x=>x?.error)?'一部取得できませんでした。更新状況をご確認ください。':'確認しました。データの基準日を表示しています。');
+  const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;
+  if(!editing)render();
+  if(!silent)notice(Object.values(data).some(x=>x?.error)?'一部取得できませんでした。更新状況をご確認ください。':editing?'最新データを取得しました。入力内容を残し、画面を切り替えたときに表示を更新します。':'確認しました。データの基準日を表示しています。');
  })().finally(()=>{refreshTask=null;document.querySelectorAll('[data-refresh]').forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');});});
  return refreshTask;
 }
@@ -53,6 +53,8 @@ function autoRefresh(){if(!document.hidden&&Date.now()-lastRefresh>60000)refresh
 setInterval(()=>{if(!document.hidden)refresh({silent:true});},5*60*1000);
 
 const run=fn=>{try{fn();render();notice('端末に保存しました。');}catch(e){notice(e.message);}};
+const copyReport=async text=>{try{if(!navigator.clipboard?.writeText)throw Error('unavailable');await navigator.clipboard.writeText(text);notice('レポートをコピーしました。');}catch{download(`semiconductor-report-${today()}.txt`,text,'text/plain');notice('レポートをテキストで保存しました。');}};
+for(const type of ['input','change'])document.addEventListener(type,event=>{if(event.target.form)event.target.form.dataset.dirty='true';});
 const number=(f,k)=>{const v=f.get(k);if(v===null||String(v).trim()==='')throw Error('金額・株数を入力してください。');const n=Number(v);if(!Number.isFinite(n))throw Error('数値が不正です。');return n;};
 const optional=(f,k)=>String(f.get(k)||'').trim()===''?null:number(f,k);
 const text=(f,k)=>String(f.get(k)||'').trim();
@@ -82,7 +84,8 @@ document.addEventListener('click',event=>{const b=event.target.closest('button')
  if(b.id==='refresh-data'||b.hasAttribute('data-refresh')){refresh();return;}
  if(b.dataset.stockScope){stockTab=b.dataset.stockScope;render();navigate('#stocks');return;}
  if(b.dataset.newsFilter){newsFilter=b.dataset.newsFilter;render();return;}
- if(b.dataset.copyReport){const n=data.news?.value?.articles?.find(n=>n.id===b.dataset.copyReport);if(n)navigator.clipboard?.writeText(reportText(n)).then(()=>notice('レポートをコピーしました。')).catch(()=>notice('コピーできませんでした。元ソースを開いて確認してください。'));return;}
+ if(b.hasAttribute('data-copy-week')){copyReport(weeklyReportText(data,get(),newsFilter));return;}
+ if(b.dataset.copyReport){const n=data.news?.value?.articles?.find(n=>n.id===b.dataset.copyReport);if(n)copyReport(reportText(n));return;}
  if(b.id==='export-private'){try{download(`mystockos-private-${today()}.json`,rawBackup());}catch{notice('保存済みデータを書き出せませんでした。');}return;}
  if(b.id==='export-usage'){usageBackup().then(raw=>download(`mystockos-usage-${today()}.json`,raw)).catch(e=>notice(`利用履歴を書き出せませんでした：${e.message}`));return;}
  if(b.id==='csv-template'){download('mystockos-daily-template.csv','date,timestamp,assets_jpy,valuation_basis,status\n','text/csv');return;}

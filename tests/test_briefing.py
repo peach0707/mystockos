@@ -65,5 +65,25 @@ class BriefingTests(unittest.TestCase):
             raw=f'<rss><channel><item><title>Results</title><link>{link}</link><pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>'.encode()
             self.assertEqual(parse_feed(raw,source,self.now)[0]['url'],'https://example.com/news/a')
 
+    def test_context_does_not_turn_demonstrations_or_ventures_into_orders(self):
+        optical=classify('Example to Demonstrate VCSEL Optical D2D Connectivity',self.source)
+        self.assertEqual(optical['event'],'demonstration')
+        self.assertIn('VCSEL',optical['headline_ja'])
+        self.assertIn('量産受注とは別',optical['impact'])
+        venture=classify('Example Launches Ventures to Expand Investment',self.source)
+        self.assertIn('増産が確定したことを意味しません',venture['impact'])
+        person=classify('Example Announces Director Retirement',self.source)
+        self.assertEqual(person['event'],'governance')
+        self.assertEqual(person['related_tickers'],[])
+
+    def test_consumer_ai_and_repeated_announcements_are_not_counted_again(self):
+        raw=b'<rss><channel><item><title>New Galaxy AI phone</title><link>https://example.com/a</link><pubDate>Mon, 21 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>'
+        self.assertEqual(parse_feed(raw,dict(self.source,require_keywords=True),self.now),[])
+        raw=raw.replace(b'New Galaxy AI phone',b'Example reports results')
+        first=parse_feed(raw,self.source,self.now)[0]
+        repeat=dict(first,id='repeat',published_at='2026-09-20T12:00:00+00:00')
+        output=assemble({},[([first,repeat],{'status':'ok'})],self.now)
+        self.assertEqual(len(output['articles']),1)
+
 
 if __name__=='__main__': unittest.main()

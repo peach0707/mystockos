@@ -21,11 +21,18 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  assert.equal(await page.locator('.tab-page[data-route="stocks"] .decision-card:visible').count(),1);
  await page.locator('.tab-page[data-route="stocks"] .decision-card:visible').click();
  await page.getByRole('heading',{name:'買い時・売り時の確認'}).waitFor();
+ const decision=page.locator('[data-form="watch-decision-form"] select');
+ const choices=await decision.locator('option').evaluateAll(rows=>rows.map(r=>r.value));
+ await decision.selectOption(choices.at(-1));
+ await page.locator('.header-refresh').click();
+ await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);
+ assert.equal(await decision.inputValue(),choices.at(-1),'refresh preserves an unsaved decision');
  await page.screenshot({path:`test-artifacts/${name}-stock.png`});
  await page.locator('.bottom a[href="#news"]').click();
  await page.waitForURL('**/#news');
  await page.getByRole('heading',{name:'半導体ニュース',exact:true}).waitFor();
  await page.getByRole('button',{name:'メモリ',exact:true}).click();
+ await page.getByRole('heading',{name:'分野別・7日間の影響'}).waitFor();
  await page.screenshot({path:`test-artifacts/${name}-news.png`});
  const articles=page.locator('.tab-page[data-route="news"] .brief-card');
  if(await articles.count()){
