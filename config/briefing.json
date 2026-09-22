@@ -1,5 +1,5 @@
 {
-  "version": "decision-checks-v1",
+  "version": "decision-checks-v2",
   "symbols": [
     "MU",
     "TSM",
@@ -20,7 +20,26 @@
     "LRCX",
     "KLAC",
     "ASML",
-    "VRT"
+    "VRT",
+    "MUU",
+    "MUD",
+    "SKHL",
+    "NVDL",
+    "NVDU",
+    "NVD",
+    "AMDL",
+    "AMUU",
+    "AMDD",
+    "AVL",
+    "AVS",
+    "TSMX",
+    "TSMZ",
+    "SOXL",
+    "SOXS",
+    "TQQQ",
+    "SQQQ",
+    "SMH",
+    "SOXX"
   ],
   "sources": [
     {

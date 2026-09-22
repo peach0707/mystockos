@@ -1,4 +1,4 @@
-"""Public daily price checks. Uses existing secret/provider, at most 20 credits/run."""
+"""Public daily checks and ETF/FX references using the existing provider."""
 from datetime import datetime, timezone
 import json
 import os
@@ -6,6 +6,7 @@ from pathlib import Path
 
 from collect_display_metrics import TwelveProvider, collect
 from stock_setups import describe, merge_snapshot, atomic_json
+from collect_valuation import collect_reference, collect_fx
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -21,16 +22,44 @@ def main():
     as_of = sessions[-1]
     dest = ROOT/'data/stock_setups.json'
     previous = json.loads(dest.read_text()) if dest.exists() else {}
-    if previous.get('as_of') == as_of and previous.get('coverage',{}).get('ok',0) >= len(config['symbols'])*0.8:
-        print('Closing checks already collected for this session; no additional API credits used.')
-        return
-    prices, failures = collect(TwelveProvider(os.environ.get('TWELVE_DATA_API_KEY')),config['symbols'],as_of)
+    key = os.environ.get('TWELVE_DATA_API_KEY')
+    # An incomplete ticker must not be hidden behind an aggregate 80% cutoff.
+    # Reuse valid same-session quotes; retry only the missing/stale entries.
     fresh = {}
-    for ticker,price in prices.items():
+    for ticker, row in previous.get('stocks', {}).items():
+        if ticker not in config['symbols'] or row.get('as_of') != as_of or row.get('quality') != 'ok':
+            continue
+        if 'analysis_ready' in row:
+            fresh[ticker] = row
+        elif len(row.get('history', [])) == 64:
+            # v1 already verified the same 64 consecutive closes. Reusing it
+            # needs no paid/API refetch merely to attach window metadata.
+            fresh[ticker] = dict(row, history_sessions=64, analysis_ready=True,
+                                 analysis_quality='ok', previous_close=row['history'][-2]['close'])
+    # Each auxiliary source fails independently; a failure never erases quotes.
+    for label, task in [('etfs', lambda: collect_reference(ROOT, key, now)),
+                        ('fx', lambda: collect_fx(ROOT, key, as_of, datetime.now(timezone.utc)))]:
         try:
-            fresh[ticker] = describe(price,sessions,as_of)
-        except ValueError as error:
-            failures.append({'ticker':ticker,'reason':str(error)})
+            task()
+        except (ValueError, KeyError, TypeError) as error:
+            print(json.dumps({'component': label, 'status': 'unavailable', 'reason': str(error)}))
+    pending = [ticker for ticker in dict.fromkeys(['SKHY','MUU'] + config['symbols'])
+               if ticker in config['symbols'] and ticker not in fresh]
+    failures = []
+    provider = TwelveProvider(key)
+    for ticker in pending:
+        prices, failed = collect(provider, [ticker], as_of)
+        failures.extend(failed)
+        if ticker in prices:
+            try:
+                fresh[ticker] = describe(prices[ticker], sessions, as_of)
+            except ValueError as error:
+                failures.append({'ticker': ticker, 'reason': str(error)})
+        # Preserve completed work if a later symbol or runner fails.
+        atomic_json(dest, merge_snapshot(previous, fresh, failures, as_of,
+                                        datetime.now(timezone.utc).isoformat(), config['symbols']))
+        if any(f['reason'] in ('rate_limited','secret_missing') for f in failed):
+            break
     result = merge_snapshot(previous,fresh,failures,as_of,datetime.now(timezone.utc).isoformat(),config['symbols'])
     atomic_json(dest,result)
     print(json.dumps({'as_of':as_of,'coverage':result['coverage'],'failures':failures}))

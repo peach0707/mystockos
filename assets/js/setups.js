@@ -15,6 +15,9 @@ export function setupFor(data,ticker,now=Date.now()){
   const fresh=dateState(setup?.as_of,data.calendar?.value,now);
   const valid=setup?.quality==='ok'&&['price','ma20','ma50','prior_high20','prior_low20','rsi14_simple','distance_ma20_pct'].every(k=>typeof setup[k]==='number'&&Number.isFinite(setup[k]));
   if(!valid||fresh.state!=='current'||data.setups?.cached||quote?.date!==setup.as_of){
+    if(setup?.quality==='ok'&&setup.analysis_ready===false&&fresh.state==='current'&&!data.setups?.cached)return {code:'waiting',label:'価格取得済み・分析準備中',tint:'muted',ready:false,setup,quote,
+      reason:`終値は取得済み。履歴が${setup.history_sessions}営業日のため、50日平均を使う条件はまだ判定しません。`,
+      buy:'価格・値動き・業績を確認。履歴の短い銘柄は変動に注意。',sell:'取得単価と保有量を確認。履歴不足を保有継続の根拠にしない。'};
     return {code:'waiting',label:'データ確認待ち',tint:'muted',ready:false,setup,quote,
       reason:!setup||setup.quality==='missing'?'この銘柄の分析用データは未取得です。':`分析基準日 ${setup.as_of||'不明'}。更新を確認するまで条件判定を保留します。`,
       buy:'最新の日足が揃ってから購入条件を確認。',sell:'最新の日足と投資根拠を確認してから判断。'};
