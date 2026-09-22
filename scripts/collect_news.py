@@ -119,6 +119,7 @@ def parse_feed(raw, source, now):
 
 
 def fetch_source(source, now):
+    failure = 'unavailable'
     for url in source['urls']:
         for attempt in range(2):
             try:
@@ -126,11 +127,15 @@ def fetch_source(source, now):
                 with urlopen(req,timeout=18) as response:
                     raw = response.read(2_000_001)
                 records = parse_feed(raw,source,now)
-                return records,{'id':source['id'],'name':source['name'],'status':'ok','checked_at':now.isoformat(),'count':len(records)}
-            except Exception:
+                root = ET.fromstring(raw)
+                first = next((e for e in root.iter() if e.tag.split('}')[-1] in ('item','entry')), None)
+                latest = {e.tag.split('}')[-1]:clean(''.join(e.itertext()))[:180] for e in first} if first is not None else {}
+                return records,{'id':source['id'],'name':source['name'],'status':'ok','checked_at':now.isoformat(),'count':len(records),'latest_title':latest.get('title'),'latest_date_raw':latest.get('pubDate') or latest.get('published') or latest.get('updated')}
+            except Exception as error:
+                failure = 'http_'+str(error.code) if hasattr(error,'code') else type(error).__name__
                 if not attempt:
                     time.sleep(2)
-    return [],{'id':source['id'],'name':source['name'],'status':'failed','checked_at':now.isoformat(),'count':0}
+    return [],{'id':source['id'],'name':source['name'],'status':'failed','checked_at':now.isoformat(),'count':0,'reason':failure}
 
 
 def assemble(previous, results, now):

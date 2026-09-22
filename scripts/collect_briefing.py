@@ -19,6 +19,11 @@ def main():
     atomic_json(ROOT/'data/market_calendar.json',{'schema_version':1,'start':rows[0]['date'],'end':rows[-1]['date'],'source':'exchange_calendars 4.11.3 / XNYS','sessions':rows})
     config = json.loads((ROOT/'config/briefing.json').read_text())
     as_of = sessions[-1]
+    dest = ROOT/'data/stock_setups.json'
+    previous = json.loads(dest.read_text()) if dest.exists() else {}
+    if previous.get('as_of') == as_of and previous.get('coverage',{}).get('ok',0) >= len(config['symbols'])*0.8:
+        print('Closing checks already collected for this session; no additional API credits used.')
+        return
     prices, failures = collect(TwelveProvider(os.environ.get('TWELVE_DATA_API_KEY')),config['symbols'],as_of)
     fresh = {}
     for ticker,price in prices.items():
@@ -26,8 +31,6 @@ def main():
             fresh[ticker] = describe(price,sessions,as_of)
         except ValueError as error:
             failures.append({'ticker':ticker,'reason':str(error)})
-    dest = ROOT/'data/stock_setups.json'
-    previous = json.loads(dest.read_text()) if dest.exists() else {}
     result = merge_snapshot(previous,fresh,failures,as_of,datetime.now(timezone.utc).isoformat(),config['symbols'])
     atomic_json(dest,result)
     print(json.dumps({'as_of':as_of,'coverage':result['coverage'],'failures':failures}))
