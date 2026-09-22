@@ -1,3 +1,5 @@
+import {holdingKey} from './holdings.js';
+import {positionsHTML,averageCostHTML} from './holdings-ui.js';
 import {esc,num,yen,pct,tone,empty,field,today} from './ui.js';
 import {valueHoldings,observationResult} from './valuation.js';
 import {listingFor,isLeveraged} from './symbols.js';
@@ -24,7 +26,7 @@ export function valuationOverview(s,data){
  <div class="actions"><a class="button" href="#portfolio/edit">＋ 保有銘柄を登録</a><a class="button secondary" href="#portfolio/auto-calendar">評価の自動記録</a></div>
  <div class="section-heading"><h2>保有銘柄</h2><small>価格更新で自動再計算</small></div><div class="holding-list">${v.rows.map(r=>{
   const record=s.securities?.[r.ticker]||listingFor(r.ticker),leverage=isLeveraged(record);
-  return `<article class="holding-card" data-holding="${esc(r.ticker)}"><div class="row"><div><a class="holding-ticker" href="#stocks/${esc(r.ticker)}">${esc(r.ticker)} ›</a>${leverage?'<span class="tag caution">レバ・インバース</span>':''}<small>${num(r.quantity,6)}株 · ${esc(record?.name||'')}</small></div><button class="subtle" data-edit-holding="${esc(r.ticker)}" aria-label="${esc(r.ticker)}の保有を編集">編集</button></div><dl><dt>評価額</dt><dd><strong>${amount(r.valueJpy)}</strong>${r.quoteCurrency==='USD'?`<small>${amount(r.value,'USD')}</small>`:''}</dd><dt>終値 / 取得単価</dt><dd>${amount(r.price,r.quoteCurrency)} / ${amount(r.cost,r.currency)}</dd><dt>取得単価との差</dt><dd class="${tone(r.pnl??r.pnlJpy)}">${r.pnl!==null?`${signed(r.pnl,r.quoteCurrency)} (${pct(r.pnlRate)})`:signed(r.pnlJpy)}${r.pnl!==null&&r.quoteCurrency==='USD'&&r.pnlJpy!==null?`<small>円換算 ${signed(r.pnlJpy)}</small>`:''}</dd></dl><small>${esc(r.asOf||'価格未取得')}${r.reason?' · '+esc(r.reason):' 終値'}</small></article>`;
+  return `<article class="holding-card" data-holding="${esc(r.ticker)}"><div class="row"><div><a class="holding-ticker" href="#stocks/${esc(r.ticker)}">${esc(r.ticker)} ›</a>${leverage?'<span class="tag caution">レバ・インバース</span>':''}<small>${num(r.quantity,6)}株${r.positions.length>1?` · ${r.positions.length}件を合算`:``} · ${esc(record?.name||'')}</small></div><button class="subtle" ${r.positions.length===1?`data-edit-holding="${esc(holdingKey(r.positions[0]))}"`:`data-manage-holding="${esc(r.ticker)}"`} aria-label="${esc(r.ticker)}の保有を編集">編集</button></div><dl><dt>評価額</dt><dd><strong>${amount(r.valueJpy)}</strong>${r.quoteCurrency==='USD'?`<small>${amount(r.value,'USD')}</small>`:''}</dd><dt>終値</dt><dd>${amount(r.price,r.quoteCurrency)}</dd><dt>平均取得単価</dt><dd data-average-cost="${esc(r.ticker)}">${averageCostHTML(r)}</dd><dt>取得単価との差</dt><dd class="${tone(r.pnl??r.pnlJpy)}">${r.pnl!==null?`${signed(r.pnl,r.quoteCurrency)} (${pct(r.pnlRate)})`:signed(r.pnlJpy)}${r.pnl!==null&&r.quoteCurrency==='USD'&&r.pnlJpy!==null?`<small>円換算 ${signed(r.pnlJpy)}</small>`:''}</dd></dl><small>${esc(r.asOf||'価格未取得')}${r.reason?' · '+esc(r.reason):' 終値'}</small>${r.costBreakdown.length>1?'<p class="holding-help">取得通貨が異なるため、平均取得単価は通貨別に表示しています。</p>':''}${positionsHTML(r)}</article>`;
  }).join('')||empty('登録した保有株がここに並びます。毎日の評価額入力は不要です。')}</div>
  ${v.convertedCount?`<section class="card holdings-allocation"><h2>${v.complete?'保有株の配分':'取得済み分の配分'}</h2>${v.allocation.sort((a,b)=>b.value-a.value).map(r=>`<div><div class="row"><span>${esc(r.name)}</span><b>${num(r.value/v.subtotalJpy*100,1)}%</b></div><div class="allocation-track"><span style="width:${r.value/v.subtotalJpy*100}%"></span></div></div>`).join('')}<p class="muted">株式の円換算評価額で計算。現金はこの配分に含めません。</p></section>`:''}`;
 }
@@ -35,7 +37,7 @@ export function cashForm(s){
 
 export function valuationSummary(s,data){
  const v=valueHoldings(s,data),history=s.holdingObservations||[];
- return `<section class="card"><h2>自動集計のサマリー</h2><dl><dt>保有銘柄</dt><dd>${s.holdings.length}銘柄</dd><dt>保有株評価額</dt><dd>${amount(v.stockJpy)}</dd><dt>登録現金</dt><dd>${v.cashKnown?amount(v.cashJpy):'未登録（集計対象外）'}</dd><dt>自動評価の記録</dt><dd>${history.length}日</dd><dt>最終自動記録</dt><dd>${esc(history.at(-1)?.date||'最新データの確認後に開始')}</dd></dl><a href="#portfolio/auto-calendar">評価の記録を見る ›</a></section>`;
+ return `<section class="card"><h2>自動集計のサマリー</h2><dl><dt>保有銘柄</dt><dd>${v.rows.length}銘柄（${s.holdings.length}件）</dd><dt>保有株評価額</dt><dd>${amount(v.stockJpy)}</dd><dt>登録現金</dt><dd>${v.cashKnown?amount(v.cashJpy):'未登録（集計対象外）'}</dd><dt>自動評価の記録</dt><dd>${history.length}日</dd><dt>最終自動記録</dt><dd>${esc(history.at(-1)?.date||'最新データの確認後に開始')}</dd></dl><a href="#portfolio/auto-calendar">評価の記録を見る ›</a></section>`;
 }
 
 export function autoCalendar(s,month,selected,detail=false){
