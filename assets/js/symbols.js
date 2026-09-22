@@ -1,10 +1,11 @@
 import {esc} from './ui.js';
+import {quoteStatus} from './quote-status.js';
 export const normalizeTicker=value=>String(value??'').trim().toUpperCase();
 let master=[];export let masterStatus='銘柄一覧を読み込んでいます…';
 export let symbolSourcesComplete=false;
-let automaticQuotes={};
-export function setQuoteCoverage(rows){automaticQuotes=rows||{};}
-export function quoteCoverageLabel(symbol){const row=automaticQuotes[symbol];return row?Number.isFinite(row.price)?'価格自動更新':'自動取得対象・取得待ち':'価格は自動取得の対象外';}
+let quoteData={};
+export function setQuoteCoverage(rows,calendar,cached=false){quoteData={setups:{value:rows?{stocks:rows}:null,cached},calendar:{value:calendar}};}
+export function quoteCoverageLabel(symbol){return quoteStatus(quoteData,symbol).label;}
 export function validateMaster(d){if(d?.schema_version!==1||!Array.isArray(d.symbols)||!d.symbols.length||d.symbols.some(r=>!r.id||!r.symbol||!r.name||!r.exchange||normalizeTicker(r.symbol)!==r.symbol)||new Set(d.symbols.map(r=>r.id)).size!==d.symbols.length)throw Error('銘柄一覧の形式が不正です');return d.symbols;}
 export function searchSymbols(rows,query){const q=normalizeTicker(query);if(!q)return [];return rows.filter(r=>r.symbol.includes(q)||r.name.toUpperCase().includes(q)).sort((a,b)=>(a.symbol===q?0:a.symbol.startsWith(q)?1:2)-(b.symbol===q?0:b.symbol.startsWith(q)?1:2)||a.symbol.localeCompare(b.symbol)||a.exchange.localeCompare(b.exchange)).slice(0,12);}
 export function selectedSymbol(rows,query,id){const r=rows.find(r=>r.id===id&&r.symbol===normalizeTicker(query));if(!r)throw Error('該当する銘柄が見つかりません。候補から銘柄と市場を選択してください。');return r;}

@@ -75,6 +75,25 @@ for(const [name,engine] of engines){
    await page.getByRole('button',{name:'MUの保有を編集',exact:true}).click();
    assert.equal(await card().evaluate(el=>el.scrollWidth>el.clientWidth+1),false,`${name} ${width}px holding card overflow`);
   }
+  // A searchable but unpriced symbol cannot silently look valuation-ready.
+  const unpriced=symbols.symbols.find(s=>s.symbol==='AAPL'&&s.exchange==='NASDAQ');
+  await page.setViewportSize({width:390,height:844});
+  await page.getByRole('link',{name:'＋ 保有銘柄を登録',exact:true}).click();
+  await page.getByRole('textbox',{name:'銘柄名またはティッカーを検索'}).fill('AAPL');
+  await page.locator(`[data-symbol-id="${unpriced.id}"]`).click();
+  assert.match(await page.locator('[data-holding-quote]').innerText(),/価格自動取得の対象外/);
+  await page.getByLabel('株数',{exact:true}).fill('3');
+  await page.getByLabel('1株あたり取得単価',{exact:true}).fill('12');
+  const beforeMissing=(await state()).holdings.length;
+  await page.getByRole('button',{name:'保存',exact:true}).click();
+  assert.equal((await state()).holdings.length,beforeMissing);
+  await page.locator('[name="quote_ack"]').check();
+  await page.screenshot({path:`test-artifacts/${name}-price-coverage.png`});
+  await save();
+  const noPrice=page.locator('.tab-page[data-route="portfolio"] [data-holding="AAPL"]');
+  assert.match(await noPrice.innerText(),/自動取得の対象外/);
+  assert.equal(await noPrice.getByRole('button',{name:'価格の取得状況を再確認'}).count(),1);
+  assert.equal((await state()).holdings.length,beforeMissing+1);
   assert.deepEqual(errors,[]);
   console.log(`${name}: legacy data, two brokerages, weighted average, exact-row edits/deletes, reload, backup and layouts passed`);
  }finally{await browser.close();}
