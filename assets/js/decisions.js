@@ -22,6 +22,6 @@ export function recordDecision(s,scope,ticker,value,recordedAt=new Date().toISOS
  const h=s.holdings.find(h=>h.ticker===ticker);
  if(scope==='held'?!h:!s.watch.includes(ticker))throw Error('登録済みの銘柄を選んでください。');
  const old=scope==='held'?h.decision:s.watchDecisions[ticker]||'unset';
- if(scope==='held')h.decision=value;else s.watchDecisions[ticker]=value;
+ if(scope==='held')s.holdings.filter(h=>h.ticker===ticker).forEach(h=>h.decision=value);else s.watchDecisions[ticker]=value;
  if(old!==value)s.decisionHistory.push({id,recorded_at:recordedAt,ticker,scope,value,source:'manual',enum_version:DECISION_VERSION});
 }

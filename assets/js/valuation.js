@@ -2,11 +2,12 @@
 import {quoteFor} from './setups.js';
 import {dateState} from './freshness.js';
 import {dateValid} from './ui.js';
+import {aggregateHoldings} from './holdings.js';
 
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const positive=x=>finite(x)&&x>0;
 const japanDay=now=>new Date(now).toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
-export const holdingBasis=s=>JSON.stringify(s.holdings.map(h=>[h.ticker,h.quantity,h.cost,h.currency,s.securities?.[h.ticker]?.id||'']).sort((a,b)=>a[0].localeCompare(b[0])));
+export const holdingBasis=s=>JSON.stringify(s.holdings.map(h=>[h.ticker,h.quantity,h.cost,h.currency,s.securities?.[h.ticker]?.id||'']).sort((a,b)=>a[0].localeCompare(b[0])||JSON.stringify(a).localeCompare(JSON.stringify(b))));
 
 export function fxQuote(data,now=Date.now()){
  const f=data.fx?.value;
@@ -17,7 +18,7 @@ export function fxQuote(data,now=Date.now()){
 
 export function valueHoldings(s,data,now=Date.now()){
  const fx=fxQuote(data,now);
- const rows=s.holdings.map(h=>{
+ const rows=aggregateHoldings(s.holdings).map(h=>{
   const q=quoteFor(data,h.ticker,now),security=s.securities?.[h.ticker];
   // A symbol's USD market quote is never multiplied by a JPY acquisition cost.
   // Existing records keep their cost currency; value and cost conversions differ.
@@ -27,8 +28,10 @@ export function valueHoldings(s,data,now=Date.now()){
   const value=good?price*h.quantity:null;
   const rate=quoteCurrency==='JPY'?1:fx?.rate;
   const valueJpy=good&&positive(rate)&&finite(value*rate)?value*rate:null;
-  const cost=h.quantity*h.cost, costRate=h.currency==='JPY'?1:fx?.rate;
-  const costJpy=positive(costRate)&&finite(cost*costRate)?cost*costRate:null;
+  const cost=h.costBreakdown.length===1?h.costBreakdown[0].totalCost:null;
+  const convertedCosts=h.costBreakdown.map(c=>{const rate=c.currency==='JPY'?1:fx?.rate;return positive(rate)&&finite(c.totalCost*rate)?c.totalCost*rate:null;});
+  const totalCostJpy=convertedCosts.every(c=>c!==null)?convertedCosts.reduce((sum,c)=>sum+c,0):null;
+  const costJpy=finite(totalCostJpy)?totalCostJpy:null;
   const pnl=good&&h.currency===quoteCurrency?value-cost:null;
   const pnlJpy=valueJpy!==null&&costJpy!==null?valueJpy-costJpy:null;
   const stale=good&&(dateState(q.date,data.calendar?.value,now).state!=='current'||q.quality==='stale'||!!data.setups?.cached);

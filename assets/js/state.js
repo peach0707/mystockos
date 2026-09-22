@@ -3,6 +3,7 @@ import {DECISION_VERSION,validDecision,legacyDecision} from './decisions.js';
 import {dateValid} from './ui.js';
 import {timestampValid,snapshotRecord} from './ledger.js';
 import {validateValuationState} from './valuation.js';
+import {holdingKey,aggregateHoldings} from './holdings.js';
 export const LEGACY_KEY='mystockos.private.v2';
 export const V3_KEY='mystockos.private.v3';
 export const V4_KEY='mystockos.private.v4';
@@ -24,7 +25,8 @@ export function validate(s){
  if(!s.rationaleReview||typeof s.rationaleReview!=='object'||Array.isArray(s.rationaleReview)||Object.entries(s.rationaleReview).some(([k,v])=>!ticker(k)||!validTags(v,5)||v.length<=3))throw Error('旧投資根拠の形式が不正です。');
  if(!Array.isArray(s.rationaleHistory)||s.rationaleHistory.some(r=>!r||!str(r.id,100)||!r.id||!ticker(r.ticker)||r.source!=='manual'||r.enum_version!==RATIONALE_VERSION||!str(r.recorded_at,30)||!dateValid(r.recorded_at.slice(0,10))||!/^\d{4}-\d{2}-\d{2}T.*Z$/.test(r.recorded_at)||!Number.isFinite(Date.parse(r.recorded_at))||!['before','after','added','removed'].every(k=>validTags(r[k],5))||!(r.security_id===null||str(r.security_id,200))||!Array.isArray(r.contexts)||!r.contexts.length||r.contexts.some(x=>!['held','watch'].includes(x))||new Set(r.contexts).size!==r.contexts.length||JSON.stringify([...r.added].sort())!==JSON.stringify(r.after.filter(x=>!r.before.includes(x)).sort())||JSON.stringify([...r.removed].sort())!==JSON.stringify(r.before.filter(x=>!r.after.includes(x)).sort()))||new Set(s.rationaleHistory.map(r=>r.id)).size!==s.rationaleHistory.length)throw Error('投資根拠の変更履歴が不正です。');
  if(s.watch.some(x=>!ticker(x))||new Set(s.watch).size!==s.watch.length)throw Error('監視銘柄が不正です。');
- if(s.holdings.some(h=>!ticker(h.ticker)||!finite(h.quantity)||h.quantity<=0||!finite(h.cost)||h.cost<0||!['USD','JPY'].includes(h.currency)||!validDecision('held',h.decision) )||new Set(s.holdings.map(h=>h.ticker)).size!==s.holdings.length)throw Error('保有銘柄を確認してください。');
+ if(s.holdings.some(h=>!h||!ticker(h.ticker)||!finite(h.quantity)||h.quantity<=0||!finite(h.cost)||h.cost<0||!finite(h.quantity*h.cost)||!['USD','JPY'].includes(h.currency)||!validDecision('held',h.decision)||(h.id!==undefined&&(!str(h.id,100)||!h.id))||(h.broker!==undefined&&!str(h.broker,60)))||new Set(s.holdings.map(holdingKey)).size!==s.holdings.length)throw Error('保有銘柄・登録ID・証券会社を確認してください。');
+ for(const h of aggregateHoldings(s.holdings))if(!finite(h.quantity)||h.costBreakdown.some(c=>!finite(c.totalCost))||h.positions.some(p=>p.decision!==h.decision))throw Error('同じ銘柄の合計株数・取得金額・保有判断を確認してください。');
  if(!s.cashFlowQuality||!['complete','incomplete'].includes(s.cashFlowQuality.status)||!str(s.cashFlowQuality.note))throw Error('入出金履歴の完全性を確認してください。');
  if(!s.yearBaselines||typeof s.yearBaselines!=='object'||Array.isArray(s.yearBaselines))throw Error('年初基準が不正です。');
  for(const [year,date] of Object.entries(s.yearBaselines))if(!/^\d{4}$/.test(year)||!dateValid(date)||date<`${Number(year)-1}-12-01`||date>`${year}-01-01`||!s.snapshots.some(x=>x.date===date&&['recorded','closed'].includes(x.status)))throw Error('年初基準には前年12月〜元日の有効な評価を指定してください。');

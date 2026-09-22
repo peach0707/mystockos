@@ -13,7 +13,7 @@ test('ETF listings merge independently and exact MUU is selectable; stock failur
 test('release import map keeps cached UI dependencies and the shared symbol master on one version',()=>{
  const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
  const map=JSON.parse(html.match(/<script type="importmap">(.*?)<\/script>/s)[1]).imports;
- assert.equal(map['./assets/js/symbols.js'],'./assets/js/symbols.js?v=holdings2');
+ assert.equal(map['./assets/js/symbols.js'],'./assets/js/symbols.js?v=brokerages1');
  assert.equal(map['./assets/js/data.js'],map['./assets/js/data.js?v=20260922']);
  assert.ok(html.indexOf('type="importmap"')<html.indexOf('type="module"'));
 });

@@ -37,8 +37,11 @@ const dayJST=stamp=>new Date(new Date(stamp).getTime()+9*3600000).toISOString().
 export function usageInput(state,data,stamp){
  if(!data.themes?.value)return null; // Do not manufacture pre-observation history.
  const decisions=[];
+ const seenHoldings=new Set();
  for(const h of state.holdings){
   if(!validDecision('held',h.decision))throw Error('保有判断の形式を確認してください。');
+  if(seenHoldings.has(h.ticker))continue;
+  seenHoldings.add(h.ticker);
   decisions.push({ticker:h.ticker,scope:'held',value:h.decision});
  }
  for(const ticker of state.watch){
