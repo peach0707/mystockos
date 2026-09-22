@@ -6,16 +6,19 @@ const amount=(n,c='JPY')=>Number.isFinite(n)?c==='USD'?'$'+num(n,2):yen(n):'—'
 const signed=(n,c='JPY')=>Number.isFinite(n)?(n>0?'+':'')+amount(n,c):'—';
 
 export function valuationOverview(s,data){
- const v=valueHoldings(s,data),partial=v.pricedCount<v.rows.length;
- const heading=v.cashKnown?(v.assetsJpy!==null?'資産総額（登録株＋現金）':'登録資産の参考評価'):'保有株の評価額';
+ const v=valueHoldings(s,data);
+ const nativeOnly=!v.complete&&v.convertedCount===0&&v.pricedCount===v.rows.length&&v.rows.every(r=>r.quoteCurrency==='USD')&&!v.cashKnown;
+ const partial=(!v.complete||v.cashKnown&&v.cashJpy===null)&&!nativeOnly;
+ const heading=nativeOnly?'保有株の評価額（米ドル）':v.cashKnown?(v.assetsJpy!==null?'資産総額（登録株＋現金）':'登録資産の参考評価'):'保有株の評価額';
  let total=v.cashKnown?v.assetsJpy:v.stockJpy;
  let shown=amount(total);
  if(total===null&&v.convertedCount)shown=amount(v.subtotalJpy+(v.cashJpy||0));
  else if(total===null&&v.pricedCount&&v.rows.every(r=>r.quoteCurrency==='USD'))shown=amount(v.native.USD,'USD');
  const missing=v.rows.filter(r=>r.valueJpy===null),dated=v.dates.length?`${v.dates[0]}${v.dates.length>1?'〜'+v.dates.at(-1):''} 米国終値`:'価格を確認しています';
  const ownOnly=!v.cashKnown?'<a href="#portfolio/cash">＋ 現金も含める</a>':'<a href="#portfolio/cash">現金残高を編集</a>';
- return `<section class="valuation-hero" aria-label="保有株の自動評価"><div class="row"><span class="eyebrow">PORTFOLIO</span><span class="tag ${v.fresh?'blue':'muted'}">${v.fresh?'自動計算':v.pricedCount?'参考評価':'取得待ち'}</span></div><h2>${heading}</h2>${partial?'<span class="valuation-partial">一部のみ・総額ではありません</span>':''}<strong class="valuation-total" data-valuation-total>${s.holdings.length||v.cashKnown?shown:'保有株を登録'}</strong><p>${s.holdings.length?esc(dated):'銘柄・株数・取得単価を登録すると自動計算します。'}</p><div class="valuation-sub"><div><small>取得単価との差（参考）</small><b class="${tone(v.pnlJpy)}">${signed(v.pnlJpy)}</b></div><div><small>価格の取得状況</small><b>${v.pricedCount} / ${v.rows.length} 銘柄</b></div></div><div class="valuation-foot"><span>${v.cashKnown?`現金 ${amount(v.cashJpy)}`:'現金は未登録・集計に含みません'}</span>${ownOnly}</div></section>
+ return `<section class="valuation-hero" aria-label="保有株の自動評価"><div class="row"><span class="eyebrow">PORTFOLIO</span><span class="tag ${v.fresh?'blue':'muted'}">${v.fresh?'自動計算':v.pricedCount?'参考評価':'取得待ち'}</span></div><h2>${heading}</h2>${partial?'<span class="valuation-partial">一部のみ・総額ではありません</span>':''}<strong class="valuation-total" data-valuation-total>${s.holdings.length||v.cashKnown?shown:'保有株を登録'}</strong><p>${s.holdings.length?esc(dated):'銘柄・株数・取得単価を登録すると自動計算します。'}</p><div class="valuation-sub"><div><small>取得単価との差（参考）</small><b class="${tone(v.pnlJpy)}">${signed(v.pnlJpy)}</b></div><div><small>価格の取得状況</small><b>${v.pricedCount} / ${v.rows.length} 銘柄</b></div></div><div class="valuation-foot"><span>${v.cashKnown?`現金 ${amount(v.cashJpy)}（${esc(s.cashBalance.updatedAt)}登録）`:'現金は未登録・集計に含みません'}</span>${ownOnly}</div></section>
  ${missing.length?`<p class="warning">${missing.map(r=>`${esc(r.ticker)}：${esc(r.reason)}`).join(' / ')}。取得できた分は表示し、不明な価格を0円にはしません。</p>`:''}
+ ${v.cashKnown&&v.cashJpy===null?'<p class="warning">米ドル現金の円換算に必要な為替を確認中です。現金を含む総額はまだ表示できません。</p>':''}
  ${v.rows.some(r=>r.stale)||v.fx?.stale?'<p class="warning">一部は前回取得した価格・為替です。最新の確定値を確認するまで参考評価として表示します。</p>':''}
  ${s.holdings.length?`<p class="valuation-basis">${v.fx?`円換算：1ドル＝${num(v.fx.rate,4)}円（${esc(v.fx.as_of)} UTC日足終値 / ${esc(v.fx.source)}）。`:'ドル建ての円換算は為替取得後に表示します。'} USD取得単価との差は同じ換算レートで比較するため、購入時からの為替損益・配当・手数料は含みません。</p>`:''}
  <div class="actions"><a class="button" href="#portfolio/edit">＋ 保有銘柄を登録</a><a class="button secondary" href="#portfolio/auto-calendar">評価の自動記録</a></div>

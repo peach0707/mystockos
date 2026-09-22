@@ -4,7 +4,7 @@ import {loadPhaseA,bindPhaseSort} from './phase-a.js';
 import {createPager,createNavigation,TAB_ROUTES,parseRoute} from './pager.js';
 import {recordRationales,toggleRationale,MAX_RATIONALES} from './rationales.js';
 import {recordDecision} from './decisions.js';
-import {loadSymbols,bindSymbolPickers,fromForm,manyFromForm,remember,registerWatch,ensureUnique,verifyIncoming} from './symbols.js';
+import {loadSymbols,symbolSourcesComplete,setQuoteCoverage,bindSymbolPickers,fromForm,manyFromForm,remember,registerWatch,ensureUnique,verifyIncoming} from './symbols.js';
 import {esc,notice,download,today} from './ui.js';
 import {read,get,mutate,commit,validate,rawBackup,storageError,migrate} from './state.js';
 import {loadPublic} from './data.js?v=20260922';
@@ -34,16 +34,17 @@ function render(){recordCurrentValuation();pager.refresh();const {route,page}=pa
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editTicker='',editFlow='';navigate(a.hash);
 });
-let refreshTask=null,lastRefresh=0,symbolsLoaded=false;
+let refreshTask=null,lastRefresh=0,symbolsLoaded=0;
 async function refresh({silent=false}={}){
  if(refreshTask)return refreshTask;
  lastRefresh=Date.now();
  if(!silent)notice('最新データを確認しています…');
  document.querySelectorAll('[data-refresh]').forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
  refreshTask=(async()=>{
-  const [publicData,phaseA,symbols]=await Promise.all([loadPublic(),loadPhaseA(),symbolsLoaded?Promise.resolve(null):loadSymbols()]);
-  if(symbols?.length)symbolsLoaded=true;
+  const [publicData,phaseA,symbols]=await Promise.all([loadPublic(),loadPhaseA(),symbolsLoaded&&Date.now()-symbolsLoaded<6*3600000?Promise.resolve(null):loadSymbols()]);
+  if(symbols?.length&&symbolSourcesComplete)symbolsLoaded=Date.now();
   data={...publicData,checkedAt:new Date().toISOString()};
+  setQuoteCoverage(data.setups?.value?.stocks);
   if(phaseA)data.phaseA=phaseA;
   recordCurrentValuation();
   const editing=main.querySelector('.detail-page:not([hidden]) form[data-dirty]')||document.activeElement?.matches('input,textarea,select')||main.querySelector('[data-stock-search]')?.value;

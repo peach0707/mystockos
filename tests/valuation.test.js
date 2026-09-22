@@ -99,3 +99,7 @@ test('FX public schema rejects inverse, non-positive and malformed values',()=>{
  const {data}=fixture();assert.equal(valid('fx',data.fx.value),true);
  for(const change of [{pair:'JPY/USD'},{rate:0},{rate:NaN},{basis:'intraday'},{as_of:'2026-02-30'}])assert.equal(valid('fx',{...data.fx.value,...change}),false);
 });
+test('numeric overflow cannot produce an infinite valuation or be stored',()=>{
+ const {s,data}=fixture();s.holdings[0].quantity=1e308;
+ const v=valueHoldings(s,data,now);assert.equal(v.rows[0].value,null);assert.equal(v.stockJpy,null);assert.equal(nextObservation(s,data,now),null);
+});

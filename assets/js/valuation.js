@@ -22,30 +22,33 @@ export function valueHoldings(s,data,now=Date.now()){
   // A symbol's USD market quote is never multiplied by a JPY acquisition cost.
   // Existing records keep their cost currency; value and cost conversions differ.
   const quoteCurrency=q?.currency||security?.currency||'USD';
-  const good=q?.closed&&positive(q.price)&&['USD','JPY'].includes(quoteCurrency);
+  const good=q?.closed&&positive(q.price)&&['USD','JPY'].includes(quoteCurrency)&&finite(q.price*h.quantity);
   const price=good?q.price:null;
   const value=good?price*h.quantity:null;
   const rate=quoteCurrency==='JPY'?1:fx?.rate;
-  const valueJpy=good&&positive(rate)?value*rate:null;
+  const valueJpy=good&&positive(rate)&&finite(value*rate)?value*rate:null;
   const cost=h.quantity*h.cost, costRate=h.currency==='JPY'?1:fx?.rate;
-  const costJpy=positive(costRate)?cost*costRate:null;
+  const costJpy=positive(costRate)&&finite(cost*costRate)?cost*costRate:null;
   const pnl=good&&h.currency===quoteCurrency?value-cost:null;
   const pnlJpy=valueJpy!==null&&costJpy!==null?valueJpy-costJpy:null;
   const stale=good&&(dateState(q.date,data.calendar?.value,now).state!=='current'||q.quality==='stale'||!!data.setups?.cached);
-  const reason=!q||!positive(q.price)?'価格未取得':!q.closed?'確定した終値を確認中':!['USD','JPY'].includes(quoteCurrency)?'未対応の価格通貨':valueJpy===null?'為替を確認中':stale?'前回の終値で概算':'';
+  const reason=!q||!positive(q.price)?'価格未取得':!q.closed?'確定した終値を確認中':!['USD','JPY'].includes(quoteCurrency)?'未対応の価格通貨':!finite(q.price*h.quantity)?'数量・価格の計算範囲を確認':valueJpy===null?'為替を確認中':stale?'前回の終値で概算':'';
   return {...h,price,quoteCurrency,asOf:q?.date||null,value,valueJpy,costJpy,pnl,pnlJpy,
    pnlRate:pnl!==null&&cost>0?pnl/cost*100:null,stale,reason};
  });
  const priced=rows.filter(r=>r.value!==null),converted=rows.filter(r=>r.valueJpy!==null);
- const complete=converted.length===rows.length;
- const subtotalJpy=converted.reduce((a,r)=>a+r.valueJpy,0);
+ const subtotal=converted.reduce((a,r)=>a+r.valueJpy,0);
+ const subtotalJpy=finite(subtotal)?subtotal:null;
+ const complete=converted.length===rows.length&&subtotalJpy!==null;
  const native=Object.fromEntries(['USD','JPY'].map(c=>[c,priced.filter(r=>r.quoteCurrency===c).reduce((a,r)=>a+r.value,0)]));
  const cash=s.cashBalance;
  const cashKnown=!!cash&&finite(cash.JPY)&&finite(cash.USD);
- const cashJpy=cashKnown&&(cash.USD===0||fx)?cash.JPY+cash.USD*(fx?.rate||0):null;
+ const cashValue=cashKnown&&(cash.USD===0||fx)?cash.JPY+cash.USD*(fx?.rate||0):null;
+ const cashJpy=finite(cashValue)?cashValue:null;
  const stockJpy=complete?subtotalJpy:null;
- const assetsJpy=stockJpy!==null&&cashJpy!==null?stockJpy+cashJpy:null;
- const pnlJpy=rows.length>0&&complete&&rows.every(r=>r.pnlJpy!==null)?rows.reduce((a,r)=>a+r.pnlJpy,0):null;
+ const assetsJpy=stockJpy!==null&&cashJpy!==null&&finite(stockJpy+cashJpy)?stockJpy+cashJpy:null;
+ const pnlValue=rows.length>0&&complete&&rows.every(r=>r.pnlJpy!==null)?rows.reduce((a,r)=>a+r.pnlJpy,0):null;
+ const pnlJpy=finite(pnlValue)?pnlValue:null;
  const dates=[...new Set(priced.map(r=>r.asOf))].sort();
  const needsFx=rows.some(r=>r.quoteCurrency==='USD');
  const fresh=rows.length>0&&complete&&dates.length===1&&rows.every(r=>!r.stale)&&(!needsFx||fx&&!fx.stale);
