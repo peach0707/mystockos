@@ -1,31 +1,31 @@
 {
-  "updated_at": "2026-09-29T20:45:27.701263+00:00",
+  "updated_at": "2026-09-29T21:16:16.831039+00:00",
   "stocks": [
     {
       "ticker": "MU",
-      "price": 1065.4,
-      "day": 1.08,
-      "week": -2.81,
-      "month": 14.21,
-      "three_month": -7.7,
+      "price": 1065.08,
+      "day": 1.05,
+      "week": -2.84,
+      "month": 14.17,
+      "three_month": -7.73,
       "date": "2026-09-29"
     },
     {
       "ticker": "TSM",
-      "price": 457.05,
-      "day": 0.92,
-      "week": 1.12,
-      "month": 9.47,
-      "three_month": -4.3,
+      "price": 456.94,
+      "day": 0.9,
+      "week": 1.09,
+      "month": 9.44,
+      "three_month": -4.32,
       "date": "2026-09-29"
     },
     {
       "ticker": "AVGO",
-      "price": 355.18,
-      "day": 1.6,
-      "week": -2.57,
-      "month": -3.69,
-      "three_month": -5.97,
+      "price": 355.1,
+      "day": 1.58,
+      "week": -2.59,
+      "month": -3.71,
+      "three_month": -6.0,
       "date": "2026-09-29"
     },
     {
@@ -39,11 +39,11 @@
     },
     {
       "ticker": "LITE",
-      "price": 973.01,
-      "day": 5.61,
-      "week": 2.89,
-      "month": 8.72,
-      "three_month": 13.4,
+      "price": 973.49,
+      "day": 5.66,
+      "week": 2.94,
+      "month": 8.77,
+      "three_month": 13.45,
       "date": "2026-09-29"
     }
   ]
