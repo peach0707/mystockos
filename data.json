@@ -1,49 +1,49 @@
 {
-  "updated_at": "2026-09-30T16:46:54.724804+00:00",
+  "updated_at": "2026-09-30T17:17:24.184293+00:00",
   "stocks": [
     {
       "ticker": "MU",
-      "price": 1072.02,
-      "day": 0.65,
-      "week": 0.01,
-      "month": 11.82,
-      "three_month": 3.85,
+      "price": 1069.73,
+      "day": 0.44,
+      "week": -0.2,
+      "month": 11.58,
+      "three_month": 3.63,
       "date": "2026-09-30"
     },
     {
       "ticker": "TSM",
-      "price": 458.79,
-      "day": 0.4,
-      "week": 2.74,
-      "month": 10.47,
-      "three_month": 3.28,
+      "price": 459.25,
+      "day": 0.51,
+      "week": 2.84,
+      "month": 10.58,
+      "three_month": 3.38,
       "date": "2026-09-30"
     },
     {
       "ticker": "AVGO",
-      "price": 353.02,
-      "day": -0.59,
-      "week": -0.55,
-      "month": -4.68,
-      "three_month": -4.42,
+      "price": 352.58,
+      "day": -0.71,
+      "week": -0.68,
+      "month": -4.8,
+      "three_month": -4.54,
       "date": "2026-09-30"
     },
     {
       "ticker": "COHR",
-      "price": 283.28,
-      "day": -3.06,
-      "week": -5.76,
-      "month": 1.96,
-      "three_month": -23.16,
+      "price": 283.38,
+      "day": -3.02,
+      "week": -5.73,
+      "month": 2.0,
+      "three_month": -23.13,
       "date": "2026-09-30"
     },
     {
       "ticker": "LITE",
-      "price": 953.49,
-      "day": -2.05,
-      "week": 1.76,
-      "month": 4.23,
-      "three_month": 19.01,
+      "price": 958.18,
+      "day": -1.57,
+      "week": 2.26,
+      "month": 4.75,
+      "three_month": 19.6,
       "date": "2026-09-30"
     }
   ]
