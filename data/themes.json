@@ -1,13 +1,13 @@
 {
   "schema_version": "1.0",
   "profile_version": "1.0",
-  "as_of": "2026-09-30",
-  "calculated_at": "2026-09-30T23:45:06.925723+00:00",
+  "as_of": "2026-10-01",
+  "calculated_at": "2026-10-01T23:45:33.500777+00:00",
   "theme_selection": {
     "label": "NORMAL",
-    "dispersion": 0.0361,
-    "median_correlation": 0.6674,
-    "outperforming_spy_fraction": 0.8,
+    "dispersion": 0.0357,
+    "median_correlation": 0.6863,
+    "outperforming_spy_fraction": 1.0,
     "eligible_themes": 5
   },
   "stress_context": {
@@ -35,8 +35,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 53.63,
-        "label": "Neutral",
+        "score": 64.14,
+        "label": "Bull",
         "eligible_n": 5,
         "eligible_members": [
           "ANET",
@@ -46,12 +46,12 @@
           "MRVL"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.0665,
-          "relative_trend_consistency": 0.5397
+          "risk_adjusted_relative_strength": 0.1777,
+          "relative_trend_consistency": 0.5556
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 46.68,
-          "relative_trend_consistency": 69.84
+          "risk_adjusted_relative_strength": 58.89,
+          "relative_trend_consistency": 76.39
         }
       },
       "velocity": {
@@ -60,8 +60,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.051432,
-        "rs_momentum": 0.064949,
+        "rs_level": 0.065822,
+        "rs_momentum": 0.113276,
         "eligible_n": 5,
         "eligible_members": [
           "ANET",
@@ -72,8 +72,8 @@
         ]
       },
       "heat": {
-        "score": 68.99,
-        "hot": false,
+        "score": 77.36,
+        "hot": true,
         "hot_eligible": true,
         "single_stock_driven": false,
         "eligible_n": 5,
@@ -85,37 +85,37 @@
           "MRVL"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 2.0386,
-          "breadth_change": 0.2,
-          "dollar_volume_robust_z": -0.3603
+          "risk_adjusted_excess_return": 1.8589,
+          "breadth_change": 0.4,
+          "dollar_volume_robust_z": -0.1918
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
-          "breadth_change": 75.0,
-          "dollar_volume_robust_z": 31.98
+          "breadth_change": 91.67,
+          "dollar_volume_robust_z": 40.41
         },
         "breadth": {
-          "now_above": 3,
+          "now_above": 4,
           "past_above": 2,
           "eligible_n": 5
         },
         "activity": {
           "positive_z_n": 1,
           "eligible_n": 5,
-          "max_dollar_volume_share": 0.4996,
+          "max_dollar_volume_share": 0.4621,
           "stock_z": {
-            "ANET": -0.3603,
+            "ANET": -0.3357,
             "CRDO": 0.0647,
-            "ALAB": -0.0903,
-            "AVGO": -0.6173,
-            "MRVL": -0.4911
+            "ALAB": -0.0909,
+            "AVGO": -0.5308,
+            "MRVL": -0.1918
           }
         },
-        "positive_10d_n": 5,
+        "positive_10d_n": 4,
         "positive_10d_eligible_n": 5,
         "leave_one_out": {
-          "removed": "ALAB",
-          "score": 59.57
+          "removed": "CRDO",
+          "score": 71.99
         }
       },
       "turning_watch": {
@@ -125,8 +125,8 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.246,
-        "drawdown_252d": -0.1154,
+        "rs_percentile": 0.4167,
+        "drawdown_252d": -0.1016,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -162,8 +162,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 41.03,
-        "label": "Bear",
+        "score": 58.26,
+        "label": "Neutral",
         "eligible_n": 4,
         "eligible_members": [
           "COHR",
@@ -172,22 +172,22 @@
           "CIEN"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.1542,
-          "relative_trend_consistency": 0.4762
+          "risk_adjusted_relative_strength": 0.27,
+          "relative_trend_consistency": 0.4921
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 42.29,
-          "relative_trend_consistency": 38.1
+          "risk_adjusted_relative_strength": 63.5,
+          "relative_trend_consistency": 46.03
         }
       },
       "velocity": {
         "state": "Lagging",
-        "raw_state": "Lagging",
-        "candidate": "Lagging",
-        "candidate_days": 0,
-        "confirmed": true,
-        "rs_level": -0.019029,
-        "rs_momentum": -0.008222,
+        "raw_state": "Leading",
+        "candidate": "Leading",
+        "candidate_days": 1,
+        "confirmed": false,
+        "rs_level": 0.063286,
+        "rs_momentum": 0.115196,
         "eligible_n": 4,
         "eligible_members": [
           "COHR",
@@ -197,8 +197,8 @@
         ]
       },
       "heat": {
-        "score": 54.98,
-        "hot": false,
+        "score": 82.01,
+        "hot": true,
         "hot_eligible": true,
         "single_stock_driven": false,
         "eligible_n": 4,
@@ -209,36 +209,36 @@
           "LITE"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.235,
-          "breadth_change": 0.0,
-          "dollar_volume_robust_z": 0.1273
+          "risk_adjusted_excess_return": 0.9507,
+          "breadth_change": 0.5,
+          "dollar_volume_robust_z": 0.3909
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 61.75,
-          "breadth_change": 50.0,
-          "dollar_volume_robust_z": 53.18
+          "risk_adjusted_excess_return": 86.27,
+          "breadth_change": 100.0,
+          "dollar_volume_robust_z": 59.77
         },
         "breadth": {
-          "now_above": 1,
+          "now_above": 3,
           "past_above": 1,
           "eligible_n": 4
         },
         "activity": {
           "positive_z_n": 3,
           "eligible_n": 4,
-          "max_dollar_volume_share": 0.5858,
+          "max_dollar_volume_share": 0.564,
           "stock_z": {
-            "COHR": 0.1087,
-            "LITE": 0.6828,
-            "AAOI": -0.4989,
-            "CIEN": 0.1458
+            "COHR": 0.1117,
+            "LITE": 2.3064,
+            "AAOI": -0.459,
+            "CIEN": 0.67
           }
         },
-        "positive_10d_n": 3,
+        "positive_10d_n": 4,
         "positive_10d_eligible_n": 4,
         "leave_one_out": {
           "removed": "LITE",
-          "score": 52.93
+          "score": 78.09
         }
       },
       "turning_watch": {
@@ -246,10 +246,11 @@
         "eligible": true,
         "reasons": [
           "deep drawdown",
+          "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.2063,
-        "drawdown_252d": -0.3313,
+        "rs_percentile": 0.25,
+        "drawdown_252d": -0.2737,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -283,8 +284,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 24.19,
-        "label": "Weak",
+        "score": 37.8,
+        "label": "Bear",
         "eligible_n": 4,
         "eligible_members": [
           "AMAT",
@@ -293,22 +294,22 @@
           "ASML"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.6345,
-          "relative_trend_consistency": 0.4603
+          "risk_adjusted_relative_strength": -0.2464,
+          "relative_trend_consistency": 0.4762
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 21.64,
-          "relative_trend_consistency": 30.16
+          "risk_adjusted_relative_strength": 37.68,
+          "relative_trend_consistency": 38.1
         }
       },
       "velocity": {
         "state": "Lagging",
         "raw_state": "Leading",
         "candidate": "Leading",
-        "candidate_days": 2,
+        "candidate_days": 3,
         "confirmed": false,
-        "rs_level": 0.026793,
-        "rs_momentum": 0.103253,
+        "rs_level": 0.051396,
+        "rs_momentum": 0.154009,
         "eligible_n": 4,
         "eligible_members": [
           "AMAT",
@@ -318,7 +319,7 @@
         ]
       },
       "heat": {
-        "score": 78.69,
+        "score": 79.6,
         "hot": true,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -330,14 +331,14 @@
           "LRCX"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 2.6594,
+          "risk_adjusted_excess_return": 3.2873,
           "breadth_change": 1.0,
-          "dollar_volume_robust_z": -0.2789
+          "dollar_volume_robust_z": -0.2238
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
           "breadth_change": 100.0,
-          "dollar_volume_robust_z": 36.06
+          "dollar_volume_robust_z": 38.81
         },
         "breadth": {
           "now_above": 4,
@@ -347,19 +348,19 @@
         "activity": {
           "positive_z_n": 1,
           "eligible_n": 4,
-          "max_dollar_volume_share": 0.3235,
+          "max_dollar_volume_share": 0.329,
           "stock_z": {
-            "AMAT": -0.2049,
-            "LRCX": -0.3529,
-            "KLAC": -0.6561,
-            "ASML": 0.1755
+            "AMAT": -0.0878,
+            "LRCX": -0.3599,
+            "KLAC": -0.6166,
+            "ASML": 0.356
           }
         },
         "positive_10d_n": 4,
         "positive_10d_eligible_n": 4,
         "leave_one_out": {
           "removed": "AMAT",
-          "score": 77.45
+          "score": 77.34
         }
       },
       "turning_watch": {
@@ -370,8 +371,8 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.0556,
-        "drawdown_252d": -0.2461,
+        "rs_percentile": 0.0794,
+        "drawdown_252d": -0.228,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -402,8 +403,8 @@
       "related_members": [],
       "watch_members": [],
       "strength": {
-        "score": 74.75,
-        "label": "Bull",
+        "score": 75.35,
+        "label": "Strong",
         "eligible_n": 5,
         "eligible_members": [
           "MSFT",
@@ -413,11 +414,11 @@
           "ORCL"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": 0.7102,
+          "risk_adjusted_relative_strength": 0.7443,
           "relative_trend_consistency": 0.5238
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 80.26,
+          "risk_adjusted_relative_strength": 81.11,
           "relative_trend_consistency": 61.9
         }
       },
@@ -427,8 +428,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.044675,
-        "rs_momentum": 0.038012,
+        "rs_level": 0.03861,
+        "rs_momentum": 0.043921,
         "eligible_n": 5,
         "eligible_members": [
           "MSFT",
@@ -439,7 +440,7 @@
         ]
       },
       "heat": {
-        "score": 52.21,
+        "score": 30.99,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -452,37 +453,37 @@
           "ORCL"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.2982,
-          "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.1656
+          "risk_adjusted_excess_return": -0.1642,
+          "breadth_change": -0.4,
+          "dollar_volume_robust_z": -0.143
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 64.91,
-          "breadth_change": 50.0,
-          "dollar_volume_robust_z": 41.72
+          "risk_adjusted_excess_return": 41.79,
+          "breadth_change": 8.33,
+          "dollar_volume_robust_z": 42.85
         },
         "breadth": {
-          "now_above": 3,
-          "past_above": 3,
+          "now_above": 2,
+          "past_above": 4,
           "eligible_n": 5
         },
         "activity": {
           "positive_z_n": 2,
           "eligible_n": 5,
-          "max_dollar_volume_share": 0.3814,
+          "max_dollar_volume_share": 0.3678,
           "stock_z": {
-            "MSFT": -0.1656,
-            "GOOGL": -0.6627,
-            "AMZN": -0.1684,
-            "META": 1.1884,
-            "ORCL": 0.3631
+            "MSFT": -0.1508,
+            "GOOGL": 0.9882,
+            "AMZN": -0.143,
+            "META": 0.625,
+            "ORCL": -0.7919
           }
         },
-        "positive_10d_n": 4,
+        "positive_10d_n": 2,
         "positive_10d_eligible_n": 5,
         "leave_one_out": {
           "removed": "META",
-          "score": 44.4
+          "score": 18.16
         }
       },
       "turning_watch": {
@@ -491,8 +492,8 @@
         "reasons": [
           "no new relative low"
         ],
-        "rs_percentile": 0.9167,
-        "drawdown_252d": -0.0665,
+        "rs_percentile": 0.9365,
+        "drawdown_252d": -0.0692,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -525,8 +526,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 34.37,
-        "label": "Bear",
+        "score": 47.0,
+        "label": "Neutral",
         "eligible_n": 5,
         "eligible_members": [
           "ETN",
@@ -536,22 +537,22 @@
           "POWL"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.597,
-          "relative_trend_consistency": 0.5238
+          "risk_adjusted_relative_strength": -0.2557,
+          "relative_trend_consistency": 0.5397
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 22.58,
-          "relative_trend_consistency": 61.9
+          "risk_adjusted_relative_strength": 37.21,
+          "relative_trend_consistency": 69.84
         }
       },
       "velocity": {
         "state": "Improving",
-        "raw_state": "Improving",
-        "candidate": "Improving",
-        "candidate_days": 0,
-        "confirmed": true,
-        "rs_level": -0.027312,
-        "rs_momentum": 0.050745,
+        "raw_state": "Leading",
+        "candidate": "Leading",
+        "candidate_days": 1,
+        "confirmed": false,
+        "rs_level": 0.001742,
+        "rs_momentum": 0.098638,
         "eligible_n": 5,
         "eligible_members": [
           "ETN",
@@ -562,8 +563,8 @@
         ]
       },
       "heat": {
-        "score": 70.21,
-        "hot": false,
+        "score": 75.88,
+        "hot": true,
         "hot_eligible": true,
         "single_stock_driven": false,
         "eligible_n": 5,
@@ -575,49 +576,48 @@
           "POWL"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 1.115,
-          "breadth_change": 0.4,
-          "dollar_volume_robust_z": -0.4285
+          "risk_adjusted_excess_return": 1.5848,
+          "breadth_change": 0.6,
+          "dollar_volume_robust_z": -0.4472
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 90.38,
-          "breadth_change": 91.67,
-          "dollar_volume_robust_z": 28.58
+          "risk_adjusted_excess_return": 100.0,
+          "breadth_change": 100.0,
+          "dollar_volume_robust_z": 27.64
         },
         "breadth": {
-          "now_above": 2,
+          "now_above": 3,
           "past_above": 0,
           "eligible_n": 5
         },
         "activity": {
           "positive_z_n": 2,
           "eligible_n": 5,
-          "max_dollar_volume_share": 0.543,
+          "max_dollar_volume_share": 0.5358,
           "stock_z": {
-            "ETN": 0.5673,
-            "GEV": -0.855,
-            "HUBB": 0.1804,
-            "NVT": -0.4285,
-            "POWL": -0.9517
+            "ETN": 0.2592,
+            "GEV": -0.6216,
+            "HUBB": 0.4133,
+            "NVT": -0.4472,
+            "POWL": -0.7021
           }
         },
         "positive_10d_n": 5,
         "positive_10d_eligible_n": 5,
         "leave_one_out": {
           "removed": "NVT",
-          "score": 66.25
+          "score": 80.31
         }
       },
       "turning_watch": {
         "active": false,
         "eligible": true,
         "reasons": [
-          "RS oversold",
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.0952,
-        "drawdown_252d": -0.176,
+        "rs_percentile": 0.1905,
+        "drawdown_252d": -0.1508,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -670,7 +670,7 @@
         ]
       },
       "heat": {
-        "score": 52.66,
+        "score": 65.88,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -679,14 +679,14 @@
           "MU"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 1.1313,
+          "risk_adjusted_excess_return": 1.1272,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.8117
+          "dollar_volume_robust_z": 0.2781
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 90.78,
+          "risk_adjusted_excess_return": 90.68,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 17.21
+          "dollar_volume_robust_z": 56.95
         },
         "breadth": {
           "now_above": 1,
@@ -694,11 +694,11 @@
           "eligible_n": 1
         },
         "activity": {
-          "positive_z_n": 0,
+          "positive_z_n": 1,
           "eligible_n": 1,
           "max_dollar_volume_share": 1.0,
           "stock_z": {
-            "MU": -0.8117
+            "MU": 0.2781
           }
         },
         "positive_10d_n": 2,
@@ -744,8 +744,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 48.76,
-        "label": "Neutral",
+        "score": 62.73,
+        "label": "Bull",
         "eligible_n": 3,
         "eligible_members": [
           "SNDK",
@@ -753,12 +753,12 @@
           "WDC"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.1374,
-          "relative_trend_consistency": 0.5238
+          "risk_adjusted_relative_strength": 0.1937,
+          "relative_trend_consistency": 0.5397
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 43.13,
-          "relative_trend_consistency": 61.9
+          "risk_adjusted_relative_strength": 59.68,
+          "relative_trend_consistency": 69.84
         }
       },
       "velocity": {
@@ -767,8 +767,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.047629,
-        "rs_momentum": 0.085241,
+        "rs_level": 0.070431,
+        "rs_momentum": 0.113561,
         "eligible_n": 3,
         "eligible_members": [
           "SNDK",
@@ -777,7 +777,7 @@
         ]
       },
       "heat": {
-        "score": 64.66,
+        "score": 60.96,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -788,14 +788,14 @@
           "WDC"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 1.2609,
+          "risk_adjusted_excess_return": 1.2464,
           "breadth_change": 0.3333,
-          "dollar_volume_robust_z": -0.9462
+          "dollar_volume_robust_z": -1.3751
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 94.02,
+          "risk_adjusted_excess_return": 93.66,
           "breadth_change": 86.11,
-          "dollar_volume_robust_z": 13.84
+          "dollar_volume_robust_z": 3.12
         },
         "breadth": {
           "now_above": 2,
@@ -805,18 +805,18 @@
         "activity": {
           "positive_z_n": 0,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.6587,
+          "max_dollar_volume_share": 0.6786,
           "stock_z": {
-            "SNDK": -1.6119,
-            "STX": -0.9462,
-            "WDC": -0.0588
+            "SNDK": -1.4874,
+            "STX": -1.3751,
+            "WDC": -0.3271
           }
         },
         "positive_10d_n": 3,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
           "removed": "STX",
-          "score": 51.23
+          "score": 50.16
         }
       },
       "turning_watch": {
@@ -827,8 +827,8 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.0595,
-        "drawdown_252d": -0.2461,
+        "rs_percentile": 0.127,
+        "drawdown_252d": -0.2284,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -861,20 +861,20 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 73.29,
-        "label": "Bull",
+        "score": 78.95,
+        "label": "Strong",
         "eligible_n": 2,
         "eligible_members": [
           "NVDA",
           "AMD"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": 0.7629,
-          "relative_trend_consistency": 0.5079
+          "risk_adjusted_relative_strength": 0.9503,
+          "relative_trend_consistency": 0.5238
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 81.57,
-          "relative_trend_consistency": 53.97
+          "risk_adjusted_relative_strength": 86.26,
+          "relative_trend_consistency": 61.9
         }
       },
       "velocity": {
@@ -883,8 +883,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.128148,
-        "rs_momentum": 0.169457,
+        "rs_level": 0.132926,
+        "rs_momentum": 0.192504,
         "eligible_n": 2,
         "eligible_members": [
           "NVDA",
@@ -892,7 +892,7 @@
         ]
       },
       "heat": {
-        "score": 66.5,
+        "score": 59.8,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -902,14 +902,14 @@
           "NVDA"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 2.0853,
+          "risk_adjusted_excess_return": 1.7873,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.0103
+          "dollar_volume_robust_z": -0.4119
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 49.49
+          "dollar_volume_robust_z": 29.4
         },
         "breadth": {
           "now_above": 2,
@@ -917,12 +917,12 @@
           "eligible_n": 2
         },
         "activity": {
-          "positive_z_n": 1,
+          "positive_z_n": 0,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.6747,
+          "max_dollar_volume_share": 0.6924,
           "stock_z": {
-            "NVDA": 0.4045,
-            "AMD": -0.425
+            "NVDA": -0.4224,
+            "AMD": -0.4015
           }
         },
         "positive_10d_n": 2,
@@ -938,8 +938,8 @@
         "reasons": [
           "no new relative low"
         ],
-        "rs_percentile": 0.496,
-        "drawdown_252d": -0.0103,
+        "rs_percentile": 0.6151,
+        "drawdown_252d": -0.0017,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -971,8 +971,8 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 42.36,
-        "label": "Bear",
+        "score": 53.03,
+        "label": "Neutral",
         "eligible_n": 3,
         "eligible_members": [
           "TSM",
@@ -980,12 +980,12 @@
           "ASX"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.3202,
-          "relative_trend_consistency": 0.5238
+          "risk_adjusted_relative_strength": -0.0834,
+          "relative_trend_consistency": 0.5397
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 33.99,
-          "relative_trend_consistency": 61.9
+          "risk_adjusted_relative_strength": 45.83,
+          "relative_trend_consistency": 69.84
         }
       },
       "velocity": {
@@ -994,8 +994,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.054601,
-        "rs_momentum": 0.144144,
+        "rs_level": 0.061791,
+        "rs_momentum": 0.151781,
         "eligible_n": 3,
         "eligible_members": [
           "TSM",
@@ -1004,10 +1004,10 @@
         ]
       },
       "heat": {
-        "score": 76.73,
+        "score": 72.71,
         "hot": false,
         "hot_eligible": true,
-        "single_stock_driven": true,
+        "single_stock_driven": false,
         "eligible_n": 3,
         "eligible_members": [
           "AMKR",
@@ -1015,47 +1015,46 @@
           "TSM"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 1.9495,
-          "breadth_change": 0.6667,
-          "dollar_volume_robust_z": -0.3962
+          "risk_adjusted_excess_return": 1.6465,
+          "breadth_change": 0.3333,
+          "dollar_volume_robust_z": -0.3596
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
-          "breadth_change": 100.0,
-          "dollar_volume_robust_z": 30.19
+          "breadth_change": 86.11,
+          "dollar_volume_robust_z": 32.02
         },
         "breadth": {
           "now_above": 3,
-          "past_above": 1,
+          "past_above": 2,
           "eligible_n": 3
         },
         "activity": {
-          "positive_z_n": 1,
+          "positive_z_n": 0,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.8961,
+          "max_dollar_volume_share": 0.8894,
           "stock_z": {
-            "TSM": -0.3962,
-            "AMKR": -0.608,
-            "ASX": 0.0683
+            "TSM": -0.3596,
+            "AMKR": -0.4604,
+            "ASX": -0.0017
           }
         },
         "positive_10d_n": 3,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
           "removed": "ASX",
-          "score": 74.98
+          "score": 76.5
         }
       },
       "turning_watch": {
         "active": false,
         "eligible": true,
         "reasons": [
-          "RS oversold",
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.0833,
-        "drawdown_252d": -0.1627,
+        "rs_percentile": 0.1548,
+        "drawdown_252d": -0.1564,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1086,7 +1085,7 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 31.73,
+        "score": 36.93,
         "label": "Bear",
         "eligible_n": 3,
         "eligible_members": [
@@ -1095,22 +1094,22 @@
           "AAON"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -1.0644,
-          "relative_trend_consistency": 0.5714
+          "risk_adjusted_relative_strength": -0.8353,
+          "relative_trend_consistency": 0.5873
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 10.89,
-          "relative_trend_consistency": 80.36
+          "risk_adjusted_relative_strength": 16.62,
+          "relative_trend_consistency": 84.33
         }
       },
       "velocity": {
         "state": "Lagging",
         "raw_state": "Improving",
         "candidate": "Improving",
-        "candidate_days": 2,
+        "candidate_days": 3,
         "confirmed": false,
-        "rs_level": -0.087722,
-        "rs_momentum": 0.031267,
+        "rs_level": -0.078213,
+        "rs_momentum": 0.032517,
         "eligible_n": 3,
         "eligible_members": [
           "VRT",
@@ -1119,7 +1118,7 @@
         ]
       },
       "heat": {
-        "score": 49.94,
+        "score": 50.42,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -1130,14 +1129,14 @@
           "VRT"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.4981,
+          "risk_adjusted_excess_return": 0.5545,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.5039
+          "dollar_volume_robust_z": -0.5036
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 74.9,
+          "risk_adjusted_excess_return": 76.36,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 24.9
+          "dollar_volume_robust_z": 24.91
         },
         "breadth": {
           "now_above": 0,
@@ -1147,18 +1146,18 @@
         "activity": {
           "positive_z_n": 1,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.7308,
+          "max_dollar_volume_share": 0.7432,
           "stock_z": {
-            "VRT": -0.6085,
-            "MOD": 0.8931,
-            "AAON": -0.5039
+            "VRT": -1.1876,
+            "MOD": 0.0162,
+            "AAON": -0.5036
           }
         },
         "positive_10d_n": 3,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
           "removed": "AAON",
-          "score": 54.04
+          "score": 45.7
         }
       },
       "turning_watch": {
@@ -1169,8 +1168,8 @@
           "Lagging→Improving",
           "no new relative low"
         ],
-        "rs_percentile": 0.1508,
-        "drawdown_252d": -0.3638,
+        "rs_percentile": 0.1587,
+        "drawdown_252d": -0.3585,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1198,30 +1197,30 @@
       "related_members": [],
       "watch_members": [],
       "strength": {
-        "score": 22.12,
-        "label": "Weak",
+        "score": 44.44,
+        "label": "Bear",
         "eligible_n": 2,
         "eligible_members": [
           "SNPS",
           "CDNS"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.4684,
-          "relative_trend_consistency": 0.3968
+          "risk_adjusted_relative_strength": 0.1353,
+          "relative_trend_consistency": 0.4127
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 26.58,
-          "relative_trend_consistency": 11.71
+          "risk_adjusted_relative_strength": 56.77,
+          "relative_trend_consistency": 15.67
         }
       },
       "velocity": {
         "state": "Lagging",
-        "raw_state": "Weakening",
-        "candidate": "Weakening",
+        "raw_state": "Leading",
+        "candidate": "Leading",
         "candidate_days": 1,
         "confirmed": false,
-        "rs_level": 0.035357,
-        "rs_momentum": -0.011776,
+        "rs_level": 0.131645,
+        "rs_momentum": 0.148793,
         "eligible_n": 2,
         "eligible_members": [
           "SNPS",
@@ -1229,7 +1228,7 @@
         ]
       },
       "heat": {
-        "score": 87.48,
+        "score": 100.0,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -1239,14 +1238,14 @@
           "SNPS"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 2.7572,
+          "risk_adjusted_excess_return": 2.7063,
           "breadth_change": 1.0,
-          "dollar_volume_robust_z": 0.4979
+          "dollar_volume_robust_z": 2.7215
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
           "breadth_change": 100.0,
-          "dollar_volume_robust_z": 62.45
+          "dollar_volume_robust_z": 100.0
         },
         "breadth": {
           "now_above": 2,
@@ -1256,16 +1255,16 @@
         "activity": {
           "positive_z_n": 2,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.5393,
+          "max_dollar_volume_share": 0.5124,
           "stock_z": {
-            "SNPS": 0.1126,
-            "CDNS": 0.8832
+            "SNPS": 3.8593,
+            "CDNS": 1.5836
           }
         },
         "positive_10d_n": 2,
         "positive_10d_eligible_n": 2,
         "leave_one_out": {
-          "removed": "CDNS",
+          "removed": "SNPS",
           "score": null
         }
       },
@@ -1276,8 +1275,8 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.4087,
-        "drawdown_252d": -0.1737,
+        "rs_percentile": 0.7381,
+        "drawdown_252d": -0.0952,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1305,19 +1304,19 @@
       "related_members": [],
       "watch_members": [],
       "strength": {
-        "score": 44.51,
-        "label": "Bear",
+        "score": 47.13,
+        "label": "Neutral",
         "eligible_n": 2,
         "eligible_members": [
           "CEG",
           "VST"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": -0.1228,
+          "risk_adjusted_relative_strength": -0.0481,
           "relative_trend_consistency": 0.4921
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 43.86,
+          "risk_adjusted_relative_strength": 47.6,
           "relative_trend_consistency": 46.03
         }
       },
@@ -1327,8 +1326,8 @@
         "candidate": "Lagging",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": -0.057156,
-        "rs_momentum": -0.028921,
+        "rs_level": -0.044666,
+        "rs_momentum": -0.035371,
         "eligible_n": 2,
         "eligible_members": [
           "CEG",
@@ -1336,7 +1335,7 @@
         ]
       },
       "heat": {
-        "score": 36.74,
+        "score": 51.1,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -1346,14 +1345,14 @@
           "VST"
         ],
         "raw": {
-          "risk_adjusted_excess_return": -0.6509,
+          "risk_adjusted_excess_return": -0.4742,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.22
+          "dollar_volume_robust_z": 1.1199
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 21.23,
+          "risk_adjusted_excess_return": 26.29,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 39.0
+          "dollar_volume_robust_z": 77.0
         },
         "breadth": {
           "now_above": 0,
@@ -1361,18 +1360,18 @@
           "eligible_n": 2
         },
         "activity": {
-          "positive_z_n": 1,
+          "positive_z_n": 2,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.5741,
+          "max_dollar_volume_share": 0.553,
           "stock_z": {
-            "CEG": -0.9784,
-            "VST": 0.5384
+            "CEG": 1.693,
+            "VST": 0.5467
           }
         },
         "positive_10d_n": 0,
         "positive_10d_eligible_n": 2,
         "leave_one_out": {
-          "removed": "VST",
+          "removed": "CEG",
           "score": null
         }
       },
@@ -1382,8 +1381,8 @@
         "reasons": [
           "deep drawdown"
         ],
-        "rs_percentile": 0.7659,
-        "drawdown_252d": -0.3505,
+        "rs_percentile": 0.8056,
+        "drawdown_252d": -0.3409,
         "no_new_relative_low": false,
         "stress_caution": false
       },
@@ -1414,7 +1413,7 @@
       ],
       "watch_members": [],
       "strength": {
-        "score": 51.26,
+        "score": 54.59,
         "label": "Neutral",
         "eligible_n": 2,
         "eligible_members": [
@@ -1422,11 +1421,11 @@
           "NBIS"
         ],
         "raw": {
-          "risk_adjusted_relative_strength": 0.2961,
+          "risk_adjusted_relative_strength": 0.3913,
           "relative_trend_consistency": 0.4286
         },
         "factor_scores": {
-          "risk_adjusted_relative_strength": 64.81,
+          "risk_adjusted_relative_strength": 69.56,
           "relative_trend_consistency": 19.64
         }
       },
@@ -1436,8 +1435,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.06178,
-        "rs_momentum": 0.091619,
+        "rs_level": 0.059474,
+        "rs_momentum": 0.121444,
         "eligible_n": 2,
         "eligible_members": [
           "CRWV",
@@ -1445,7 +1444,7 @@
         ]
       },
       "heat": {
-        "score": 74.85,
+        "score": 76.75,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -1455,33 +1454,33 @@
           "NBIS"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.8973,
-          "breadth_change": 1.0,
-          "dollar_volume_robust_z": -0.2077
+          "risk_adjusted_excess_return": 1.0471,
+          "breadth_change": 0.5,
+          "dollar_volume_robust_z": -0.1684
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 84.93,
+          "risk_adjusted_excess_return": 88.68,
           "breadth_change": 100.0,
-          "dollar_volume_robust_z": 39.61
+          "dollar_volume_robust_z": 41.58
         },
         "breadth": {
           "now_above": 2,
-          "past_above": 0,
+          "past_above": 1,
           "eligible_n": 2
         },
         "activity": {
-          "positive_z_n": 0,
+          "positive_z_n": 1,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.601,
+          "max_dollar_volume_share": 0.6032,
           "stock_z": {
-            "CRWV": -0.032,
-            "NBIS": -0.3834
+            "CRWV": 0.0043,
+            "NBIS": -0.341
           }
         },
         "positive_10d_n": 2,
         "positive_10d_eligible_n": 2,
         "leave_one_out": {
-          "removed": "NBIS",
+          "removed": "CRWV",
           "score": null
         }
       },
@@ -1492,8 +1491,8 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.4484,
-        "drawdown_252d": -0.2074,
+        "rs_percentile": 0.5,
+        "drawdown_252d": -0.2069,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1531,8 +1530,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.134132,
-        "rs_momentum": 0.069016,
+        "rs_level": 0.140136,
+        "rs_momentum": 0.118073,
         "eligible_n": 3,
         "eligible_members": [
           "PLTR",
@@ -1541,7 +1540,7 @@
         ]
       },
       "heat": {
-        "score": 71.15,
+        "score": 71.14,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -1552,14 +1551,14 @@
           "SNOW"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 2.2838,
+          "risk_adjusted_excess_return": 2.3368,
           "breadth_change": 0.3333,
-          "dollar_volume_robust_z": -0.453
+          "dollar_volume_robust_z": -0.4536
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 100.0,
           "breadth_change": 86.11,
-          "dollar_volume_robust_z": 27.35
+          "dollar_volume_robust_z": 27.32
         },
         "breadth": {
           "now_above": 3,
@@ -1569,18 +1568,18 @@
         "activity": {
           "positive_z_n": 1,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.5866,
+          "max_dollar_volume_share": 0.5952,
           "stock_z": {
-            "PLTR": -1.1238,
-            "DDOG": -0.453,
-            "SNOW": 1.1153
+            "PLTR": -0.9375,
+            "DDOG": -0.4536,
+            "SNOW": 1.2619
           }
         },
         "positive_10d_n": 3,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
           "removed": "DDOG",
-          "score": 63.46
+          "score": 65.85
         }
       },
       "turning_watch": {
@@ -1590,7 +1589,7 @@
           "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.7619,
+        "rs_percentile": 0.7698,
         "drawdown_252d": 0.0,
         "no_new_relative_low": true,
         "stress_caution": false
@@ -1625,10 +1624,10 @@
         "state": "Lagging",
         "raw_state": "Improving",
         "candidate": "Improving",
-        "candidate_days": 2,
+        "candidate_days": 3,
         "confirmed": false,
-        "rs_level": -0.009363,
-        "rs_momentum": 0.034218,
+        "rs_level": -0.011197,
+        "rs_momentum": 0.064752,
         "eligible_n": 4,
         "eligible_members": [
           "IONQ",
@@ -1638,7 +1637,7 @@
         ]
       },
       "heat": {
-        "score": 66.0,
+        "score": 19.69,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -1650,49 +1649,48 @@
           "RGTI"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.8254,
-          "breadth_change": 0.5,
-          "dollar_volume_robust_z": -0.9058
+          "risk_adjusted_excess_return": -0.015,
+          "breadth_change": -0.5,
+          "dollar_volume_robust_z": -1.1074
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 83.13,
-          "breadth_change": 100.0,
-          "dollar_volume_robust_z": 14.85
+          "risk_adjusted_excess_return": 49.25,
+          "breadth_change": 0.0,
+          "dollar_volume_robust_z": 9.82
         },
         "breadth": {
-          "now_above": 2,
-          "past_above": 0,
+          "now_above": 1,
+          "past_above": 3,
           "eligible_n": 4
         },
         "activity": {
           "positive_z_n": 1,
           "eligible_n": 4,
-          "max_dollar_volume_share": 0.7099,
+          "max_dollar_volume_share": 0.6966,
           "stock_z": {
-            "IONQ": 1.4224,
-            "RGTI": -1.1846,
-            "QBTS": -0.717,
-            "QUBT": -1.0946
+            "IONQ": 0.4418,
+            "RGTI": -1.2088,
+            "QBTS": -1.006,
+            "QUBT": -1.7665
           }
         },
-        "positive_10d_n": 4,
+        "positive_10d_n": 1,
         "positive_10d_eligible_n": 4,
         "leave_one_out": {
           "removed": "IONQ",
-          "score": 56.35
+          "score": 10.37
         }
       },
       "turning_watch": {
-        "active": true,
+        "active": false,
         "eligible": true,
         "reasons": [
           "deep drawdown",
           "Lagging→Improving",
-          "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.4841,
-        "drawdown_252d": -0.5898,
+        "rs_percentile": 0.5159,
+        "drawdown_252d": -0.5911,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1731,8 +1729,8 @@
         "candidate": "Lagging",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": -0.131063,
-        "rs_momentum": -0.097891,
+        "rs_level": -0.132921,
+        "rs_momentum": -0.082648,
         "eligible_n": 2,
         "eligible_members": [
           "AVAV",
@@ -1740,7 +1738,7 @@
         ]
       },
       "heat": {
-        "score": 36.6,
+        "score": 20.11,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -1750,33 +1748,33 @@
           "KTOS"
         ],
         "raw": {
-          "risk_adjusted_excess_return": -1.8388,
-          "breadth_change": 0.0,
-          "dollar_volume_robust_z": 0.3921
+          "risk_adjusted_excess_return": -2.3458,
+          "breadth_change": -0.5,
+          "dollar_volume_robust_z": 0.413
         },
         "factor_scores": {
           "risk_adjusted_excess_return": 0.0,
-          "breadth_change": 50.0,
-          "dollar_volume_robust_z": 59.8
+          "breadth_change": 0.0,
+          "dollar_volume_robust_z": 60.32
         },
         "breadth": {
           "now_above": 0,
-          "past_above": 0,
+          "past_above": 1,
           "eligible_n": 2
         },
         "activity": {
           "positive_z_n": 2,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.5271,
+          "max_dollar_volume_share": 0.509,
           "stock_z": {
-            "AVAV": 0.0926,
-            "KTOS": 0.6917
+            "AVAV": 0.12,
+            "KTOS": 0.7059
           }
         },
         "positive_10d_n": 0,
         "positive_10d_eligible_n": 2,
         "leave_one_out": {
-          "removed": "AVAV",
+          "removed": "KTOS",
           "score": null
         }
       },
@@ -1786,8 +1784,8 @@
         "reasons": [
           "deep drawdown"
         ],
-        "rs_percentile": 0.3849,
-        "drawdown_252d": -0.6455,
+        "rs_percentile": 0.3056,
+        "drawdown_252d": -0.6474,
         "no_new_relative_low": false,
         "stress_caution": false
       },
@@ -1824,8 +1822,8 @@
         "candidate": "Lagging",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": -0.136182,
-        "rs_momentum": -0.133919,
+        "rs_level": -0.145823,
+        "rs_momentum": -0.131314,
         "eligible_n": 3,
         "eligible_members": [
           "OKLO",
@@ -1834,7 +1832,7 @@
         ]
       },
       "heat": {
-        "score": 37.84,
+        "score": 25.59,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -1845,14 +1843,14 @@
           "SMR"
         ],
         "raw": {
-          "risk_adjusted_excess_return": -0.0311,
+          "risk_adjusted_excess_return": -1.1496,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.8976
+          "dollar_volume_robust_z": -0.78
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 48.45,
+          "risk_adjusted_excess_return": 8.76,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 15.06
+          "dollar_volume_robust_z": 18.0
         },
         "breadth": {
           "now_above": 0,
@@ -1862,18 +1860,18 @@
         "activity": {
           "positive_z_n": 0,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.4518,
+          "max_dollar_volume_share": 0.4705,
           "stock_z": {
-            "OKLO": -0.8976,
-            "SMR": -0.7928,
-            "LEU": -1.1764
+            "OKLO": -0.4845,
+            "SMR": -0.78,
+            "LEU": -1.2518
           }
         },
-        "positive_10d_n": 2,
+        "positive_10d_n": 0,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
-          "removed": "OKLO",
-          "score": 34.49
+          "removed": "LEU",
+          "score": 25.76
         }
       },
       "turning_watch": {
@@ -1882,8 +1880,8 @@
         "reasons": [
           "deep drawdown"
         ],
-        "rs_percentile": 0.496,
-        "drawdown_252d": -0.7698,
+        "rs_percentile": 0.5079,
+        "drawdown_252d": -0.7729,
         "no_new_relative_low": false,
         "stress_caution": false
       },
@@ -1922,8 +1920,8 @@
         "candidate": "Improving",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": -0.054626,
-        "rs_momentum": 0.05052,
+        "rs_level": -0.058829,
+        "rs_momentum": 0.072701,
         "eligible_n": 2,
         "eligible_members": [
           "RKLB",
@@ -1931,7 +1929,7 @@
         ]
       },
       "heat": {
-        "score": 73.86,
+        "score": 67.29,
         "hot": false,
         "hot_eligible": false,
         "single_stock_driven": false,
@@ -1941,14 +1939,14 @@
           "RKLB"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.327,
+          "risk_adjusted_excess_return": -0.216,
           "breadth_change": 0.5,
-          "dollar_volume_robust_z": 0.2095
+          "dollar_volume_robust_z": 0.5069
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 66.35,
+          "risk_adjusted_excess_return": 39.2,
           "breadth_change": 100.0,
-          "dollar_volume_robust_z": 55.24
+          "dollar_volume_robust_z": 62.67
         },
         "breadth": {
           "now_above": 1,
@@ -1958,10 +1956,10 @@
         "activity": {
           "positive_z_n": 2,
           "eligible_n": 2,
-          "max_dollar_volume_share": 0.7225,
+          "max_dollar_volume_share": 0.6656,
           "stock_z": {
-            "RKLB": 0.3843,
-            "ASTS": 0.0348
+            "RKLB": 0.9058,
+            "ASTS": 0.1079
           }
         },
         "positive_10d_n": 1,
@@ -1972,17 +1970,16 @@
         }
       },
       "turning_watch": {
-        "active": true,
+        "active": false,
         "eligible": true,
         "reasons": [
           "RS oversold",
           "deep drawdown",
-          "Lagging→Improving",
           "breadth recovering",
           "no new relative low"
         ],
         "rs_percentile": 0.0992,
-        "drawdown_252d": -0.5373,
+        "drawdown_252d": -0.5419,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -1996,9 +1993,9 @@
       "overlay": {
         "ticker": "SPCX",
         "official_score_member": false,
-        "return_1d": 0.0109,
-        "return_10d": -0.0001,
-        "return_21d": 0.0499
+        "return_1d": -0.0185,
+        "return_10d": -0.0435,
+        "return_21d": 0.0411
       }
     },
     {
@@ -2028,8 +2025,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.072629,
-        "rs_momentum": 0.083863,
+        "rs_level": 0.069102,
+        "rs_momentum": 0.138498,
         "eligible_n": 5,
         "eligible_members": [
           "COIN",
@@ -2040,7 +2037,7 @@
         ]
       },
       "heat": {
-        "score": 58.95,
+        "score": 24.56,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -2053,37 +2050,37 @@
           "RIOT"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.4705,
-          "breadth_change": 0.4,
-          "dollar_volume_robust_z": -1.0341
+          "risk_adjusted_excess_return": 0.1594,
+          "breadth_change": -0.6,
+          "dollar_volume_robust_z": -0.872
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 73.52,
-          "breadth_change": 91.67,
-          "dollar_volume_robust_z": 11.65
+          "risk_adjusted_excess_return": 57.97,
+          "breadth_change": 0.0,
+          "dollar_volume_robust_z": 15.7
         },
         "breadth": {
-          "now_above": 3,
-          "past_above": 1,
+          "now_above": 2,
+          "past_above": 5,
           "eligible_n": 5
         },
         "activity": {
-          "positive_z_n": 2,
+          "positive_z_n": 1,
           "eligible_n": 5,
-          "max_dollar_volume_share": 0.5466,
+          "max_dollar_volume_share": 0.5709,
           "stock_z": {
-            "COIN": 0.2582,
-            "MSTR": 0.4672,
-            "MARA": -1.1271,
-            "RIOT": -1.0341,
-            "CLSK": -1.4881
+            "COIN": -0.1527,
+            "MSTR": 0.5477,
+            "MARA": -1.1165,
+            "RIOT": -0.872,
+            "CLSK": -1.127
           }
         },
-        "positive_10d_n": 4,
+        "positive_10d_n": 2,
         "positive_10d_eligible_n": 5,
         "leave_one_out": {
           "removed": "MSTR",
-          "score": 57.75
+          "score": 17.83
         }
       },
       "turning_watch": {
@@ -2091,11 +2088,10 @@
         "eligible": true,
         "reasons": [
           "deep drawdown",
-          "breadth recovering",
           "no new relative low"
         ],
-        "rs_percentile": 0.7262,
-        "drawdown_252d": -0.3549,
+        "rs_percentile": 0.75,
+        "drawdown_252d": -0.3551,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -2134,8 +2130,8 @@
         "candidate": "Leading",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": 0.158419,
-        "rs_momentum": 0.080598,
+        "rs_level": 0.152198,
+        "rs_momentum": 0.135627,
         "eligible_n": 4,
         "eligible_members": [
           "CRWD",
@@ -2145,7 +2141,7 @@
         ]
       },
       "heat": {
-        "score": 61.26,
+        "score": 54.37,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -2157,14 +2153,14 @@
           "ZS"
         ],
         "raw": {
-          "risk_adjusted_excess_return": 0.556,
+          "risk_adjusted_excess_return": 0.5139,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": 0.2946
+          "dollar_volume_robust_z": -0.2449
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 76.4,
+          "risk_adjusted_excess_return": 75.35,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 57.37
+          "dollar_volume_robust_z": 37.75
         },
         "breadth": {
           "now_above": 4,
@@ -2172,21 +2168,21 @@
           "eligible_n": 4
         },
         "activity": {
-          "positive_z_n": 3,
+          "positive_z_n": 2,
           "eligible_n": 4,
-          "max_dollar_volume_share": 0.4206,
+          "max_dollar_volume_share": 0.4223,
           "stock_z": {
-            "CRWD": 0.894,
-            "PANW": 0.5709,
-            "ZS": 0.0183,
-            "FTNT": -1.1749
+            "CRWD": 0.2256,
+            "PANW": 0.031,
+            "ZS": -0.5208,
+            "FTNT": -0.9424
           }
         },
         "positive_10d_n": 4,
         "positive_10d_eligible_n": 4,
         "leave_one_out": {
           "removed": "CRWD",
-          "score": 57.09
+          "score": 47.73
         }
       },
       "turning_watch": {
@@ -2195,8 +2191,8 @@
         "reasons": [
           "no new relative low"
         ],
-        "rs_percentile": 0.6786,
-        "drawdown_252d": -0.0127,
+        "rs_percentile": 0.6825,
+        "drawdown_252d": -0.013,
         "no_new_relative_low": true,
         "stress_caution": false
       },
@@ -2233,8 +2229,8 @@
         "candidate": "Lagging",
         "candidate_days": 0,
         "confirmed": true,
-        "rs_level": -0.145019,
-        "rs_momentum": -0.126379,
+        "rs_level": -0.164782,
+        "rs_momentum": -0.131886,
         "eligible_n": 3,
         "eligible_members": [
           "JOBY",
@@ -2243,7 +2239,7 @@
         ]
       },
       "heat": {
-        "score": 30.42,
+        "score": 23.88,
         "hot": false,
         "hot_eligible": true,
         "single_stock_driven": false,
@@ -2254,14 +2250,14 @@
           "JOBY"
         ],
         "raw": {
-          "risk_adjusted_excess_return": -0.4577,
+          "risk_adjusted_excess_return": -1.0585,
           "breadth_change": 0.0,
-          "dollar_volume_robust_z": -0.9346
+          "dollar_volume_robust_z": -1.0753
         },
         "factor_scores": {
-          "risk_adjusted_excess_return": 27.11,
+          "risk_adjusted_excess_return": 11.04,
           "breadth_change": 50.0,
-          "dollar_volume_robust_z": 14.13
+          "dollar_volume_robust_z": 10.62
         },
         "breadth": {
           "now_above": 0,
@@ -2271,18 +2267,18 @@
         "activity": {
           "positive_z_n": 0,
           "eligible_n": 3,
-          "max_dollar_volume_share": 0.5196,
+          "max_dollar_volume_share": 0.5548,
           "stock_z": {
-            "JOBY": -0.9346,
-            "ACHR": -1.2402,
-            "EVEX": -0.1994
+            "JOBY": -1.0753,
+            "ACHR": -1.1211,
+            "EVEX": -0.1775
           }
         },
         "positive_10d_n": 0,
         "positive_10d_eligible_n": 3,
         "leave_one_out": {
           "removed": "JOBY",
-          "score": 31.75
+          "score": 27.05
         }
       },
       "turning_watch": {
@@ -2291,8 +2287,8 @@
         "reasons": [
           "deep drawdown"
         ],
-        "rs_percentile": 0.4127,
-        "drawdown_252d": -0.6352,
+        "rs_percentile": 0.3135,
+        "drawdown_252d": -0.6444,
         "no_new_relative_low": false,
         "stress_caution": false
       },
