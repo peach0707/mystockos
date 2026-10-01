@@ -1,22 +1,22 @@
 {
-  "updated_at": "2026-10-01T20:17:38.541301+00:00",
+  "updated_at": "2026-10-01T20:46:42.569457+00:00",
   "stocks": [
     {
       "ticker": "MU",
-      "price": 1098.07,
-      "day": 3.09,
-      "week": 1.62,
-      "month": 17.64,
-      "three_month": 12.56,
+      "price": 1097.68,
+      "day": 3.06,
+      "week": 1.59,
+      "month": 17.59,
+      "three_month": 12.52,
       "date": "2026-10-01"
     },
     {
       "ticker": "TSM",
-      "price": 459.16,
-      "day": 0.65,
-      "week": 1.78,
-      "month": 10.91,
-      "three_month": 5.76,
+      "price": 459.27,
+      "day": 0.68,
+      "week": 1.8,
+      "month": 10.93,
+      "three_month": 5.78,
       "date": "2026-10-01"
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "ticker": "COHR",
-      "price": 319.31,
+      "price": 319.3,
       "day": 10.94,
       "week": 9.87,
       "month": 17.38,
