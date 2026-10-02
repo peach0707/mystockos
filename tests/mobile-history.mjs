@@ -33,8 +33,16 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.getByLabel('保有銘柄を検索',{exact:true}).fill('MU');assert.equal(await page.locator('.holding-card:visible').count(),1);
   await page.getByLabel('保有銘柄を検索',{exact:true}).fill('NO_MATCH');await page.locator('[data-no-holdings]:visible').waitFor();
   await page.getByLabel('保有銘柄を検索',{exact:true}).fill('');
+  await page.locator('#notice').waitFor({state:'hidden'});
+  await page.locator('.tab-page[data-route="portfolio"]').evaluate(el=>el.scrollTop=0);
   await page.screenshot({path:`test-artifacts/${name}-portfolio-v2.png`,fullPage:true});
-  await page.locator('.bottom a[href="#home"]').click();await page.screenshot({path:`test-artifacts/${name}-home-v2.png`});
+  await page.locator('.bottom a[href="#home"]').click();
+  for(const width of [320,390]){
+   await page.setViewportSize({width,height:844});
+   const clipped=await page.locator('.home-portfolio-metrics b').evaluateAll(rows=>rows.filter(el=>el.scrollWidth>el.clientWidth+1).length);
+   assert.equal(clipped,0,`${name} ${width}px summary amounts fit on one line`);
+  }
+  await page.screenshot({path:`test-artifacts/${name}-home-v2.png`});
   await page.getByRole('link',{name:'カレンダーで日別の変化を見る'}).click();
   await page.getByRole('button',{name:'前月',exact:true}).click();
   assert.match(await page.locator('.auto-calendar-summary').innerText(),/7日の記録/);
