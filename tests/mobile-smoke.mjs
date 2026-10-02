@@ -66,9 +66,13 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForURL('**/#portfolio');
  await page.getByRole('heading',{name:'資産総額（登録株＋現金）',exact:true}).waitFor();
  assert.notEqual(await page.locator('[data-valuation-total]').textContent(),total);
- await page.getByRole('link',{name:'評価の自動記録',exact:true}).click();
+ await page.getByRole('link',{name:'カレンダー',exact:true}).click();
  await page.getByRole('heading',{name:'保有評価カレンダー',exact:true}).waitFor();
- assert.ok((await page.locator('.auto-calendar-summary').innerText()).includes('1日の記録'));
+ // Live public fixtures may finish prices before the same-date FX arrives.
+ // Never substitute yesterday's FX merely to manufacture a calendar record.
+ const historyCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('mystockos.private.v6')).holdingDailyHistory?.length||0);
+ assert.ok((await page.locator('.auto-calendar-summary').innerText()).includes(historyCount+'日の記録'));
+ if(!historyCount)assert.ok(await page.locator('.history-day.missing').count()>0);
  await page.screenshot({path:`test-artifacts/${name}-auto-calendar.png`});
  await page.reload();
  await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);

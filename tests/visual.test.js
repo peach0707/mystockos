@@ -28,7 +28,7 @@ test('decision pills style exact saved labels without inventing a decision',()=>
  assert.equal(decisionPill('<script>'),'<span class="decision-pill tint-neutral">未選択</span>');
 });
 test('app CSS does not use text smaller than 10px',()=>{
- const css=readFileSync(new URL('../assets/app.css',import.meta.url),'utf8');
+ const css=['app.css','portfolio-v2.css'].map(path=>readFileSync(new URL('../assets/'+path,import.meta.url),'utf8')).join('\n');
  const sizes=[...css.matchAll(/font-size:\s*([\d.]+)px/g)].map(m=>Number(m[1]));
  assert.ok(sizes.length>0);assert.ok(sizes.every(n=>n>=10));
 });

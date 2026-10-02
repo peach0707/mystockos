@@ -5,4 +5,5 @@ const families={"Semiconductor": "半導体", "AI Demand": "AI需要", "Energy I
 const terms={"Strong":"強い","Weak":"弱い","Weakening": "弱化", "Hot": "過熱", "Core": "中核銘柄", "Related": "関連銘柄", "Watch": "観察銘柄", "Overlay": "参考情報", "Turning Watch": "反転兆候", "Turning": "反転判定", "Theme System v1.0": "テーマ判定システム v1.0", "deep drawdown":"高値から大きく下落", "Unstable":"不安定", "Extreme":"極端", "Risk On":"リスク選好", "Risk Off":"リスク回避", "RS oversold": "相対強度が売られすぎ", "breadth recovering": "上昇の広がりが回復", "no new relative low": "相対強度が安値を更新していない", "qqq_vs_200dma": "QQQと200日移動平均", "qqq_63d_return": "QQQの63日騰落率", "qqq_50dma_vs_200dma": "QQQの50日・200日移動平均", "rsp_spy_63d_rs": "RSP対SPYの63日相対強度", "hyg_lqd_63d_rs": "HYG対LQDの63日相対強度"};
 export const themeName=t=>themeNames[t?.theme_id]||byName[t?.name]||t?.name||"未登録テーマ";
 export const familyName=s=>families[s]||s;
-export const ja=s=>terms[s]||themeNames[s]||byName[s]||s;
+const transitions={'Lagging→Improving':'出遅れから改善へ','Improving→Leading':'改善から先導へ','Leading→Weakening':'先導から弱化へ','Weakening→Lagging':'弱化から出遅れへ'};
+export const ja=s=>transitions[s]||terms[s]||themeNames[s]||byName[s]||s;

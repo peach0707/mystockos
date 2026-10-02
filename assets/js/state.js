@@ -4,6 +4,7 @@ import {dateValid} from './ui.js';
 import {timestampValid,snapshotRecord} from './ledger.js';
 import {validateValuationState} from './valuation.js';
 import {holdingKey,aggregateHoldings} from './holdings.js';
+import {validateHistory,captureHoldingChange} from './portfolio-history.js';
 export const LEGACY_KEY='mystockos.private.v2';
 export const V3_KEY='mystockos.private.v3';
 export const V4_KEY='mystockos.private.v4';
@@ -16,6 +17,7 @@ const str=(s,n=3000)=>typeof s==='string'&&s.length<=n;
 const ticker=s=>typeof s==='string'&&/^[A-Z0-9.^=-]{1,20}$/.test(s);
 export function validate(s){
  validateValuationState(s||{});
+ validateHistory(s||{});
  if(!s||s.version!==6||!['holdings','watch','snapshots','cashFlows','dividends','news'].every(k=>Array.isArray(s[k])&&s[k].length<=10000)||!str(s.policy))throw Error('対応する形式は version: 6 のバックアップです。');
  if(s.securities!==undefined&&(!s.securities||typeof s.securities!=='object'||Array.isArray(s.securities)||Object.entries(s.securities).some(([k,r])=>!ticker(k)||!r||r.symbol!==k||!str(r.id,200)||!str(r.name,300)||!str(r.exchange,100))))throw Error('銘柄・市場の登録情報が不正です。');
  if(!s.watchNotes||typeof s.watchNotes!=='object'||Array.isArray(s.watchNotes)||Object.entries(s.watchNotes).some(([k,v])=>!ticker(k)||!str(v)))throw Error('買い条件の形式が不正です。');
@@ -91,5 +93,5 @@ export function read(){
 }
 export const get=()=>state;
 export function commit(next){if(storageError)throw Error(storageError);validate(next);try{localStorage.setItem(KEY,JSON.stringify(next));}catch{throw Error('端末に保存できません。入力は保存されていません。');}state=next;return state;}
-export function mutate(fn){const next=structuredClone(state);fn(next);return commit(next);}
+export function mutate(fn){const next=structuredClone(state);fn(next);captureHoldingChange(state,next);return commit(next);}
 export const rawBackup=()=>localStorage.getItem(KEY)||localStorage.getItem(V5_KEY)||localStorage.getItem(V4_KEY)||localStorage.getItem(V3_KEY)||localStorage.getItem(LEGACY_KEY)||JSON.stringify(state,null,2);
