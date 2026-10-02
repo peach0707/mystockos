@@ -35,6 +35,10 @@ jobs:
           python-version: '3.12'
       - name: News parser and price checks
         run: python -m unittest discover -s tests -p 'test_briefing.py'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: news-python312-llama0316-v1
       - name: Install article parser
         run: |
           pip install beautifulsoup4==4.13.4 trafilatura==2.0.0 pysbd==0.3.4 huggingface-hub==0.35.3
@@ -42,7 +46,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface
-          key: news-qwen25-7b-q4-v1
+          key: news-qwen25-7b-q4-split-v2
       - name: Refresh independent VIX close
         run: python scripts/collect_vix.py
       - name: Collect official news feeds and Japanese article summaries
