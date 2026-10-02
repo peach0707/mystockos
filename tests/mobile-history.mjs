@@ -7,9 +7,9 @@ import {portfolioBasis} from '../assets/js/portfolio-history.js';
 const root='http://127.0.0.1:4173',now='2026-10-02T04:00:00Z';
 const sessions=['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-28','2026-09-29','2026-09-30','2026-10-01'];
 const symbols=JSON.parse(await fs.readFile(new URL('../data/symbols.json',import.meta.url)));
-const seed=fresh();seed.holdings=[{ticker:'MU',quantity:2,cost:80,currency:'USD',decision:'hold',broker:'楽天証券'},{ticker:'MU',quantity:3,cost:90,currency:'USD',decision:'hold',id:'test-b',broker:'moomoo証券'},{ticker:'DRAM',quantity:1,cost:40,currency:'USD',decision:'hold'}];
+const seed=fresh();seed.holdings=[{ticker:'MU',quantity:200,cost:80,currency:'USD',decision:'hold',broker:'楽天証券'},{ticker:'MU',quantity:300,cost:90,currency:'USD',decision:'hold',id:'test-b',broker:'moomoo証券'},{ticker:'DRAM',quantity:10,cost:40,currency:'USD',decision:'hold'}];
 for(const ticker of ['MU','DRAM'])seed.securities[ticker]=symbols.symbols.find(s=>s.symbol===ticker&&s.country==='United States')||symbols.symbols.find(s=>s.symbol===ticker);
-seed.holdingObservations=[{date:'2026-09-22',priceDate:'2026-09-21',assetsJpy:82500,fxDate:'2026-09-21',fxRate:150,basis:portfolioBasis(seed),basisChanged:false,sourceKey:'synthetic',observedAt:'2026-09-22T04:00:00Z'}];
+seed.holdingObservations=[{date:'2026-09-22',priceDate:'2026-09-21',assetsJpy:7575000,fxDate:'2026-09-21',fxRate:150,basis:portfolioBasis(seed),basisChanged:false,sourceKey:'synthetic',observedAt:'2026-09-22T04:00:00Z'}];
 const archive={schema_version:1,price_basis:'as_reported_daily_close',as_of:'2026-10-01',stocks:Object.fromEntries([['MU',100],['DRAM',50]].map(([ticker,base])=>[ticker,{currency:'USD',history:sessions.map((date,i)=>({date,close:base+i}))}])),fx:{pair:'USD/JPY',basis:'completed_UTC_daily_close',history:sessions.map((date,i)=>({date,rate:150+i}))}};
 await fs.mkdir('test-artifacts',{recursive:true});
 for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
@@ -26,7 +26,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.goto(root+'/#portfolio');
   await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
   const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
-  const saved=await state();assert.equal(saved.holdingDailyHistory.length,9);assert.equal(saved.holdingDailyHistory.at(-1).assetsJpy,(5*108+58)*158);
+  const saved=await state();assert.equal(saved.holdingDailyHistory.length,9);assert.equal(saved.holdingDailyHistory.at(-1).assetsJpy,(500*108+10*58)*158);
   assert.deepEqual(saved.holdings,seed.holdings);assert.deepEqual(saved.holdingObservations,seed.holdingObservations);
   await page.getByLabel('保有銘柄の並び順').selectOption('name');
   assert.equal(await page.locator('.holding-card:visible').first().getAttribute('data-holding'),'DRAM');
@@ -48,7 +48,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   for(const width of [320,390,430,1024]){
    await page.setViewportSize({width,height:844});
    assert.equal(await page.locator('.auto-calendar').evaluate(el=>el.scrollWidth>el.clientWidth+1),false,`${name} calendar ${width}px overflow`);
-   const bad=await page.locator('.history-day').evaluateAll(days=>days.filter(el=>el.scrollWidth>el.clientWidth+1).length);assert.equal(bad,0,`${name} day cell ${width}px overflow`);
+   for(const mode of ['value','change']){await page.locator(`[data-calendar-mode="${mode}"]`).click();const bad=await page.locator('.history-day').evaluateAll(days=>days.filter(el=>el.scrollWidth>el.clientWidth+1).length);assert.equal(bad,0,`${name} ${mode} cell ${width}px overflow`);}
    await page.screenshot({path:`test-artifacts/${name}-calendar-v2-${width}.png`});
   }
   await page.setViewportSize({width:390,height:844});
