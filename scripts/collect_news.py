@@ -1,6 +1,6 @@
 """Official RSS/Atom -> Japanese event brief and explicitly conditional impact notes.
 
-No paid API, article scraping or LLM. A publisher feed authenticates provenance,
+RSS discovery plus optional article-body Japanese summaries. A publisher feed authenticates provenance,
 not independent verification of a corporate claim. No headline-based price targets.
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -87,9 +87,9 @@ def classify(title, source):
     # Detect negation before classifying an apparently positive headline.
     if re.search(r'\b(not|no plans|denies|rumou?r|reportedly)\b',lower):
         event,label,impact = 'other','発表内容の確認が必要','見出しだけでは方向を判断できません。本文と会社の説明を確認します。'
-    elif re.search(r'\b(to report|to announce|will report|will announce|schedule\w*|conference|participat\w*)\b',lower):
+    elif re.search(r'\b(to report|to announce|will report|will announce|schedule\w*|will present|to present|will attend|to attend|participat\w*)\b',lower):
         event,label,impact = 'calendar','決算・説明会などの日程を案内','日程の案内です。業績の上振れ・下振れを示す発表ではありません。'
-    elif re.search(r'\b(export|restrict\w*|sanction\w*|ban\w*|regulat\w*)\b',lower):
+    elif re.search(r'\b(export|restrict\w*|sanction\w*|ban|bans|banned|banning|regulat\w*)\b',lower):
         event,label,impact = 'regulation','規制・取引条件に関する発表','対象地域・製品・発効日で影響が変わります。売上への制約と代替需要を確認します。'
     elif re.search(r'\b(results|earnings)\b',lower):
         event,label,impact = 'results','決算を発表','売上・粗利益率・次期見通しを前回予想と比較。決算発表という事実だけでは好悪を判定しません。'
@@ -101,7 +101,7 @@ def classify(title, source):
         event,label,impact = 'demonstration','技術の実演・展示に関する発表','実演・展示は量産受注とは別の段階です。評価する顧客、量産時期、既存製品に対する利点を確認します。'
     elif re.search(r'\b(qualify|qualification|certif\w*)\b',lower):
         event,label,impact = 'qualification','認定・適合評価に関する発表','認定の対象と参加企業、採用に必要な条件を確認。適合認定だけでは売上・受注は確定しません。'
-    elif re.search(r'\b(expand\w*|invest\w*|manufacturing|fab|capacity)\b',lower):
+    elif re.search(r'\b(expand\w*|invest|invests|invested|investing|investment|investments|manufacturing|fab|capacity)\b',lower):
         event,label,impact = 'capacity','投資・供給能力に関する発表','短期の投資負担と中期の供給増を分けて確認。稼働時期と顧客の需要が重要です。'
     elif re.search(r'\b(partner\w*|collaborat\w*|agreement|alliance)\b',lower):
         event,label,impact = 'partnership','提携・導入に関する発表','契約の拘束力・数量・売上計上時期を確認。計画段階と確定受注を区別します。'
@@ -195,6 +195,7 @@ def assemble(previous, results, now, sources=None):
     for records,status in results:
         health.append(status)
         for row in records:
+            row['brief'] = existing.get(row['id'], {}).get('brief', {})
             row['first_seen_at'] = existing.get(row['id'],{}).get('first_seen_at',row['first_seen_at'])
             articles[row['id']] = row
     by_source = {s['id']:s for s in sources or []}
@@ -232,6 +233,9 @@ def main():
     with ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(lambda s:fetch_source(s,now),sources))
     output = assemble(previous,results,now,sources)
+    from summarize_news import enrich
+    output = enrich(output, sources, now)
+    output['method'] = '公式リンク先の本文を取得し、日本語でAI要約。本文を取得できない記事は要約待ちと表示。影響の見立ては事実と区別します。'
     atomic_json(dest,output)
     print(json.dumps({'status':output['status'],'articles':len(output['articles']),'sources':output['sources']}))
 

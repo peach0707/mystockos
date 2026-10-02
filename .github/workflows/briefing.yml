@@ -9,6 +9,8 @@ on:
       - 'scripts/collect_valuation.py'
       - 'scripts/archive_prices.py'
       - 'scripts/collect_news.py'
+      - 'scripts/summarize_news.py'
+      - 'scripts/collect_vix.py'
       - 'config/briefing.json'
       - '.github/workflows/briefing.yml'
   schedule:
@@ -33,13 +35,27 @@ jobs:
           python-version: '3.12'
       - name: News parser and price checks
         run: python -m unittest discover -s tests -p 'test_briefing.py'
-      - name: Collect official news feeds
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: news-python312-llama0316-v1
+      - name: Install article parser
+        run: |
+          pip install beautifulsoup4==4.13.4 trafilatura==2.0.0 pysbd==0.3.4 huggingface-hub==0.35.3
+          pip install llama-cpp-python==0.3.16 --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: news-qwen25-7b-q4-split-v2
+      - name: Refresh independent VIX close
+        run: python scripts/collect_vix.py
+      - name: Collect official news feeds and Japanese article summaries
         run: python scripts/collect_news.py
       - name: Install market calendar
-        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *')
         run: pip install exchange_calendars==4.11.3 pandas==2.2.3 numpy==2.2.6
       - name: Collect closing price checks
-        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *')
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
         run: python scripts/collect_briefing.py
@@ -51,7 +67,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           python scripts/archive_prices.py
-          for file in data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json data/price_archive.json; do
+          for file in data/vix.json data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json data/price_archive.json; do
             if test -f "$file"; then git add -- "$file"; fi
           done
           if ! git diff --cached --quiet; then

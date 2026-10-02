@@ -15,6 +15,9 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);
  await page.screenshot({path:`test-artifacts/${name}-home.png`});
  assert.equal(await page.locator('.bottom a').count(),5);
+ assert.equal(await page.locator('.memory-watch .memory-row').count(),3);
+ assert.ok((await page.locator('.memory-watch').innerText()).includes('SNDK'));
+ assert.ok((await page.locator('.vix-context').innerText()).includes('終値'));
  await page.getByRole('button',{name:'買い条件を見る'}).click();
  await page.waitForURL('**/#stocks');
  await page.getByPlaceholder('ティッカーで絞り込む').fill('MU');
@@ -32,7 +35,10 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForURL('**/#news');
  await page.getByRole('heading',{name:'半導体ニュース',exact:true}).waitFor();
  await page.getByRole('button',{name:'メモリ',exact:true}).click();
+ assert.ok(await page.getByRole('button',{name:'SNDK',exact:true}).isVisible());
+ await page.getByText('7日間の分野別まとめ',{exact:true}).click();
  await page.getByRole('heading',{name:'分野別・7日間の影響'}).waitFor();
+ await page.getByText('7日間の分野別まとめ',{exact:true}).click();
  await page.screenshot({path:`test-artifacts/${name}-news.png`});
  const articles=page.locator('.tab-page[data-route="news"] .brief-card');
  if(await articles.count()){
@@ -72,7 +78,12 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  // Never substitute yesterday's FX merely to manufacture a calendar record.
  const historyCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('mystockos.private.v6')).holdingDailyHistory?.length||0);
  assert.ok((await page.locator('.auto-calendar-summary').innerText()).includes(historyCount+'日の記録'));
- if(!historyCount)assert.ok(await page.locator('.history-day.missing').count()>0);
+ if(!historyCount){
+  // A newly registered portfolio after midnight can have only unregistered and
+  // unfinished sessions. It must not fabricate a baseline or a priced day.
+  assert.equal(await page.locator('.history-day.priced, .history-day.baseline').count(),0);
+  assert.ok(await page.locator('.history-day.missing, .history-day.unregistered, .history-day.future').count()>0);
+ }
  await page.screenshot({path:`test-artifacts/${name}-auto-calendar.png`});
  await page.reload();
  await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);

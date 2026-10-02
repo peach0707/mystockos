@@ -1,6 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {weeklyGroups,weeklyReportText} from '../assets/js/news-ui.js';
+import {weeklyGroups,weeklyReportText,articlesFor,newsCard} from '../assets/js/news-ui.js';
+
+test('memory includes Sandisk NAND and company filters only match direct coverage',()=>{
+ const n={id:'a',title:'English headline',headline_ja:'発表を確認',topic:'storage',topic_label:'NAND',published_at:'2026-10-01T00:00:00Z',direct_tickers:['SNDK'],related_tickers:['MU'],source:'Sandisk',brief:{status:'ready',basis:'article_body',headline_ja:'新型SSDを発表',summary_ja:'本文に基づく日本語の要約です。'}};
+ const data={news:{value:{articles:[n]}}},s={watch:[],holdings:[]};
+ assert.equal(articlesFor(data,s,'memory').length,1);
+ assert.equal(articlesFor(data,s,'SNDK').length,1);
+ assert.equal(articlesFor(data,s,'MU').length,0);
+ assert.ok(newsCard(n).includes(n.brief.summary_ja));
+ assert.ok(!newsCard(n).includes(n.title));
+ delete n.brief;assert.ok(newsCard(n).includes('要約待ち'));
+});
 
 test('weekly report excludes future and older items and joins only the users registered tickers',()=>{
  const now=Date.parse('2026-09-22T12:00:00Z');

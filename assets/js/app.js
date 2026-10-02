@@ -15,7 +15,7 @@ import {homeView,stocksView,newsView,settingsView} from './views.js?v=20260922';
 import {portfolioView} from './portfolio.js';
 import {reconcileHistory} from './portfolio-history.js';
 import {updateHoldingQuoteNotice,validateQuoteConsent} from './quote-status.js';
-let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editHoldingKey='',addTicker='',editFlow='',newsFilter='all',historyRange='1m',holdingSort='value',holdingQuery='',calendarMode='change';
+let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editHoldingKey='',addTicker='',editFlow='',newsFilter='memory',historyRange='1m',holdingSort='value',holdingQuery='',calendarMode='change';
 read();bindSymbolPickers();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){captureUsage(get(),data,notice);autoRefresh();}});
 window.addEventListener('pageshow',event=>{if(event.persisted)autoRefresh();});

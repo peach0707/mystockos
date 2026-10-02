@@ -294,3 +294,16 @@ input[type=file]::file-selector-button { background: #1c3657; color: #dbeeff; bo
   .holding-tools input, .holding-tools select { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { button, .button { transition: none; } }
+/* Article summaries and the memory desk: compact, readable on small phones. */
+.vix-reading{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:14px 0}
+.vix-reading strong{font-size:28px;font-variant-numeric:tabular-nums}
+.vix-reading span{color:var(--ink);font-weight:700}
+.vix-context p{line-height:1.8}
+.vix-context small,.memory-watch small{color:var(--muted)}
+.memory-row{display:grid;grid-template-columns:minmax(0,1fr) auto 12px;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.memory-row>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.memory-row>div:nth-child(2){text-align:right;font-variant-numeric:tabular-nums}
+.memory-row small{font-size:12px;line-height:1.5}
+.memory-watch>small{display:block;margin-top:12px;line-height:1.7}
+.brief-impact{line-height:1.8!important;display:block!important;-webkit-line-clamp:unset!important}
+.fact-block>p{line-height:1.9;font-size:16px}
