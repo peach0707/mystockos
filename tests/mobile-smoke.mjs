@@ -98,6 +98,15 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
    assert.equal(overflow,false,`${name} ${width}px ${route} horizontal overflow`);
   }
  }
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('.gear').click();
+ await page.getByRole('heading',{name:'設定',exact:true}).waitFor();
+ assert.equal(await page.locator('html').evaluate(el=>getComputedStyle(el).colorScheme),'dark');
+ await page.screenshot({path:`test-artifacts/${name}-midnight-settings.png`});
+ await page.locator('.bottom a[href="#portfolio"]').click();
+ await page.getByRole('link',{name:'＋ 保有銘柄を登録',exact:true}).click();
+ assert.equal(await page.getByLabel('株数',{exact:true}).evaluate(el=>parseFloat(getComputedStyle(el).fontSize))>=16,true);
+ await page.screenshot({path:`test-artifacts/${name}-midnight-form.png`});
  assert.deepEqual(errors,[]);
  await browser.close();
  console.log(`${name}: navigation, sources, MU/SKHY/MUU holdings, FX, cash, calendar, persistence and 320–1024px layouts passed`);
