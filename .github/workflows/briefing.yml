@@ -7,6 +7,7 @@ on:
       - 'scripts/collect_briefing.py'
       - 'scripts/stock_setups.py'
       - 'scripts/collect_valuation.py'
+      - 'scripts/archive_prices.py'
       - 'scripts/collect_news.py'
       - 'config/briefing.json'
       - '.github/workflows/briefing.yml'
@@ -49,7 +50,8 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          for file in data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json; do
+          python scripts/archive_prices.py
+          for file in data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json data/price_archive.json; do
             if test -f "$file"; then git add -- "$file"; fi
           done
           if ! git diff --cached --quiet; then

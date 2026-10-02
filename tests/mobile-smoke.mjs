@@ -66,7 +66,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForURL('**/#portfolio');
  await page.getByRole('heading',{name:'資産総額（登録株＋現金）',exact:true}).waitFor();
  assert.notEqual(await page.locator('[data-valuation-total]').textContent(),total);
- await page.getByRole('link',{name:'評価の自動記録',exact:true}).click();
+ await page.getByRole('link',{name:'カレンダー',exact:true}).click();
  await page.getByRole('heading',{name:'保有評価カレンダー',exact:true}).waitFor();
  assert.ok((await page.locator('.auto-calendar-summary').innerText()).includes('1日の記録'));
  await page.screenshot({path:`test-artifacts/${name}-auto-calendar.png`});
