@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from collect_vix import parse, collect
-from summarize_news import allowed, extract_body, validate_summary, enrich
+from summarize_news import allowed, extract_body, important_sentences, enrich
 
 class NewsVixTests(unittest.TestCase):
     def setUp(self):
@@ -29,13 +29,14 @@ class NewsVixTests(unittest.TestCase):
         self.assertNotIn('ignore',result)
         with self.assertRaises(ValueError):extract_body('<html>Access denied</html>')
 
-    def test_summary_requires_japanese_and_literal_body_evidence(self):
-        body='Company announced a new memory product.'
-        value={k:'新しいメモリ製品を発表しました。' for k in ['headline_ja','summary_ja','impact_ja','watch_ja']}
-        value['evidence']=[body]
-        self.assertIn('summary_ja',validate_summary(value,body))
-        value['evidence']=['A different unsupported statement.']
-        with self.assertRaises(ValueError):validate_summary(value,body)
+    def test_extracted_summary_preserves_source_sentences_and_numbers(self):
+        body = ('Micron announced today that quarterly revenue reached 50 billion dollars with strong demand across the memory market. '
+                'The company expects NAND shipments to grow 20 percent in the next fiscal quarter as customers increase capacity. '
+                'Forward-looking statements are subject to risks and uncertainties and may differ from actual results.')
+        selected = important_sentences(body, 'Micron revenue results')
+        self.assertTrue(all(s in body for s in selected))
+        self.assertTrue(any('50 billion' in s for s in selected))
+        self.assertFalse(any('Forward-looking' in s for s in selected))
 
     def test_good_brief_is_cached_not_replaced(self):
         from summarize_news import VERSION

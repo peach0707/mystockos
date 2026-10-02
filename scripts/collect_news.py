@@ -235,7 +235,7 @@ def main():
     output = assemble(previous,results,now,sources)
     from summarize_news import enrich
     output = enrich(output, sources, now)
-    output['method'] = '公式リンク先の本文を取得し、日本語でAI要約。本文を取得できない記事は要約待ちと表示。影響の見立ては事実と区別します。'
+    output['method'] = '公式リンク先の本文を取得し、重要文を抽出して日本語に自動翻訳。本文を取得できない記事は要約待ちと表示。影響の見立ては事実と区別します。'
     atomic_json(dest,output)
     print(json.dumps({'status':output['status'],'articles':len(output['articles']),'sources':output['sources']}))
 

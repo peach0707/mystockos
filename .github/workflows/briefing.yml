@@ -19,7 +19,6 @@ on:
     - cron: '11 4 * * 2-6'
 permissions:
   contents: write
-  models: read
 concurrency:
   group: briefing-${{ github.ref }}
   cancel-in-progress: false
@@ -37,12 +36,16 @@ jobs:
       - name: News parser and price checks
         run: python -m unittest discover -s tests -p 'test_briefing.py'
       - name: Install article parser
-        run: pip install beautifulsoup4==4.13.4
+        run: |
+          pip install beautifulsoup4==4.13.4 transformers==4.57.1 sentencepiece==0.2.1 pysbd==0.3.4
+          pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: news-fugumt-en-ja-v1
       - name: Refresh independent VIX close
         run: python scripts/collect_vix.py
       - name: Collect official news feeds and Japanese article summaries
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/collect_news.py
       - name: Install market calendar
         if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *')
