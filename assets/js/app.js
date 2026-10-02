@@ -10,7 +10,7 @@ import {esc,notice,download,today} from './ui.js';
 import {read,get,mutate,commit,validate,rawBackup,storageError,migrate} from './state.js';
 import {loadPublic} from './data.js?v=20260922';
 import {snapshotsCSV,cashFlowsCSV,parseCSV} from './accounting.js';
-import {themesView} from './themes.js';
+import {themesView,filterThemeCards} from './themes.js';
 import {homeView,stocksView,newsView,settingsView} from './views.js?v=20260922';
 import {portfolioView} from './portfolio.js';
 import {reconcileHistory} from './portfolio-history.js';
@@ -22,7 +22,7 @@ window.addEventListener('pageshow',event=>{if(event.persisted)autoRefresh();});
 window.addEventListener('online',()=>autoRefresh());
 bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
-function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editHoldingKey,editFlow,data,addTicker,{range:historyRange,sort:holdingSort,query:holdingQuery,calendarMode}),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
+function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page,s),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editHoldingKey,editFlow,data,addTicker,{range:historyRange,sort:holdingSort,query:holdingQuery,calendarMode}),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
 const main=document.querySelector('#main');
 function syncTab(route){
  document.querySelectorAll('.bottom a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
@@ -65,6 +65,7 @@ const copyReport=async text=>{try{if(!navigator.clipboard?.writeText)throw Error
 for(const type of ['input','change'])document.addEventListener(type,event=>{if(event.target.form)event.target.form.dataset.dirty='true';});
 document.addEventListener('symbol-selected',event=>{const form=event.target.closest('#holding-form');if(!form)return;updateHoldingQuoteNotice(form,data);if(form.elements.holding_id.value)return;const ticker=event.detail.symbol,s=get(),h=s.holdings.find(h=>h.ticker===ticker);form.dataset.dirty='true';form.elements.decision.value=h?.decision||'unset';form.querySelectorAll('[name="rationaleTags"]').forEach(input=>input.checked=(s.rationales[ticker]||[]).includes(input.value));});
 document.addEventListener('input',event=>{if(event.target.matches('#holding-form [data-symbol-query]'))updateHoldingQuoteNotice(event.target.form,data);});
+document.addEventListener('input',event=>{if(event.target.matches('[data-theme-query]'))filterThemeCards(event.target.closest('[data-theme-search-root]'),event.target.value);});
 const number=(f,k)=>{const v=f.get(k);if(v===null||String(v).trim()==='')throw Error('金額・株数を入力してください。');const n=Number(v);if(!Number.isFinite(n))throw Error('数値が不正です。');return n;};
 const optional=(f,k)=>String(f.get(k)||'').trim()===''?null:number(f,k);
 const text=(f,k)=>String(f.get(k)||'').trim();
