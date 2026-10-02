@@ -15,6 +15,9 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);
  await page.screenshot({path:`test-artifacts/${name}-home.png`});
  assert.equal(await page.locator('.bottom a').count(),5);
+ assert.equal(await page.locator('.memory-watch .memory-row').count(),3);
+ assert.ok((await page.locator('.memory-watch').innerText()).includes('SNDK'));
+ assert.ok((await page.locator('.vix-context').innerText()).includes('終値'));
  await page.getByRole('button',{name:'買い条件を見る'}).click();
  await page.waitForURL('**/#stocks');
  await page.getByPlaceholder('ティッカーで絞り込む').fill('MU');
@@ -32,6 +35,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForURL('**/#news');
  await page.getByRole('heading',{name:'半導体ニュース',exact:true}).waitFor();
  await page.getByRole('button',{name:'メモリ',exact:true}).click();
+ assert.ok(await page.getByRole('button',{name:'SNDK',exact:true}).isVisible());
  await page.getByRole('heading',{name:'分野別・7日間の影響'}).waitFor();
  await page.screenshot({path:`test-artifacts/${name}-news.png`});
  const articles=page.locator('.tab-page[data-route="news"] .brief-card');

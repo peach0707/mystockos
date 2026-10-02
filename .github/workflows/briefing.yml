@@ -2,13 +2,15 @@ name: Update decision checks and semiconductor news
 on:
   workflow_dispatch:
   push:
-    branches: [main, codex/decision-news-home, codex/holdings-coverage]
+    branches: [main, codex/decision-news-home, codex/holdings-coverage, codex/news-memory-vix]
     paths:
       - 'scripts/collect_briefing.py'
       - 'scripts/stock_setups.py'
       - 'scripts/collect_valuation.py'
       - 'scripts/archive_prices.py'
       - 'scripts/collect_news.py'
+      - 'scripts/summarize_news.py'
+      - 'scripts/collect_vix.py'
       - 'config/briefing.json'
       - '.github/workflows/briefing.yml'
   schedule:
@@ -17,6 +19,7 @@ on:
     - cron: '11 4 * * 2-6'
 permissions:
   contents: write
+  models: read
 concurrency:
   group: briefing-${{ github.ref }}
   cancel-in-progress: false
@@ -33,7 +36,13 @@ jobs:
           python-version: '3.12'
       - name: News parser and price checks
         run: python -m unittest discover -s tests -p 'test_briefing.py'
-      - name: Collect official news feeds
+      - name: Install article parser
+        run: pip install beautifulsoup4==4.13.4
+      - name: Refresh independent VIX close
+        run: python scripts/collect_vix.py
+      - name: Collect official news feeds and Japanese article summaries
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/collect_news.py
       - name: Install market calendar
         if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
@@ -51,7 +60,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           python scripts/archive_prices.py
-          for file in data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json data/price_archive.json; do
+          for file in data/vix.json data/news.json data/stock_setups.json data/market_calendar.json data/etfs.json data/fx.json data/price_archive.json; do
             if test -f "$file"; then git add -- "$file"; fi
           done
           if ! git diff --cached --quiet; then

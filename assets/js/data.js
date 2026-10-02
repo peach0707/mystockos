@@ -1,8 +1,9 @@
 import {dateValid} from './ui.js';
 import {validArchive} from './portfolio-history.js';
-const PATHS={regime:'data/regime.json',themes:'data/themes.json',stocks:'data.json',setups:'data/stock_setups.json',news:'data/news.json',calendar:'data/market_calendar.json',fx:'data/fx.json',archive:'data/price_archive.json'};
+const PATHS={vix:'data/vix.json',regime:'data/regime.json',themes:'data/themes.json',stocks:'data.json',setups:'data/stock_setups.json',news:'data/news.json',calendar:'data/market_calendar.json',fx:'data/fx.json',archive:'data/price_archive.json'};
 export function valid(k,d){
  if(!d||typeof d!=='object')return false;
+ if(k==='vix')return d.schema_version===1&&dateValid(d.as_of)&&Number.isFinite(d.close)&&d.close>0&&d.basis==='daily_close';
  if(k==='archive')return validArchive(d);
  if(k==='fx')return d.schema_version===1&&d.pair==='USD/JPY'&&dateValid(d.as_of)&&Number.isFinite(d.rate)&&d.rate>0&&['ok','stale'].includes(d.quality)&&d.basis==='completed_UTC_daily_close';
  if(k==='calendar')return d.schema_version===1&&dateValid(d.start)&&dateValid(d.end)&&Array.isArray(d.sessions)&&d.sessions.length>0&&d.sessions.every(s=>dateValid(s.date)&&Number.isFinite(Date.parse(s.close)));

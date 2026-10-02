@@ -1,6 +1,6 @@
 """Official RSS/Atom -> Japanese event brief and explicitly conditional impact notes.
 
-No paid API, article scraping or LLM. A publisher feed authenticates provenance,
+RSS discovery plus optional article-body Japanese summaries. A publisher feed authenticates provenance,
 not independent verification of a corporate claim. No headline-based price targets.
 """
 from concurrent.futures import ThreadPoolExecutor
@@ -195,6 +195,7 @@ def assemble(previous, results, now, sources=None):
     for records,status in results:
         health.append(status)
         for row in records:
+            row['brief'] = existing.get(row['id'], {}).get('brief', {})
             row['first_seen_at'] = existing.get(row['id'],{}).get('first_seen_at',row['first_seen_at'])
             articles[row['id']] = row
     by_source = {s['id']:s for s in sources or []}
@@ -232,6 +233,9 @@ def main():
     with ThreadPoolExecutor(max_workers=4) as pool:
         results = list(pool.map(lambda s:fetch_source(s,now),sources))
     output = assemble(previous,results,now,sources)
+    from summarize_news import enrich
+    output = enrich(output, sources, now)
+    output['method'] = '公式リンク先の本文を取得し、日本語でAI要約。本文を取得できない記事は要約待ちと表示。影響の見立ては事実と区別します。'
     atomic_json(dest,output)
     print(json.dumps({'status':output['status'],'articles':len(output['articles']),'sources':output['sources']}))
 
