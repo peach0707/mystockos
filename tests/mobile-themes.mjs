@@ -15,6 +15,14 @@ const server=http.createServer(async(req,res)=>{
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const root=`http://127.0.0.1:${server.address().port}`;
+const themeFixture=JSON.parse(await fs.readFile(new URL('../data/themes.json',import.meta.url)));
+themeFixture.as_of='2026-10-01';
+const memory=themeFixture.themes.find(t=>t.theme_id==='memory_hbm');
+Object.assign(memory,{data_quality:{status:'insufficient',core_total:2,strength_eligible_n:1,heat_eligible_n:1},strength:{score:null,eligible_members:['MU']},heat:{score:65.88,eligible_n:1,hot:false,hot_eligible:false},velocity:{state:null,confirmed:false}});
+for(const [id,days] of [['semiconductor_equipment',3],['optical_photonics',1]]){
+ const t=themeFixture.themes.find(t=>t.theme_id===id);Object.assign(t,{data_quality:{status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4},strength:{score:58},velocity:{state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:days,confirmed:false},heat:{...t.heat,hot:true,hot_eligible:true,score:82}});
+}
+const calendarFixture={schema_version:1,start:'2026-09-30',end:'2026-10-05',sessions:[{date:'2026-09-30',close:'2026-09-30T20:00:00Z'},{date:'2026-10-01',close:'2026-10-01T20:00:00Z'},{date:'2026-10-02',close:'2026-10-02T20:00:00Z'}]};
 const seed=fresh();seed.holdings=[{ticker:'MU',quantity:12,cost:80,currency:'USD',decision:'hold',broker:'楽天証券'},{id:'test-mu-2',ticker:'MU',quantity:8,cost:90,currency:'USD',decision:'hold',broker:'moomoo証券'}];
 await fs.mkdir('test-artifacts',{recursive:true});
 try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
@@ -24,6 +32,8 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.clock.setFixedTime(new Date('2026-10-02T08:00:00Z'));
   await page.addInitScript(({key,seed})=>localStorage.setItem(key,JSON.stringify(seed)),{key:KEY,seed});
+  await page.route('**/data/themes.json',route=>route.fulfill({json:themeFixture}));
+  await page.route('**/data/market_calendar.json',route=>route.fulfill({json:calendarFixture}));
   await page.goto(root+'/#themes');await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
   const pane=page.locator('.tab-page[data-route="themes"]');
   assert.equal(await pane.locator('[data-theme-card]').count(),29);

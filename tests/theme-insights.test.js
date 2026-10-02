@@ -5,6 +5,13 @@ import {themeInsight,themeFreshness,holdingLinks,returnMetric} from '../assets/j
 import {themesView,themeDetail,themeCard,ranked} from '../assets/js/themes.js';
 const read = path => JSON.parse(fs.readFileSync(new URL('../'+path,import.meta.url)));
 const data = {themes:{value:read('data/themes.json')},phaseA:read('data/phase_a.json'),calendar:{value:read('data/market_calendar.json')}};
+// Pin scenarios; scheduled feed updates must not change the expected behavior.
+data.themes.value.as_of='2026-10-01';
+data.calendar.value={start:'2026-09-30',end:'2026-10-05',sessions:[{date:'2026-09-30',close:'2026-09-30T20:00:00Z'},{date:'2026-10-01',close:'2026-10-01T20:00:00Z'},{date:'2026-10-02',close:'2026-10-02T20:00:00Z'}]};
+const memory=data.themes.value.themes.find(t=>t.theme_id==='memory_hbm');
+memory.data_quality={status:'insufficient',core_total:2,strength_eligible_n:1,heat_eligible_n:1};memory.strength={score:null,eligible_n:1,eligible_members:['MU']};memory.heat={score:65.88,eligible_n:1,hot:false,hot_eligible:false};memory.velocity={state:null,confirmed:false};
+const equipment=data.themes.value.themes.find(t=>t.theme_id==='semiconductor_equipment');
+equipment.data_quality={status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4};equipment.strength={score:37.8};equipment.velocity={state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:3,confirmed:false};
 const current = {usable:true,asOf:'2026-10-01',label:'確定日足・更新済み'};
 const theme = id => structuredClone(data.themes.value.themes.find(t => t.theme_id === id));
 test('incomplete memory coverage is not promoted to bullish, hot, or a ranked theme',()=>{
@@ -18,7 +25,7 @@ test('pending transition exposes candidate and never asserts prior lagging state
  assert.equal(m.changing,true);assert.equal(m.velocityLabel,'切替を確認中');assert.match(html,/直前：相対的に下向き → 候補：相対的に上向き（3\/5回確認）/);assert.match(html,/まだ未確認/);
 });
 test('engine eligibility and concentration flags outrank the numeric heat score',()=>{
- const t=theme('ai_networking_connectivity');t.heat.hot=false;t.heat.score=99;t.heat.single_stock_driven=true;
+ const t=theme('ai_networking_connectivity');t.data_quality={status:'ok',core_total:5,strength_eligible_n:5,heat_eligible_n:5};t.strength.score=65;t.heat.hot=false;t.heat.score=99;t.heat.single_stock_driven=true;
  assert.equal(themeInsight(t,current).hot,false);assert.equal(themeInsight(t,current).title,'一部の銘柄に動きが集中');
  t.heat.single_stock_driven=false;t.heat.hot_eligible=false;t.data_quality.heat_eligible_n=2;
  assert.equal(themeInsight(t,current).heatLabel,'参考値のみ');assert.equal(themeInsight(t,current).hot,false);
@@ -54,6 +61,7 @@ test('thin heat-only and observation groups retain all definitions without cross
 test('empty data, malformed route, HTML text and score boundaries render safely',()=>{
  assert.match(themesView({},'rank'),/再読み込み/);assert.match(themesView(data,'rank','%XX'),/見つかりません/);
  const t=theme('hyperscaler_ai_capex');t.theme_id='custom';t.name='<img src=x onerror=alert(1)>';t.core_members=['<script>'];
+ t.data_quality={status:'ok',core_total:5,strength_eligible_n:5,heat_eligible_n:5};
  assert.doesNotMatch(themeCard(t),/<img|<script>/);assert.match(themeCard(t),/&lt;img/);
  for(const [score,label] of [[75,'強い'],[60,'やや強い'],[45,'中立'],[30,'やや弱い'],[0,'弱い']]){t.strength.score=score;assert.equal(themeInsight(t,current).strengthLabel,label);}
  t.strength.score=NaN;assert.equal(themeInsight(t,current).insufficient,true);
