@@ -3,7 +3,8 @@ import {dateValid} from './ui.js';
 
 const finite=Number.isFinite;
 const positive=n=>finite(n)&&n>0;
-export const japanDate=(now=Date.now())=>new Date(now).toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+const japanFormatter=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'});
+export const japanDate=(now=Date.now())=>japanFormatter.format(new Date(now));
 export const shiftDate=(date,n)=>new Date(Date.parse(date+'T12:00:00Z')+n*86400000).toISOString().slice(0,10);
 export const portfolioBasis=s=>JSON.stringify(s.holdings.map(h=>[h.ticker,h.quantity,h.cost,h.currency,s.securities?.[h.ticker]?.id||'']).sort((a,b)=>a[0].localeCompare(b[0])||JSON.stringify(a).localeCompare(JSON.stringify(b))));
 export function parseBasis(basis){
@@ -51,8 +52,14 @@ export function validArchive(a){
  return Object.entries(a.stocks).every(([ticker,s])=>/^[A-Z0-9.^=-]{1,20}$/.test(ticker)&&s&&['USD','JPY'].includes(s.currency)&&series(s.history,'close'))&&series(a.fx.history,'rate');
 }
 
+const sessionCache=new WeakMap();
 export function sessionDays(data,now=Date.now()){
- return (data.calendar?.value?.sessions||[]).filter(s=>dateValid(s.date)&&finite(Date.parse(s.close))).map(s=>({priceDate:s.date,date:japanDate(Date.parse(s.close)),closed:Date.parse(s.close)<=now}));
+ const source=data.calendar?.value?.sessions;if(!Array.isArray(source))return [];
+ // Public calendar arrays are replaced on refresh. Convert the three-year
+ // calendar once, not twice for each of the 31 visible date cells.
+ let days=sessionCache.get(source);
+ if(!days){days=source.filter(s=>dateValid(s.date)&&finite(Date.parse(s.close))).map(s=>({priceDate:s.date,date:japanDate(Date.parse(s.close)),closeAt:Date.parse(s.close)}));sessionCache.set(source,days);}
+ return days.map(d=>({priceDate:d.priceDate,date:d.date,closed:d.closeAt<=now}));
 }
 
 export function reconcileHistory(s,data,now=Date.now()){
