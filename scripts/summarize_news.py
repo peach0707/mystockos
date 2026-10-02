@@ -98,17 +98,19 @@ def enrich(output, sources, now, token=None, limit=12):
         if checked and now - datetime.fromisoformat(checked) < timedelta(hours=6):
             continue
         attempted += 1
+        stage = 'article'
         try:
             if not token:
                 raise ValueError('model_not_configured')
             body = fetch_body(n['url'], hosts)
+            stage = 'model'
             result = summarize(n['title'], body, token)
             n['brief'] = dict(result, status='ready', title=n['title'], version=VERSION, model=MODEL, checked_at=now.isoformat(), body_sha256=hashlib.sha256(body.encode()).hexdigest(), basis='article_body')
         except Exception as error:
             reason = 'http_' + str(error.code) if hasattr(error, 'code') else str(error) if isinstance(error, ValueError) else type(error).__name__
             n['brief'] = {'status': 'pending', 'checked_at': now.isoformat(), 'reason': reason[:80]}
             print(json.dumps({'article': n['id'], 'summary': 'pending', 'reason': reason[:80]}))
-            if reason in ('http_401', 'http_403', 'http_429', 'model_not_configured'):
+            if reason == 'model_not_configured' or stage == 'model' and reason in ('http_401', 'http_403', 'http_429'):
                 break
     output['summary_coverage'] = {'ready': sum(n.get('brief', {}).get('status') == 'ready' for n in output['articles']), 'total': len(output['articles'])}
     return output

@@ -45,10 +45,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: python scripts/collect_news.py
       - name: Install market calendar
-        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *')
         run: pip install exchange_calendars==4.11.3 pandas==2.2.3 numpy==2.2.6
       - name: Collect closing price checks
-        if: github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *'
+        if: github.ref == 'refs/heads/main' && (github.event_name != 'schedule' || github.event.schedule != '13 */3 * * *')
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
         run: python scripts/collect_briefing.py

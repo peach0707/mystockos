@@ -6,7 +6,7 @@ export function vixReading(data,now=Date.now()){
  const live=data.vix?.value,r=data.regime?.value;
  const v=live||{close:r?.instability?.factors?.vix?.raw,as_of:r?.data?.vix_as_of,source:r?.data?.vix_source};
  const state=dateState(v.as_of,data.calendar?.value,now);
- const ready=Number.isFinite(v.close)&&v.close>0&&state.state==='current'&&!data.vix?.cached&&v.fetch_status!=='failed';
+ const ready=!!live&&Number.isFinite(v.close)&&v.close>0&&state.state==='current'&&!data.vix?.cached&&!data.vix?.error&&v.fetch_status==='ok';
  const level=!ready?'更新を確認中':v.close<15?'値動きの警戒は低め':v.close<20?'値動きの警戒は中程度':v.close<30?'大きな値動きに注意':'強い警戒が必要';
  const explanation=!ready?'古い値や取得失敗では、現在の市場の落ち着きは判定しません。':v.close<15?'市場が織り込む変動は小さめ。ただし、急落しないという意味ではありません。':v.close<20?'変動への備えは必要です。保有の偏りや決算予定も合わせて確認しましょう。':v.close<30?'変動への警戒が高まる水準です。レバレッジと一度に買う金額を確認しましょう。':'大きな変動を織り込む水準です。売買を急ぐ前に、許容できる下落幅を確認しましょう。';
  return {v,state,ready,level,explanation};
