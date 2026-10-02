@@ -2,7 +2,7 @@ name: Update decision checks and semiconductor news
 on:
   workflow_dispatch:
   push:
-    branches: [main, codex/decision-news-home, codex/holdings-coverage, codex/news-memory-vix]
+    branches: [main, codex/decision-news-home, codex/holdings-coverage]
     paths:
       - 'scripts/collect_briefing.py'
       - 'scripts/stock_setups.py'

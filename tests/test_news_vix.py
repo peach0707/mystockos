@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from collect_vix import parse, collect
+from collect_news import classify
 from summarize_news import allowed, extract_body, important_sentences, enrich, validate_brief
 
 class NewsVixTests(unittest.TestCase):
@@ -18,6 +19,11 @@ class NewsVixTests(unittest.TestCase):
         result=collect(old,self.now,fail)
         self.assertEqual(result['close'],18)
         self.assertEqual(result['fetch_status'],'failed')
+
+    def test_bandwidth_and_investor_are_not_bans_or_factory_investment(self):
+        source={'company':'Sandisk','tickers':['SNDK'],'topic':'storage'}
+        self.assertNotEqual(classify('High Bandwidth Flash Standardization',source)['event'],'regulation')
+        self.assertNotEqual(classify('Details Financial Model at Investor Day',source)['event'],'capacity')
 
     def test_official_body_and_redirect_boundaries(self):
         self.assertTrue(allowed('https://example.com/a',{'example.com'}))
