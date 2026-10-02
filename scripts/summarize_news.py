@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 from stock_setups import atomic_json
 
 MODEL = 'Qwen/Qwen2.5-7B-Instruct-GGUF'
-VERSION = 'article-ja-v3'
+VERSION = 'article-ja-v4'
 
 
 def allowed(url, hosts):
@@ -98,7 +98,8 @@ def summarize(title, body, impact, follow_up):
     if _translator is None:
         from huggingface_hub import hf_hub_download
         from llama_cpp import Llama
-        path = hf_hub_download(MODEL, filename='qwen2.5-7b-instruct-q4_k_m.gguf')
+        hf_hub_download(MODEL, filename='qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf')
+        path = hf_hub_download(MODEL, filename='qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf')
         _translator = Llama(model_path=path, n_ctx=8192, n_threads=4, verbose=False, chat_format='chatml')
     result = _translator.create_chat_completion(
         messages=[
@@ -110,6 +111,9 @@ def summarize(title, body, impact, follow_up):
 
 
 def enrich(output, sources, now, token=None, limit=8):
+    for row in output['articles']:
+        if row.get('brief', {}).get('version') != VERSION:
+            row.pop('brief', None)
     hosts = {urlsplit(u).hostname for s in sources for u in s['urls']}
     hosts.update({'blogs.nvidia.com'})
     ordered = sorted(output['articles'], key=lambda n: (n['source_id'] in ('micron', 'skhynix', 'sandisk', 'samsung'), n.get('importance') == 'high', n['published_at']), reverse=True)

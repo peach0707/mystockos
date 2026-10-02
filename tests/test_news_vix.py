@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from collect_vix import parse, collect
-from summarize_news import allowed, extract_body, important_sentences, enrich
+from summarize_news import allowed, extract_body, important_sentences, enrich, validate_brief
 
 class NewsVixTests(unittest.TestCase):
     def setUp(self):
@@ -43,5 +43,15 @@ class NewsVixTests(unittest.TestCase):
         row={'title':'Title','source_id':'micron','published_at':'2026-10-01T12:00:00+00:00','brief':{'status':'ready','version':VERSION,'title':'Title'}}
         output=enrich({'articles':[row]},[],self.now,token='fixture')
         self.assertEqual(output['summary_coverage']['ready'],1)
+
+    def test_summary_rejects_garbled_or_ungrounded_output(self):
+        body = 'Company announced a new memory product for data centers.'
+        value = {'headline_ja':'データセンター向け新製品を発表', 'summary_ja':'同社はデータセンター向けのメモリ新製品を発表しました。', 'evidence':body}
+        self.assertIn('summary_ja',validate_brief(value,body))
+        value['summary_ja']='執行責任者'*8
+        with self.assertRaises(ValueError):validate_brief(value,body)
+        value['summary_ja']='同社はデータセンター向けのメモリ新製品を発表しました。'
+        value['evidence']='A fact that was not present in the article.'
+        with self.assertRaises(ValueError):validate_brief(value,body)
 
 if __name__=='__main__':unittest.main()

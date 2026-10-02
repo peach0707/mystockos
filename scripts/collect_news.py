@@ -87,7 +87,7 @@ def classify(title, source):
     # Detect negation before classifying an apparently positive headline.
     if re.search(r'\b(not|no plans|denies|rumou?r|reportedly)\b',lower):
         event,label,impact = 'other','発表内容の確認が必要','見出しだけでは方向を判断できません。本文と会社の説明を確認します。'
-    elif re.search(r'\b(to report|to announce|will report|will announce|schedule\w*|conference|participat\w*)\b',lower):
+    elif re.search(r'\b(to report|to announce|will report|will announce|schedule\w*|will present|to present|will attend|to attend|participat\w*)\b',lower):
         event,label,impact = 'calendar','決算・説明会などの日程を案内','日程の案内です。業績の上振れ・下振れを示す発表ではありません。'
     elif re.search(r'\b(export|restrict\w*|sanction\w*|ban\w*|regulat\w*)\b',lower):
         event,label,impact = 'regulation','規制・取引条件に関する発表','対象地域・製品・発効日で影響が変わります。売上への制約と代替需要を確認します。'
