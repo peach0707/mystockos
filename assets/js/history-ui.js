@@ -10,7 +10,7 @@ export function trendView(s,data,range='1m',small=false){
  const rows=all.filter(r=>!days||r.date>=shiftDate(end,-days));
  const first=rows[0],same=rows.length>1&&rows.every((r,i)=>!i||dailyResult(s,r.date,data).change!==null);
  const delta=same?last.assetsJpy-first.assetsJpy:null;
- let chart='<div class="trend-empty">保有銘柄を登録すると、営業日ごとの推移がここに並びます。</div>';
+ let chart=`<div class="trend-empty">${s.holdings.length?'同じ日付の終値・為替が揃うと、営業日ごとの推移を表示します。':'保有銘柄を登録すると、営業日ごとの推移がここに並びます。'}</div>`;
  if(rows.length){
   const low=Math.min(...rows.map(r=>r.assetsJpy)),high=Math.max(...rows.map(r=>r.assetsJpy)),spread=(high-low)||Math.max(high*.01,1);
   const point=(r,i)=>[18+(rows.length===1?.5:i/(rows.length-1))*304,112-(r.assetsJpy-low)/spread*82];
