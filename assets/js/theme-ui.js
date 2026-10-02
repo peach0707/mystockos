@@ -44,7 +44,7 @@ export function themeCard(t,i,context = {}) {
 }
 
 function guide() {
-  return `<details class="theme-guide"><summary>この画面はどう使う？ <span>強さ・勢い・熱量の違い</span></summary><div class="theme-guide-content">
+  return `<details class="theme-guide"><summary>見方・信頼性を確認 <span>予測精度は未検証</span></summary><div class="theme-guide-content">
     <p>まず状態を読み、根拠と個別銘柄を確認します。テーマの順位は購入順位ではありません。</p>
     <dl><dt>中期の強さ</dt><dd>約3か月の比較指数に対する強さ。高いほど相対的に強く、割安さとは別です。</dd><dt>勢いの変化</dt><dd>相対的な位置と直近1か月の方向。「先行」は未来予測ではないため「相対的に上向き」と表示します。</dd><dt>短期の熱量</dt><dd>短期上昇・上昇銘柄の広がり・売買代金を合わせた指標。高い＝売り、低い＝買いではありません。</dd></dl>
     <p>データが揃っていることと、予測が当たることは別です。将来の勝率・予測精度は未検証です。</p>
@@ -101,7 +101,7 @@ function groups(ts,context) {
   for (const mode of ['ranked','thin','heat_only','none']) {
     const group = ts.filter(t => t.score_mode === mode);if (!group.length) continue;
     const body = mode === 'ranked' ? themeTable(group,context) : [...new Set(group.map(t => t.family))].map(f => `<section class="theme-family" data-theme-group><h3 class="theme-family-title">${esc(familyName(f))}</h3>${themeTable(group.filter(t => t.family === f),context)}</section>`).join('');
-    html += `<section class="theme-section" data-theme-group>${mode === 'none' ? '<details data-theme-observations><summary>' : '<div class="theme-section-title">'}<h2>${titles[mode]}</h2><span>${group.length}テーマ</span>${mode === 'none' ? '</summary>' : '</div>'}<p class="theme-section-note">${notes[mode]}</p>${body}${mode === 'none' ? '</details>' : ''}</section>`;
+    html += `<section class="theme-section" data-theme-group>${mode === 'none' ? '<details data-theme-observations><summary>' : '<div class="theme-section-title">'}<h2>${titles[mode]}</h2><span data-theme-group-count>${group.length}テーマ</span>${mode === 'none' ? '</summary>' : '</div>'}<p class="theme-section-note">${notes[mode]}</p>${body}${mode === 'none' ? '</details>' : ''}</section>`;
   }
   return html;
 }
@@ -121,10 +121,10 @@ export function themesView(data,tab = 'rank',page,state = {}) {
   const scope = {rank:'すべてのテーマ',held:'保有銘柄に関係するテーマ',early:'変化を観察するテーマ',weak:'注意点があるテーマ'};
   return `<div class="theme-workspace" data-theme-search-root><div class="page-heading"><div><span class="eyebrow">相場の流れを、根拠から。</span><h1>テーマを読む</h1></div><span class="theme-version">新しい見方</span></div>
     <div class="theme-freshness"><span class="status-dot ${freshness.usable ? 'is-current' : ''}"></span><span>${esc(freshness.asOf || '未取得')} 米国日足<br><b>${esc(freshness.label)}</b></span><button data-refresh aria-label="テーマデータを更新">↻</button></div>
-    <section class="theme-overview"><span>今日のテーマ概況</span><h2>${freshness.usable ? '強さと、短期の熱量は別。' : '基準日を確認してから読む。'}</h2><p>現在の値動きを整理し、次に調べる銘柄を見つけます。</p><div class="theme-overview-counts"><div><strong>${models.filter(({m}) => m.hot).length}</strong><span>短期が活発</span></div><div><strong>${early.length}</strong><span>変化を確認中</span></div><div><strong>${models.filter(({m}) => m.insufficient).length}</strong><span>データ不足</span></div></div><small>${esc(freshness.asOf || '取得分')}時点の分類。将来の値動きは予測していません。</small></section>
-    <p class="theme-confidence-note"><b>予測精度は未検証</b><span>データの充足度は各テーマで確認できます。</span></p>${guide()}
+    <section class="theme-overview"><span>${freshness.usable ? '今日の見どころ' : '保存された日足の状態・最新ではありません'}</span><div class="theme-overview-counts"><div><strong>${models.filter(({m}) => m.hot).length}</strong><span>短期が活発</span></div><div><strong>${early.length}</strong><span>変化を確認中</span></div><div><strong>${models.filter(({m}) => m.insufficient).length}</strong><span>データ不足</span></div></div></section>
+    ${guide()}
     ${tabs([['rank','すべて'],['held',`保有に関連 ${held.length}`],['early','変化の兆し'],['weak','注意点']],tab,'themeTab')}
-    <label class="theme-search"><span>テーマ・銘柄を探す</span><input type="search" data-theme-query placeholder="メモリ、光通信、MU…" aria-label="テーマ名・銘柄コードで絞り込む"></label>
+    <label class="theme-search"><input type="search" data-theme-query placeholder="テーマ・銘柄を検索（メモリ、MU…）" aria-label="テーマ名・銘柄コードで絞り込む"></label>
     <div class="theme-results-heading"><h2>${scope[tab] || scope.rank}</h2><span data-theme-count aria-live="polite">${shown.length}テーマ</span></div>
     ${shown.length ? groups(shown.map(x => x.t),context) : `<div class="theme-empty"><h3>${tab === 'held' ? '関連するテーマはありません' : tab === 'early' ? '変化の確認対象はありません' : '該当するテーマはありません'}</h3><p>${tab === 'held' ? 'このアプリに登録された保有銘柄と、中核・関連・観察銘柄を照合しています。テーマに未分類の銘柄やETFは表示されない場合があります。' : '条件に該当しないことは、今後の安全性や上昇を保証するものではありません。'}</p>${tab === 'held' ? '<a href="#portfolio">保有銘柄を確認する ›</a>' : ''}</div>`}
     <div class="theme-empty" data-theme-no-results hidden>一致するテーマはありません。別の名前や銘柄コードで検索してください。</div>
@@ -134,7 +134,7 @@ export function themesView(data,tab = 'rank',page,state = {}) {
 export function filterThemeCards(root,query) {
   const q = query.trim().normalize('NFKC').toLowerCase();let visible = 0;
   root.querySelectorAll('[data-theme-card]').forEach(card => {card.hidden = !card.dataset.themeSearch.normalize('NFKC').includes(q);if (!card.hidden) visible++;});
-  root.querySelectorAll('[data-theme-group]').forEach(group => {group.hidden = !group.querySelector('[data-theme-card]:not([hidden])');});
+  root.querySelectorAll('[data-theme-group]').forEach(group => {const size=group.querySelectorAll('[data-theme-card]:not([hidden])').length;group.hidden = !size;const label=group.querySelector('[data-theme-group-count]');if(label)label.textContent=`${size}テーマ`;});
   root.querySelectorAll('[data-theme-observations]').forEach(details => {if (q && details.dataset.searchOpen === undefined) details.dataset.searchOpen = String(details.open);if (q) details.open = true;else if (details.dataset.searchOpen !== undefined) {details.open = details.dataset.searchOpen === 'true';delete details.dataset.searchOpen;}});
   const count = root.querySelector('[data-theme-count]'), none = root.querySelector('[data-theme-no-results]');
   if (count) count.textContent = `${visible}テーマ`;if (none) none.hidden = visible > 0 || !q;

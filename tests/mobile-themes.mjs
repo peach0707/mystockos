@@ -53,7 +53,8 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   const search=pane.getByRole('searchbox',{name:'テーマ名・銘柄コードで絞り込む'});
   await search.fill('半導体製造装置');assert.equal(await pane.locator('[data-theme-card]:visible').count(),1);
   assert.match(await pane.locator('[data-theme-card]:visible').innerText(),/3\/5回確認/);
-  await page.screenshot({path:`test-artifacts/${name}-themes-card.png`});
+  assert.equal(await pane.locator('[data-theme-group-count]:visible').innerText(),'1テーマ');
+  await pane.locator('[data-theme-card]:visible').screenshot({path:`test-artifacts/${name}-themes-card.png`});
   await search.fill('no-such-theme');await pane.locator('[data-theme-no-results]:visible').waitFor();
   await search.fill('核融合');assert.equal(await pane.locator('[data-theme-card]:visible').count(),1);assert.equal(await pane.locator('[data-theme-observations]').getAttribute('open'),'');
   await search.fill('');assert.equal(await pane.locator('[data-theme-card]').count(),29);
