@@ -27,7 +27,7 @@ function chart(setup){
  if(rows.length<2)return '';
  const values=rows.map(r=>r.close),low=Math.min(...values),high=Math.max(...values),range=high-low||1;
  const points=values.map((v,i)=>`${(i/(values.length-1)*320).toFixed(1)},${(92-(v-low)/range*75).toFixed(1)}`).join(' ');
- return `<figure class="price-chart"><svg viewBox="0 0 320 108" role="img" aria-label="${esc(setup.ticker)}の直近${rows.length}営業日の終値推移"><path d="M0 94H320M0 55H320M0 16H320" stroke="#e8eef4" fill="none"/><polyline points="${points}" fill="none" stroke="#1677ff" stroke-width="2.5" stroke-linejoin="round"/></svg><figcaption><span>${esc(rows[0].date)}</span><span>終値 ${money(low)}〜${money(high)}</span><span>${esc(rows.at(-1).date)}</span></figcaption></figure>`;
+ return `<figure class="price-chart"><svg viewBox="0 0 320 108" role="img" aria-label="${esc(setup.ticker)}の直近${rows.length}営業日の終値推移"><defs><linearGradient id="stock-chart-wash" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#298eff" stop-opacity=".35"/><stop offset="100%" stop-color="#298eff" stop-opacity="0"/></linearGradient></defs><polygon points="0,94 ${points} 320,94" fill="url(#stock-chart-wash)"/><path d="M0 94H320M0 55H320M0 16H320" stroke="#e8eef4" fill="none"/><polyline points="${points}" fill="none" stroke="#1677ff" stroke-width="2.5" stroke-linejoin="round"/></svg><figcaption><span>${esc(rows[0].date)}</span><span>終値 ${money(low)}〜${money(high)}</span><span>${esc(rows.at(-1).date)}</span></figcaption></figure>`;
 }
 function checkPanel(check){
  const p=check.setup;
