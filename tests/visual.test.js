@@ -15,11 +15,11 @@ test('score colors are presentation only, with neutral missing values',()=>{
  assert.equal(scoreTint('heat',null,true),'tint-neutral');
  for(const [state,tint] of [['Leading','green'],['Improving','yellow'],['Weakening','orange'],['Lagging','neutral'],[undefined,'neutral']])assert.equal(scoreTint('velocity',null,state),`tint-${tint}`);
 });
-test('tinted theme row preserves score, unconfirmed state and input',()=>{
- const t={theme_id:'memory_hbm',score_mode:'thin',data_quality:{status:'ok'},strength:{score:92},velocity:{state:'Improving',confirmed:false},heat:{score:76,hot:false}};
+test('theme reading card preserves score and flags unconfirmed and indicative data',()=>{
+ const t={theme_id:'memory_hbm',score_mode:'thin',core_members:['MU','SKHY'],data_quality:{status:'thin',core_total:2,strength_eligible_n:2,heat_eligible_n:2},strength:{score:92},velocity:{state:'Improving',candidate:'Leading',candidate_days:2,confirmed:false},heat:{score:76,hot:false,hot_eligible:false}};
  const before=JSON.stringify(t),html=themeCard(t);
- assert.match(html,/score tint-green">92/);assert.match(html,/score tint-orange">76/);
- assert.match(html,/未確認/);assert.match(html,/class="rank">—/);assert.equal(JSON.stringify(t),before);
+ assert.match(html,/92\/100/);assert.match(html,/76\/100・参考/);
+ assert.match(html,/未確認/);assert.match(html,/少数構成・順位なし/);assert.match(html,/参考値のみ/);assert.doesNotMatch(html,/比較\d+テーマ中/);assert.equal(JSON.stringify(t),before);
 });
 test('decision pills style exact saved labels without inventing a decision',()=>{
  assert.match(decisionPill('hold'),/tint-green/);assert.match(decisionPill('watching','watch'),/tint-blue/);
