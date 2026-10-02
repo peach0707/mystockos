@@ -45,6 +45,7 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   const detail=page.locator('.detail-page');
   assert.match(await detail.innerText(),/SKHY/);assert.match(await detail.innerText(),/予測精度は未検証/);assert.doesNotMatch(await detail.innerText(),/強さ順位の推移/);
   await page.screenshot({path:`test-artifacts/${name}-themes-memory.png`});
+  assert.ok(await page.getByRole('link',{name:'SNDK（NAND・SSD） ›',exact:true}).isVisible());
   await detail.getByLabel('並び順').selectOption('return_21d');
   await detail.getByText('計算の内訳・判定ルールを見る',{exact:true}).click();
   assert.match(await detail.locator('.theme-calculation').innerText(),/参考値/);

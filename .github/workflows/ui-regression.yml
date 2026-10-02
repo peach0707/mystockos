@@ -23,5 +23,5 @@ jobs:
         run: node --test tests/*.test.js
       - name: Preserve healthy data on failure
         run: |
-          pip install beautifulsoup4==4.13.4 pysbd==0.3.4
+          pip install beautifulsoup4==4.13.4 pysbd==0.3.4 trafilatura==2.0.0
           python -m unittest discover -s tests -p 'test_*.py'

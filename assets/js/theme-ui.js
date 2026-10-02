@@ -87,7 +87,7 @@ export function themeDetail(t,phaseA = null,asOf = null,themeAsOf = null,context
     ${trust(t,m,ctx)}
     ${!m.observation ? `<section class="theme-panel"><h2>読み取りの根拠</h2><ul class="theme-evidence">${evidence(t,m).map(x => `<li>${esc(x)}</li>`).join('')}</ul>${breadthPanel(t,themeAsOf)}</section>` : ''}
     <section class="theme-panel">${phaseDetails(phaseA,asOf,{ranked:t.score_mode === 'ranked'})}</section>
-    ${!phaseA?.members?.length ? `<section class="theme-panel"><h2>関連する銘柄</h2><div class="theme-member-links">${[...(t.core_members || []),...(t.related_members || []),...(t.watch_members || [])].map(x => `<a href="#stocks/${encodeURIComponent(x)}">${esc(x)} ›</a>`).join('') || '<p>銘柄情報は取得待ちです。</p>'}</div></section>` : ''}
+    <section class="theme-panel"><h2>銘柄を詳しく見る</h2>${[['計算対象',t.core_members],['関連銘柄・スコア対象外',t.related_members],['観察銘柄・スコア対象外',t.watch_members]].filter(([,xs])=>xs?.length).map(([label,xs])=>`<p>${label}</p><div class="theme-member-links">${xs.map(x=>`<a href="#stocks/${encodeURIComponent(x)}">${esc(x)}${x==='SNDK'?'（NAND・SSD）':''} ›</a>`).join('')}</div>`).join('')}</section>
     ${!m.observation ? scoreBreakdown(t,m) : ''}
     ${t.overlay ? `<section class="theme-panel"><h2>参考情報（スコア対象外）</h2><p>${esc(t.overlay.ticker)} · 1日 ${pct(t.overlay.return_1d * 100)} / 10日 ${pct(t.overlay.return_10d * 100)} / 21日 ${pct(t.overlay.return_21d * 100)}</p></section>` : ''}
     ${guide()}<p class="theme-footnote">基準日 ${esc(themeAsOf || '未確認')}。現在の値動きから将来の上昇確率や資金流入を断定しません。</p></div>`;
