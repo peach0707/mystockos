@@ -23,7 +23,7 @@ function metrics(r){
 }
 function stockCard(r,compact){
  const q=r.q;
- return '<article class="memory-stock memory-row" data-memory-stock="'+r.ticker+'"><div class="row"><div><a href="#stocks/'+r.ticker+'"><b>'+r.ticker+'</b> '+r.name+' ›</a><small>'+r.focus+'</small></div><div class="memory-price"><strong>'+price(q.price)+'</strong><small>'+esc(q.as_of||'未取得')+' 終値</small></div></div><div class="memory-badges"><span class="tag '+(r.broken||r.hot?'caution':r.ready?'blue':'')+'">'+r.trend+'</span><span>'+(r.hot?'短期過熱あり':r.ready?'過熱条件なし':'取得状況を確認')+'</span></div><h3>'+r.action+'</h3><p>'+esc(r.explanation)+'</p>'+(compact?'':metrics(r))+
+ return '<article class="memory-stock" data-memory-stock="'+r.ticker+'"><div class="row"><div><a href="#stocks/'+r.ticker+'"><b>'+r.ticker+'</b> '+r.name+' ›</a><small>'+r.focus+'</small></div><div class="memory-price"><strong>'+price(q.price)+'</strong><small>'+esc(q.as_of||'未取得')+' 終値</small></div></div><div class="memory-badges"><span class="tag '+(r.broken||r.hot?'caution':r.ready?'blue':'')+'">'+r.trend+'</span><span>'+(r.hot?'短期過熱あり':r.ready?'過熱条件なし':'取得状況を確認')+'</span></div><h3>'+r.action+'</h3><p>'+esc(r.explanation)+'</p>'+(compact?'':metrics(r))+
  (compact?'':'<details><summary>次に見る価格・根拠</summary><dl><dt>上抜けを確認する終値高値（直前20日）</dt><dd>'+price(q.prior_high20)+'</dd><dt>下抜けに注意する終値安値（直前20日）</dt><dd>'+price(q.prior_low20)+'</dd><dt>RSI（14日・単純平均）</dt><dd>'+num(q.rsi14_simple,1)+'</dd><dt>出来高 / 前20日平均</dt><dd>'+num(q.rvol,2)+'倍</dd></dl><p>水準に触れただけで売買を決めず、次の終値・出来高・業績の変化を確認します。</p><small>'+esc(q.source||'取得元未確認')+' / '+(q.history_sessions||0)+'営業日の履歴 / '+esc(timeLabel(q.retrieved_at))+'取得（日本時間）。'+(r.ready?'50日平均まで確認可能。':'表示値は保存時点の参考値です。')+'</small></details>')+'</article>';
 }
 function memoryNews(data){
