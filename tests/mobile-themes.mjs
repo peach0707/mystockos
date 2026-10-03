@@ -20,7 +20,7 @@ themeFixture.as_of='2026-10-01';
 const memory=themeFixture.themes.find(t=>t.theme_id==='memory_hbm');
 Object.assign(memory,{data_quality:{status:'insufficient',core_total:2,strength_eligible_n:1,heat_eligible_n:1},strength:{score:null,eligible_members:['MU']},heat:{score:65.88,eligible_n:1,hot:false,hot_eligible:false},velocity:{state:null,confirmed:false}});
 for(const [id,days] of [['semiconductor_equipment',3],['optical_photonics',1]]){
- const t=themeFixture.themes.find(t=>t.theme_id===id);Object.assign(t,{data_quality:{status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4},strength:{score:58},velocity:{state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:days,confirmed:false},heat:{...t.heat,hot:true,hot_eligible:true,score:82}});
+ const t=themeFixture.themes.find(t=>t.theme_id===id);Object.assign(t,{data_quality:{status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4},strength:{score:58},velocity:{state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:days,confirmed:false},heat:{...t.heat,hot:true,hot_eligible:true,single_stock_driven:false,score:82}});
 }
 const calendarFixture={schema_version:1,start:'2026-09-30',end:'2026-10-05',sessions:[{date:'2026-09-30',close:'2026-09-30T20:00:00Z'},{date:'2026-10-01',close:'2026-10-01T20:00:00Z'},{date:'2026-10-02',close:'2026-10-02T20:00:00Z'}]};
 const seed=fresh();seed.holdings=[{ticker:'MU',quantity:12,cost:80,currency:'USD',decision:'hold',broker:'楽天証券'},{id:'test-mu-2',ticker:'MU',quantity:8,cost:90,currency:'USD',decision:'hold',broker:'moomoo証券'}];
