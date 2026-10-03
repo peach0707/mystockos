@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {RATIONALES,validTags,recordRationales,toggleRationale,rationaleDetail,rationaleFields} from '../assets/js/rationales.js';
-import {fresh,validate,migrate,read,get,KEY,V4_KEY,storageError} from '../assets/js/state.js';
+import {fresh as freshEmpty,validate,migrate,read,get,KEY,V4_KEY,storageError} from '../assets/js/state.js';
 import {stocksView} from '../assets/js/views.js';
 import {portfolioView} from '../assets/js/portfolio.js';
 const h=()=>({ticker:'MU',quantity:10,cost:100,currency:'USD',decision:'hold'});
@@ -48,3 +48,5 @@ test('old five-tag history survives the three-tag limit without silently choosin
  const next=migrate(old);assert.deepEqual(next.rationales.MU,[]);assert.deepEqual(next.rationaleReview.MU,tags);assert.deepEqual(next.rationaleHistory,old.rationaleHistory);assert.match(rationaleDetail(next,'MU'),/選び直し|選び直して/);
  recordRationales(next,'MU',tags.slice(0,3));assert.equal(next.rationales.MU.length,3);assert.ok(!next.rationaleReview.MU);assert.deepEqual(next.rationaleHistory.at(-1).before,tags);validate(next);
 });
+
+function fresh(){return {...freshEmpty(),watch:['MU','TSM','AVGO','COHR','LITE']};}

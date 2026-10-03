@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DECISIONS,recordDecision,decisionPill,decisionSelect} from '../assets/js/decisions.js';
-import {fresh,validate,migrate,read,get,KEY,V3_KEY,storageError} from '../assets/js/state.js';
+import {fresh as freshEmpty,validate,migrate,read,get,KEY,V3_KEY,storageError} from '../assets/js/state.js';
 import {stocksView} from '../assets/js/views.js';
 import {portfolioView} from '../assets/js/portfolio.js';
 const holding=()=>({ticker:'MU',quantity:10,cost:100,currency:'USD',decision:'unset'});
@@ -36,3 +36,5 @@ test('stock forms are selection only and watch list reflects the saved enum',()=
  assert.match(stocksView({},s,'watch'),/決算待ち/);assert.match(stocksView({},s,'watch','MU'),/watch-decision-form/);
  assert.match(decisionSelect('held','hold'),/value="hold" selected/);
 });
+
+function fresh(){return {...freshEmpty(),watch:['MU','TSM','AVGO','COHR','LITE']};}
