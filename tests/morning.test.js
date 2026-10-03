@@ -4,7 +4,7 @@ import {fresh,migrate,validate,read,KEY} from '../assets/js/state.js';
 import {captureMorning,importantChanges,newsNovelty} from '../assets/js/morning.js';
 import {newsHealth,dedupeNews,relation,briefState} from '../assets/js/news-model.js';
 import {homeView} from '../assets/js/views.js';
-import {newsPreview} from '../assets/js/news-ui.js';
+import {newsPreview,newsCard} from '../assets/js/news-ui.js';
 import {searchSymbols} from '../assets/js/symbols.js';
 import {valueHoldings} from '../assets/js/valuation.js';
 import {homePortfolio,valuationOverview} from '../assets/js/valuation-ui.js';
@@ -69,4 +69,11 @@ test('fallback cache and FX for dollar cash cannot silently count as fresh',()=>
  assert.equal(valueHoldings(s,d,now).fresh,false);assert.equal(valueHoldings(s,d,now).rows[0].stale,true);s.watch=['MU'];captureMorning(s,d,now);assert.equal(s.morningBrief,undefined);
  d.setups.value.stocks.MU={...q,currency:'JPY'};s.cashBalance={JPY:0,USD:10,updatedAt:'2026-10-02'};d.fx.cached=true;
  assert.equal(valueHoldings(s,d,now).fresh,false);
+});
+test('same publisher quote-prefixed duplicate collapses, while numerical follow-ups survive; home excerpts stay short',()=>{
+ const a={...news(),source_id:'example',title:'SK hynix Shares Its Next-Generation Memory Portfolio at the TSMC OIP Conference'};
+ const b={...a,id:'duplicate',url:a.url+'-duplicate',title:'“Behind AI’s Rapid Growth Lies Memory” — '+a.title};
+ const c={...a,id:'followup',url:a.url+'-followup',title:'“New capacity reaches 20 units” — '+a.title};
+ assert.equal(dedupeNews([b,a,c]).length,2);
+ a.brief.summary_ja='あ'.repeat(250);assert.ok(newsCard(a,null,true).includes('あ'.repeat(110)+'…'));assert.ok(!newsCard(a,null,true).includes('あ'.repeat(111)));assert.ok(newsCard(a).includes('あ'.repeat(250)));
 });
