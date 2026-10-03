@@ -6,8 +6,8 @@ export function quoteFor(data,ticker,now=Date.now()){
   const completed=state=>['current','stale'].includes(state.state);
   // The legacy quote job can include today's unfinished daily candle. Use the
   // last completed session for a closing-price check instead of calling it a close.
-  if(setup&&Number.isFinite(setup.price)&&setup.price>0&&(!basic||setup.as_of>=basic.date||completed(setupState)&&!completed(basicState)))return {...setup,date:setup.as_of,closed:completed(setupState)};
-  return basic?{...basic,closed:completed(basicState)}:null;
+  if(setup&&Number.isFinite(setup.price)&&setup.price>0&&(!basic||setup.as_of>=basic.date||completed(setupState)&&!completed(basicState)))return {...setup,date:setup.as_of,closed:completed(setupState),cached:!!data.setups?.cached,fetchFailed:!!data.setups?.error};
+  return basic?{...basic,closed:completed(basicState),cached:!!data.stocks?.cached,fetchFailed:!!data.stocks?.error}:null;
 }
 export function setupFor(data,ticker,now=Date.now()){
   const setup=data.setups?.value?.stocks?.[ticker];

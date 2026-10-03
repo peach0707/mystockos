@@ -159,8 +159,8 @@ def enrich(output, sources, now, token=None, limit=4):
             n['brief'] = dict(result, status='ready', title=n['title'], version=VERSION, model=MODEL, checked_at=now.isoformat(), article_url=article_url, body_sha256=hashlib.sha256(body.encode()).hexdigest(), basis='article_body')
         except Exception as error:
             reason = 'http_' + str(error.code) if hasattr(error, 'code') else str(error) if isinstance(error, ValueError) else type(error).__name__
-            n['brief'] = {'status': 'pending', 'version': VERSION, 'checked_at': now.isoformat(), 'reason': reason[:80]}
-            print(json.dumps({'article': n['id'], 'summary': 'pending', 'reason': reason[:80]}))
+            n['brief'] = {'status': 'pending', 'version': VERSION, 'checked_at': now.isoformat(), 'reason': reason[:80], 'failure_stage': stage}
+            print(json.dumps({'article': n['id'], 'summary': 'pending', 'reason': reason[:80], 'failure_stage': stage}))
             if stage == 'model' and reason in ('ImportError', 'ModuleNotFoundError', 'OSError'):
                 break
     output['summary_coverage'] = {'ready': sum(n.get('brief', {}).get('status') == 'ready' for n in output['articles']), 'total': len(output['articles'])}
