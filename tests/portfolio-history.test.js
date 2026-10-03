@@ -15,25 +15,25 @@ function fixture(){
 test('ten days without opening backfill every closed session with its own price and FX',()=>{
  const {s,data}=fixture(),original=JSON.stringify([s.holdings,s.holdingObservations,s.snapshots,s.dividends,s.cashFlows]);
  assert.equal(reconcileHistory(s,data,now),true);assert.equal(historyRows(s).length,9);
- assert.equal(historyRows(s).at(-1).assetsJpy,5*108*158);assert.equal(historyRows(s)[0].date,'2026-09-22');
- assert.equal(dailyResult(s,'2026-10-02',data).change,5*108*158-5*107*157);
+ assert.equal(historyRows(s).at(-1).assetsJpy,5*108*158);assert.equal(historyRows(s)[0].date,'2026-09-21');
+ assert.equal(dailyResult(s,'2026-10-01',data).change,5*108*158-5*107*157);
  assert.equal(JSON.stringify([s.holdings,s.holdingObservations,s.snapshots,s.dividends,s.cashFlows]),original);
  assert.equal(reconcileHistory(s,data,now+1000),false);validate(s);assert.deepEqual(migrate(s),s);
 });
-test('weekends and holidays are not zero-profit days; Japan date follows US close',()=>{
+test('weekends and holidays are not zero-profit days; display follows US trading date, preserving Japan ownership dates',()=>{
  const {s,data}=fixture();reconcileHistory(s,data,now);
- assert.equal(historyRows(s).some(r=>r.date==='2026-09-26'),true);
+ assert.equal(historyRows(s).some(r=>r.date==='2026-09-25'),true);
  assert.equal(historyDayState(s,'2026-09-27',data,now).kind,'closed');
  assert.equal(historyDayState(s,'2026-10-03',data,now).kind,'future');
  assert.equal(historyDayState(s,'2026-09-20',data,now).kind,'unregistered');
- assert.equal(dailyResult(s,'2026-09-29',data).previous.date,'2026-09-26');
+ assert.equal(dailyResult(s,'2026-09-28',data).previous.date,'2026-09-25');
 });
 test('missing price or FX is not zero and never bridges a gap as a daily return',()=>{
  for(const type of ['price','fx']){
   const {s,data}=fixture();const rows=type==='price'?data.archive.value.stocks.MU.history:data.archive.value.fx.history;
   rows.splice(7,1);reconcileHistory(s,data,now);
-  assert.equal(historyDayState(s,'2026-10-01',data,now).kind,'missing');
-  assert.equal(dailyResult(s,'2026-10-02',data).change,null);
+  assert.equal(historyDayState(s,'2026-09-30',data,now).kind,'missing');
+  assert.equal(dailyResult(s,'2026-10-01',data).change,null);
  }
 });
 test('offline startup and collector outage never erase previously computed daily history',()=>{
@@ -45,7 +45,7 @@ test('quantity edits begin a new period and never overwrite previous days with t
  const {s,data}=fixture();reconcileHistory(s,data,now);
  const next=structuredClone(s);next.holdings[0].quantity=20;captureHoldingChange(s,next,now);reconcileHistory(next,data,now);
  assert.equal(historyRows(next).at(-2).assetsJpy,5*107*157);assert.equal(historyRows(next).at(-1).assetsJpy,23*108*158);
- assert.equal(dailyResult(next,'2026-10-02',data).change,null);validate(next);
+ assert.equal(dailyResult(next,'2026-10-01',data).change,null);validate(next);
 });
 test('calendar rollover never erases previously verified history',()=>{
  const {s,data}=fixture();reconcileHistory(s,data,now);const before=JSON.stringify(s.holdingDailyHistory);
@@ -61,13 +61,13 @@ test('unknown legacy holding-change dates stay empty instead of inventing histor
 });
 test('new registrations never fabricate pre-registration history',()=>{
  const {s,data}=fixture();delete s.holdingObservations;reconcileHistory(s,data,now);
- assert.equal(historyRows(s).length,1);assert.equal(historyRows(s)[0].date,'2026-10-02');
+ assert.equal(historyRows(s).length,1);assert.equal(historyRows(s)[0].date,'2026-10-01');
 });
 test('sell all and later re-enter leaves the unowned period empty',()=>{
  const {s,data}=fixture();reconcileHistory(s,data,Date.parse('2026-09-23T04:00:00Z'));
  const empty=structuredClone(s);empty.holdings=[];captureHoldingChange(s,empty,Date.parse('2026-09-24T04:00:00Z'));
  const again=structuredClone(empty);again.holdings=structuredClone(s.holdings);captureHoldingChange(empty,again,now);reconcileHistory(again,data,now);
- assert.equal(historyRows(again).length,3);assert.equal(dailyResult(again,'2026-10-02',data).change,null);validate(again);
+ assert.equal(historyRows(again).length,3);assert.equal(dailyResult(again,'2026-10-01',data).change,null);validate(again);
 });
 test('durable archive schema rejects duplicates, inverse FX, negative and fabricated closes',()=>{
  const {data}=fixture();assert.equal(validArchive(data.archive.value),true);
@@ -82,4 +82,19 @@ test('all ordinary holding mutations retain period history without changing stor
  const store=new Map([[KEY,JSON.stringify(s)]]);globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
  const clock=Date.now;Date.now=()=>now;
  try{read();mutate(x=>x.holdings[0].quantity=10);assert.equal(get().holdingPeriods.length,2);assert.equal(get().version,6);read();assert.equal(get().holdings[0].quantity,10);}finally{Date.now=clock;}
+});
+test('Thursday and Friday keep their US dates, amounts, ownership and FX pairing',()=>{
+ const {s,data}=fixture(),later=Date.parse('2026-10-03T10:00:00Z');
+ data.archive.value.stocks.MU.history.push({date:'2026-10-02',close:104});
+ data.archive.value.fx.history.push({date:'2026-10-02',rate:160});
+ reconcileHistory(s,data,later);
+ const stored=JSON.stringify(s.holdingDailyHistory),thu=dailyResult(s,'2026-10-01',data),fri=dailyResult(s,'2026-10-02',data);
+ assert.equal(thu.current.priceDate,'2026-10-01');assert.equal(thu.change,5*108*158-5*107*157);
+ assert.equal(fri.current.priceDate,'2026-10-02');assert.equal(fri.change,5*104*160-5*108*158);
+ assert.equal(fri.current.recordDate,'2026-10-03');assert.equal(fri.current.fxDate,'2026-10-02');
+ assert.equal(historyDayState(s,'2026-10-03',data,later).kind,'closed');
+ assert.equal(JSON.stringify(s.holdingDailyHistory),stored);validate(s);
+ const beforeFX=fixture();beforeFX.data.archive.value.stocks.MU.history.push({date:'2026-10-02',close:104});reconcileHistory(beforeFX.s,beforeFX.data,later);
+ assert.equal(historyDayState(beforeFX.s,'2026-10-02',beforeFX.data,later).label,'為替待ち');
+ assert.equal(dailyResult(beforeFX.s,'2026-10-02',beforeFX.data).change,null);
 });

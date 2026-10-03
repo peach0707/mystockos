@@ -1,0 +1,42 @@
+name: Refresh calendar FX independently
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '43 */2 * * *'
+  push:
+    branches: [main, codex/memory-calendar]
+    paths:
+      - 'scripts/refresh_history_fx.py'
+      - '.github/workflows/history-fx.yml'
+permissions:
+  contents: write
+concurrency:
+  group: briefing-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch completed FX and archive public closes
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: python scripts/refresh_history_fx.py
+      - name: Publish FX without waiting for news generation
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/fx.json data/price_archive.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh completed FX for daily portfolio history'
+            git pull --rebase origin "$TARGET_BRANCH"
+            git push origin "HEAD:$TARGET_BRANCH"
+          fi
