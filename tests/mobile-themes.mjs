@@ -44,11 +44,12 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   assert.match(await pane.innerText(),/3社とも上昇基調/);
   await pane.locator('[data-theme-id="memory_hbm"] .memory-more').click();
   const detail=page.locator('.detail-page');
-  assert.match(await detail.innerText(),/SKHY/);assert.match(await detail.innerText(),/売買の成功率は検証されていません/);assert.doesNotMatch(await detail.innerText(),/強さ順位の推移/);
+  assert.match(await detail.innerText(),/SKHY/);assert.match(await detail.innerText(),/個別の日足で確認 3\/3社/);assert.doesNotMatch(await detail.innerText(),/強さ順位の推移/);
   await page.screenshot({path:`test-artifacts/${name}-themes-memory.png`});
   assert.ok(await detail.locator('[data-memory-stock="SNDK"] a').isVisible());
   await detail.getByText('判定方法と使える範囲',{exact:true}).click();
   assert.match(await detail.locator('.memory-method').innerText(),/50日平均/);
+  assert.match(await detail.locator('.memory-method').innerText(),/売買の成功率は検証されていません/);
   assert.equal(await detail.locator('[data-memory-stock]').count(),3);
   for(const width of [320,390,1024]){await page.setViewportSize({width,height:844});assert.equal(await detail.evaluate(el=>el.scrollWidth>el.clientWidth+1),false);}
   await page.setViewportSize({width:390,height:844});
