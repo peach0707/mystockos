@@ -13,8 +13,13 @@ export function dedupeNews(articles){
  const urls=new Set(),titles=new Set(),rows=[];
  for(const n of [...articles].sort((a,b)=>b.published_at.localeCompare(a.published_at))){
   const key=articleKey(n),title=(n.title||'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
-  // Same full headline only; never merge different numbers or subsequent guidance.
-  if(urls.has(key)||title&&titles.has(title))continue;
+  // Match exact headlines before checking the narrow editorial-prefix variant.
+  const eventTitle=x=>(x.title||'').replace(/^(?:“[^”]{3,180}”|"[^"]{3,180}")\s*[—–:]\s*/u,'').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+  // Some official feeds publish both a plain title and the same title preceded
+  // by a quoted editorial lead. Merge only that exact suffix, publisher and day;
+  // altered numbers and follow-up titles remain distinct.
+  const sameAnnouncement=rows.some(r=>r.source_id&&r.source_id===n.source_id&&r.published_at.slice(0,10)===n.published_at.slice(0,10)&&eventTitle(n).length>=48&&eventTitle(n)===eventTitle(r)&&(n.title.match(/\d+(?:[.,]\d+)*/g)||[]).join('|')===(r.title.match(/\d+(?:[.,]\d+)*/g)||[]).join('|'));
+  if(urls.has(key)||title&&titles.has(title)||sameAnnouncement)continue;
   urls.add(key);if(title)titles.add(title);rows.push(n);
  }return rows;
 }
