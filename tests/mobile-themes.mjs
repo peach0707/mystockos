@@ -20,7 +20,7 @@ themeFixture.as_of='2026-10-01';
 const memory=themeFixture.themes.find(t=>t.theme_id==='memory_hbm');
 Object.assign(memory,{data_quality:{status:'insufficient',core_total:2,strength_eligible_n:1,heat_eligible_n:1},strength:{score:null,eligible_members:['MU']},heat:{score:65.88,eligible_n:1,hot:false,hot_eligible:false},velocity:{state:null,confirmed:false}});
 for(const [id,days] of [['semiconductor_equipment',3],['optical_photonics',1]]){
- const t=themeFixture.themes.find(t=>t.theme_id===id);Object.assign(t,{data_quality:{status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4},strength:{score:58},velocity:{state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:days,confirmed:false},heat:{...t.heat,hot:true,hot_eligible:true,score:82}});
+ const t=themeFixture.themes.find(t=>t.theme_id===id);Object.assign(t,{data_quality:{status:'ok',core_total:4,strength_eligible_n:4,heat_eligible_n:4},strength:{score:58},velocity:{state:'Lagging',candidate:'Leading',raw_state:'Leading',candidate_days:days,confirmed:false},heat:{...t.heat,hot:true,hot_eligible:true,single_stock_driven:false,score:82}});
 }
 const calendarFixture={schema_version:1,start:'2026-09-30',end:'2026-10-05',sessions:[{date:'2026-09-30',close:'2026-09-30T20:00:00Z'},{date:'2026-10-01',close:'2026-10-01T20:00:00Z'},{date:'2026-10-02',close:'2026-10-02T20:00:00Z'}]};
 const seed=fresh();seed.holdings=[{ticker:'MU',quantity:12,cost:80,currency:'USD',decision:'hold',broker:'楽天証券'},{id:'test-mu-2',ticker:'MU',quantity:8,cost:90,currency:'USD',decision:'hold',broker:'moomoo証券'}];
@@ -34,21 +34,25 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.addInitScript(({key,seed})=>localStorage.setItem(key,JSON.stringify(seed)),{key:KEY,seed});
   await page.route('**/data/themes.json',route=>route.fulfill({json:themeFixture}));
   await page.route('**/data/market_calendar.json',route=>route.fulfill({json:calendarFixture}));
+  await page.route('**/data/stock_setups.json',async route=>{const response=await route.fetch(),value=await response.json();for(const ticker of ['MU','SKHY','SNDK'])Object.assign(value.stocks[ticker],{as_of:'2026-10-01',quality:'ok'});await route.fulfill({json:value});});
   await page.goto(root+'/#themes');await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
   const pane=page.locator('.tab-page[data-route="themes"]');
   assert.equal(await pane.locator('[data-theme-card]').count(),29);
   await page.screenshot({path:`test-artifacts/${name}-themes-overview.png`});
   await pane.getByRole('button',{name:'保有に関連 1',exact:true}).click();
   assert.equal(await pane.locator('[data-theme-card]').count(),1);
-  assert.match(await pane.innerText(),/データ不足のため判断を保留/);
-  await pane.getByRole('link',{name:'メモリ・HBMの根拠・確認ポイント'}).click();
+  assert.match(await pane.innerText(),/3社とも上昇基調/);
+  await pane.locator('[data-theme-id="memory_hbm"] .memory-more').click();
   const detail=page.locator('.detail-page');
-  assert.match(await detail.innerText(),/SKHY/);assert.match(await detail.innerText(),/予測精度は未検証/);assert.doesNotMatch(await detail.innerText(),/強さ順位の推移/);
+  assert.match(await detail.innerText(),/SKHY/);assert.match(await detail.innerText(),/個別の日足で確認 3\/3社/);assert.doesNotMatch(await detail.innerText(),/強さ順位の推移/);
   await page.screenshot({path:`test-artifacts/${name}-themes-memory.png`});
-  assert.ok(await page.getByRole('link',{name:'SNDK（NAND・SSD） ›',exact:true}).isVisible());
-  await detail.getByLabel('並び順').selectOption('return_21d');
-  await detail.getByText('計算の内訳・判定ルールを見る',{exact:true}).click();
-  assert.match(await detail.locator('.theme-calculation').innerText(),/参考値/);
+  assert.ok(await detail.locator('[data-memory-stock="SNDK"] a').isVisible());
+  await detail.getByText('判定方法と使える範囲',{exact:true}).click();
+  assert.match(await detail.locator('.memory-method').innerText(),/50日平均/);
+  assert.match(await detail.locator('.memory-method').innerText(),/売買の成功率は検証されていません/);
+  assert.equal(await detail.locator('[data-memory-stock]').count(),3);
+  for(const width of [320,390,1024]){await page.setViewportSize({width,height:844});assert.equal(await detail.evaluate(el=>el.scrollWidth>el.clientWidth+1),false);}
+  await page.setViewportSize({width:390,height:844});
   await detail.getByRole('link',{name:'‹ テーマ一覧',exact:true}).click();
   await pane.getByRole('button',{name:'すべて',exact:true}).click();
   const search=pane.getByRole('searchbox',{name:'テーマ名・銘柄コードで絞り込む'});

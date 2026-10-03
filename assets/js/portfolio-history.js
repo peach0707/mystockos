@@ -106,11 +106,13 @@ export function reconcileHistory(s,data,now=Date.now()){
  return before!==JSON.stringify([s.holdingPeriods,s.holdingDailyHistory]);
 }
 
-export const historyRows=s=>s.holdingDailyHistory||[];
+// Storage/ownership periods keep their original Japan dates. Project only the
+// display date onto the actual US session; never rewrite private history.
+export const historyRows=s=>(s.holdingDailyHistory||[]).map(r=>({...r,recordDate:r.date,date:r.priceDate}));
 export function dailyResult(s,date,data={}){
  const rows=historyRows(s),current=rows.find(r=>r.date===date)||null;
  const days=sessionDays(data),index=current?days.findIndex(d=>d.priceDate===current.priceDate):-1;
- const expected=index>0?days[index-1].date:null;
+ const expected=index>0?days[index-1].priceDate:null;
  const previous=(expected?rows.find(r=>r.date===expected):null)||null;
  const same=!!current&&!!previous&&current.basis===previous.basis&&!current.basisChanged;
  const change=same?current.assetsJpy-previous.assetsJpy:null;
@@ -119,14 +121,21 @@ export function dailyResult(s,date,data={}){
 }
 
 export function historyDayState(s,date,data={},now=Date.now()){
- const result=dailyResult(s,date,data),day=sessionDays(data,now).find(d=>d.date===date);
+ const result=dailyResult(s,date,data),day=sessionDays(data,now).find(d=>d.priceDate===date);
  if(result.current)return {...result,kind:result.change!==null?'priced':'baseline',label:result.change!==null?'評価差':'基準'};
  if(date>japanDate(now)||day&&!day.closed)return {...result,kind:'future',label:''};
- if(!s.holdingPeriods?.some(p=>p.start<=date&&(!p.end||p.end>=date)&&parseBasis(p.basis)?.length))return {...result,kind:'unregistered',label:'登録前・履歴なし'};
- const calendar=data.calendar?.value,priceDate=shiftDate(date,-1);
+ const ownershipDate=day?.date||shiftDate(date,1);
+ if(!s.holdingPeriods?.some(p=>p.start<=ownershipDate&&(!p.end||p.end>=ownershipDate)&&parseBasis(p.basis)?.length))return {...result,kind:'unregistered',label:'登録前・履歴なし'};
+ const calendar=data.calendar?.value,priceDate=date;
  if(!day&&(!calendar?.start||!calendar?.end||priceDate<calendar.start||priceDate>calendar.end))return {...result,kind:'missing',label:'取引日情報の取得待ち'};
  if(!day)return {...result,kind:'closed',label:'休場'};
- return {...result,kind:'missing',label:'取得待ち'};
+ const period=s.holdingPeriods.find(p=>p.start<=ownershipDate&&(!p.end||p.end>=ownershipDate));
+ const positions=parseBasis(period?.basis)||[],a=data.archive?.value,quotes=data.setups?.value?.stocks||{};
+ const missing=[...new Set(positions.map(p=>p[0]))].filter(t=>!a?.stocks?.[t]?.history?.some(r=>r.date===date)&&!(quotes[t]?.as_of===date&&quotes[t]?.quality==='ok'));
+ const needsFx=positions.some(([t])=>(a?.stocks?.[t]?.currency||quotes[t]?.currency)!=='JPY');
+ const hasFx=a?.fx?.history?.some(r=>r.date===date)||(data.fx?.value?.as_of===date&&data.fx.value.quality==='ok');
+ const reason=missing.length?`${date}の終値を取得待ち：${missing.join('・')}。不足分を0円として合計しません。`:needsFx&&!hasFx?`${date}の株価は取得済み。同日UTC終値のドル円を取得待ちです。前日の為替で確定損益を作らず、取得後に自動補完します。`:result.reason;
+ return {...result,reason,kind:'missing',label:!missing.length&&needsFx&&!hasFx?'為替待ち':'価格待ち'};
 }
 
 export function validateHistory(s){

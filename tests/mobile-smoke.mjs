@@ -15,8 +15,8 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  await page.waitForFunction(()=>!document.querySelector('.header-refresh')?.disabled);
  await page.screenshot({path:`test-artifacts/${name}-home.png`});
  assert.equal(await page.locator('.bottom a').count(),5);
- assert.equal(await page.locator('.memory-watch .memory-row').count(),3);
- assert.ok((await page.locator('.memory-watch').innerText()).includes('SNDK'));
+ assert.equal(await page.locator('.tab-page[data-route="home"] .memory-watch [data-memory-stock]').count(),3);
+ assert.ok((await page.locator('.tab-page[data-route="home"] .memory-watch').innerText()).includes('SNDK'));
  assert.ok((await page.locator('.vix-context').innerText()).includes('終値'));
  await page.getByRole('button',{name:'買い条件を見る'}).click();
  await page.waitForURL('**/#stocks');

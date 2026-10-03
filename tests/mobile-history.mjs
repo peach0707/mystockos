@@ -45,8 +45,8 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.screenshot({path:`test-artifacts/${name}-home-v2.png`});
   await page.getByRole('link',{name:'カレンダーで日別の変化を見る'}).click();
   await page.getByRole('button',{name:'前月',exact:true}).click();
-  assert.match(await page.locator('.auto-calendar-summary').innerText(),/7日の記録/);
-  assert.equal(await page.locator('.history-day.priced').count(),6);
+  assert.match(await page.locator('.auto-calendar-summary').innerText(),/8日の記録/);
+  assert.equal(await page.locator('.history-day.priced').count(),7);
   await page.locator('[data-auto-date="2026-09-29"]').click();
   assert.match(await page.locator('.daily-detail').innerText(),/前営業日比/);assert.equal(await page.locator('.daily-parts>a').count(),2);
   await page.screenshot({path:`test-artifacts/${name}-day-v2.png`});

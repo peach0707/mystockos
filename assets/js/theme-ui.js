@@ -1,3 +1,4 @@
+import {memoryDesk} from './memory-desk.js';
 import {breadthPanel} from './phase-b.js';
 import {phaseDetails} from './phase-a.js';
 import {esc,num,pct,empty,tabs} from './ui.js';
@@ -29,6 +30,7 @@ function evidence(t,m) {
 }
 
 export function themeCard(t,i,context = {}) {
+  if(t.theme_id==='memory_hbm'&&context.data)return memoryDesk(context.data,{compact:true,card:true});
   const m = themeInsight(t,context.freshness), held = holdingLinks(t,context.state);
   const isRanked = t.score_mode === 'ranked' && Number.isInteger(i);
   const searchable = [themeName(t),t.name,familyName(t.family),...(t.core_members || []),...(t.related_members || []),...(t.watch_members || [])].join(' ').toLowerCase();
@@ -79,6 +81,7 @@ function scoreBreakdown(t,m) {
 }
 
 export function themeDetail(t,phaseA = null,asOf = null,themeAsOf = null,context = {}) {
+  if(t.theme_id==='memory_hbm'&&context.data)return '<a class="back" href="#themes">‹ テーマ一覧</a>'+memoryDesk(context.data)+'<details class="theme-panel"><summary>長期テーマスコアの取得状況</summary><p>長期の相対強度・勢いは '+(t.strength?.eligible_n||0)+'/'+(t.core_members?.length||0)+'銘柄で計算可能。必要な履歴が揃うまで長期スコアは保留します。上の個別判定は20日・50日の履歴で独立して確認できます。</p></details>';
   const m = themeInsight(t,context.freshness), ctx = {...context,phaseDate:asOf,themeDate:themeAsOf};
   const held = holdingLinks(t,context.state);
   return `<div class="theme-workspace theme-detail-v2"><a class="back" href="#themes">‹ テーマ一覧</a><div class="theme-detail-heading"><span class="eyebrow">${esc(familyName(t.family))} / ${esc(modeName(t.score_mode))}</span><h1>${esc(themeName(t))}</h1>${chip(m.coverageLabel,m.insufficient ? 'caution' : 'neutral')}</div>
@@ -109,7 +112,7 @@ function groups(ts,context) {
 export function themesView(data,tab = 'rank',page,state = {}) {
   const freshness = themeFreshness(data), ordered = ranked(data), ranks = new Map(ordered.map((t,i) => [t.theme_id,i]));
   const ts = list(data).map(t => ({...t,phaseA:data.phaseA?.themes?.[t.theme_id]})).sort((a,b) => (ranks.get(a.theme_id) ?? 100) - (ranks.get(b.theme_id) ?? 100));
-  const context = {freshness,state,phaseDate:data.phaseA?.as_of,source:data.themes?.value?.data_source,ranks,rankCount:ordered.length};
+  const context = {data,freshness,state,phaseDate:data.phaseA?.as_of,source:data.themes?.value?.data_source,ranks,rankCount:ordered.length};
   if (page) {
     let id;try {id = decodeURIComponent(page);} catch {return empty('テーマが見つかりません。');}
     const t = ts.find(t => t.theme_id === id);return t ? themeDetail(t,t.phaseA,data.phaseA?.as_of,freshness.asOf,context) : empty('テーマが見つかりません。');
@@ -122,6 +125,7 @@ export function themesView(data,tab = 'rank',page,state = {}) {
   return `<div class="theme-workspace" data-theme-search-root><div class="page-heading"><div><span class="eyebrow">相場の流れを、根拠から。</span><h1>テーマを読む</h1></div><span class="theme-version">新しい見方</span></div>
     <div class="theme-freshness"><span class="status-dot ${freshness.usable ? 'is-current' : ''}"></span><span>${esc(freshness.asOf || '未取得')} 米国日足<br><b>${esc(freshness.label)}</b></span><button data-refresh aria-label="テーマデータを更新">↻</button></div>
     <section class="theme-overview"><span>${freshness.usable ? '今日の見どころ' : '保存された日足の状態・最新ではありません'}</span><div class="theme-overview-counts"><div><strong>${models.filter(({m}) => m.hot).length}</strong><span>短期が活発</span></div><div><strong>${early.length}</strong><span>変化を確認中</span></div><div><strong>${models.filter(({m}) => m.insufficient).length}</strong><span>データ不足</span></div></div></section>
+    <a class="memory-entry" href="#themes/memory_hbm"><b>メモリ・HBM / NANDを確認</b><span>MU・SKHY・SNDKの基調・過熱・価格水準 →</span></a>
     ${guide()}
     ${tabs([['rank','すべて'],['held',`保有に関連 ${held.length}`],['early','変化の兆し'],['weak','注意点']],tab,'themeTab')}
     <label class="theme-search"><input type="search" data-theme-query placeholder="テーマ・銘柄を検索（メモリ、MU…）" aria-label="テーマ名・銘柄コードで絞り込む"></label>
