@@ -46,7 +46,7 @@ export function applyDisplay(doc,prefs){
   }else if(!prefs.hidden&&originals.has(el)){el.replaceChildren(originals.get(el));originals.delete(el);el.removeAttribute('aria-label');}
  });
  doc.querySelectorAll('[data-toggle-amounts]').forEach(b=>{b.setAttribute('aria-pressed',String(prefs.hidden));b.setAttribute('aria-label',prefs.hidden?'資産の金額を表示':'資産の金額を隠す');b.title=prefs.hidden?'金額を表示':'金額を隠す';});
- doc.querySelectorAll('[data-density]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.density===prefs.density)));
+ doc.querySelectorAll('button[data-density]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.density===prefs.density)));
 }
 
 export function displaySwitch(){return '<div class="density-switch" role="group" aria-label="保有一覧の表示"><button data-density="compact">一覧</button><button data-density="detail">詳細</button></div>';}

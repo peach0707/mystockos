@@ -44,7 +44,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   assert.deepEqual(await page.locator('.tab-page[data-route="stocks"] [data-stock-ticker]').evaluateAll(rows=>rows.map(r=>r.dataset.stockTicker)),['MU','NVDA','SKHY','SNDK']);
   await page.screenshot({path:`test-artifacts/${name}-clarity-stocks.png`});
   for(const mode of ['light','dark']){
-   await page.locator('.gear').click();await page.locator(`[data-appearance="${mode}"]`).click();
+   await page.locator('.gear').click();await page.locator(`button[data-appearance="${mode}"]`).click();
    for(const width of [320,390,430,1024]){
     await page.setViewportSize({width,height:844});
     for(const route of ['home','portfolio','stocks','news','themes']){
