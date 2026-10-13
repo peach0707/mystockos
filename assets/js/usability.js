@@ -30,13 +30,14 @@ export function homeWatch(data,s){
  const held=[...new Set(s.holdings.map(h=>h.ticker))],tickers=held.length?held:s.watch;
  if(!tickers.length)return '';
  const sorted=sortTickers(tickers,data).sort((a,b)=>Math.abs(quoteFor(data,b)?.day||0)-Math.abs(quoteFor(data,a)?.day||0)).slice(0,4);
- return `<section class="home-watch"><div class="section-heading"><h2>${held.length?'保有株':'監視銘柄'}の値動き</h2><button class="text-button" data-stock-scope="${held.length?'held':'watch'}">すべて見る ›</button></div><p class="section-note">前営業日比の変化が大きい順 · 株価ベース</p><div class="watch-snapshot">${sorted.map(t=>{const q=quoteFor(data,t);return `<a href="#stocks/${encodeURIComponent(t)}"><span class="snapshot-symbol"><b>${esc(t)}</b><small>${esc(companyName(t)||s.securities?.[t]?.name||'')}</small></span><span>${sparkline(data.setups?.value?.stocks?.[t]?.history,t)}</span><span class="snapshot-price"><b>${q?.price? (q.currency==='JPY'?'¥':'$')+num(q.price,2):'—'}</b><small class="${tone(q?.day)}">${pct(q?.day)}</small></span></a>`;}).join('')}</div></section>`;
+ return `<section class="home-watch"><div class="section-heading"><h2>${held.length?'保有株':'監視銘柄'}の値動き</h2><button class="text-button" data-stock-scope="${held.length?'held':'watch'}">すべて見る ›</button></div><p class="section-note">前営業日比の変化が大きい順 · 株価ベース</p><div class="watch-snapshot">${sorted.map(t=>{const q=quoteFor(data,t);return `<a href="#stocks/${encodeURIComponent(t)}"><span class="snapshot-symbol"><b>${esc(t)}</b><small>${esc(companyName(t)||s.securities?.[t]?.name||'')}</small><small class="snapshot-date">${esc(q?.date?.slice(5).replace('-','/')||'未取得')} ${q?.closed?'終値':'未確定'}</small></span><span>${sparkline(data.setups?.value?.stocks?.[t]?.history,t)}</span><span class="snapshot-price"><b>${q?.price? (q.currency==='JPY'?'¥':'$')+num(q.price,2):'—'}</b><small class="${tone(q?.day)}">${pct(q?.day)}</small></span></a>`;}).join('')}</div></section>`;
 }
 
-const originals=new WeakMap();
+const originals=new WeakMap(),labels=new WeakMap();
 export function applyDisplay(doc,prefs){
  doc.documentElement.dataset.density=prefs.density;
  doc.documentElement.dataset.amounts=prefs.hidden?'hidden':'visible';
+ doc.querySelectorAll('[data-private-label]').forEach(el=>{if(!labels.has(el))labels.set(el,el.getAttribute('aria-label'));el.setAttribute('aria-label',prefs.hidden?el.dataset.privateLabel+' 金額は非表示':labels.get(el));});
  doc.querySelectorAll('[data-private]').forEach(el=>{
   if(prefs.hidden&&!originals.has(el)){
    const fragment=doc.createDocumentFragment();while(el.firstChild)fragment.append(el.firstChild);originals.set(el,fragment);
