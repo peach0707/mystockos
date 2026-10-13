@@ -1,3 +1,4 @@
+import {readDisplay,saveDisplay,applyDisplay} from './usability.js';
 import {captureMorning} from './morning.js';
 import {applyAppearance} from './appearance.js';
 import {normalizeSearch} from './company-names.js';
@@ -18,7 +19,8 @@ import {homeView,stocksView,newsView,settingsView} from './views.js?v=20260922';
 import {portfolioView} from './portfolio.js';
 import {reconcileHistory} from './portfolio-history.js';
 import {updateHoldingQuoteNotice,validateQuoteConsent} from './quote-status.js';
-let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editHoldingKey='',addTicker='',editFlow='',newsFilter='mine',historyRange='1m',holdingSort='value',holdingQuery='',calendarMode='change';
+let data={},themeTab='rank',stockTab='watch',month=today().slice(0,7),selected=today(),editHoldingKey='',addTicker='',editFlow='',newsFilter='mine',historyRange='1m',holdingSort='value',holdingQuery='',stockQuery='',stockSort='saved',calendarMode='change';
+const display=readDisplay();
 read();applyAppearance(get().appearance);bindSymbolPickers();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!get().appearance||get().appearance==='system')applyAppearance();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){captureUsage(get(),data,notice);autoRefresh();}});
@@ -26,17 +28,18 @@ window.addEventListener('pageshow',event=>{if(event.persisted)autoRefresh();});
 window.addEventListener('online',()=>autoRefresh());
 bindPhaseSort(()=>data.phaseA?.themes?.[decodeURIComponent(parseRoute(location.hash).page||'')]);
 
-function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page,s),stocks:()=>stocksView(data,s,stockTab,page),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editHoldingKey,editFlow,data,addTicker,{range:historyRange,sort:holdingSort,query:holdingQuery,calendarMode}),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
+function screenHTML(route,page=''){const s=get();const views={home:()=>homeView(data,s),themes:()=>themesView(data,themeTab,page,s),stocks:()=>stocksView(data,s,stockTab,page,{query:stockQuery,sort:stockSort}),news:()=>newsView(data,s,page,newsFilter),portfolio:()=>portfolioView(s,page,month,selected,editHoldingKey,editFlow,data,addTicker,{range:historyRange,sort:holdingSort,query:holdingQuery,calendarMode}),settings:()=>settingsView(s,storageError,data)};return ''+(storageError?`<p class="warning">${esc(storageError)}</p>`:'')+(views[route]||views.home)();}
 const main=document.querySelector('#main');
 function syncTab(route){
+ applyDisplay(document,display);
  document.querySelectorAll('.bottom a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
- document.title=`株ゴリラ🦍 · ${{home:'ホーム',themes:'テーマ',stocks:'銘柄',news:'ニュース',portfolio:'保有',settings:'設定'}[route]||'ホーム'}`;
+ document.title=`株ゴリラ🦍 · ${{home:'ホーム',themes:'分析',stocks:'銘柄',news:'ニュース',portfolio:'資産',settings:'設定'}[route]||'ホーム'}`;
 }
 const pager=createPager(main,{html:screenHTML,onTab:route=>{navigation.sync(route);syncTab(route);}});
 const navigation=createNavigation({onTop:route=>pager.select(route),onDetail:(route,page)=>{pager.showDetail(route,page);syncTab(TAB_ROUTES.includes(route)?route:history.state?.kabugorilla?.tab||'home');}});
 const navigate=hash=>navigation.go(hash);
 function recordCurrentValuation(){if(storageError)return;try{const next=structuredClone(get());const historyChanged=reconcileHistory(next,data),briefChanged=captureMorning(next,data);if(historyChanged||briefChanged)commit(next);}catch{notice('保有評価の自動記録を保存できませんでした。保有登録は変更していません。');}}
-function render(){applyAppearance(get().appearance);recordCurrentValuation();pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}captureUsage(get(),data,notice);}
+function render(){applyAppearance(get().appearance);recordCurrentValuation();pager.refresh();const {route,page}=parseRoute(location.hash);if(page||!TAB_ROUTES.includes(route)){const top=pager.detail.scrollTop;pager.showDetail(route,page);pager.detail.scrollTop=top;}captureUsage(get(),data,notice);applyDisplay(document,display);}
 document.addEventListener('click',event=>{const a=event.target.closest('a[href^="#"]');if(!a||event.defaultPrevented||event.button||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
  event.preventDefault();if(a.hash==='#main'){main.focus();return;}if(a.hash==='#portfolio/edit')editHoldingKey='',addTicker='',editFlow='';navigate(a.hash);
 });
@@ -91,9 +94,12 @@ document.addEventListener('submit',event=>{event.preventDefault();const id=event
  if(['holding-form','cash-balance-form'].includes(id)){holdingQuery='';navigate('#portfolio');}
  });});
 document.addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;
+ if(b.dataset.jump){const pane=b.closest('.tab-page');pane?.querySelector('#'+b.dataset.jump)?.scrollIntoView({block:'start',behavior:'smooth'});return;}
+ if(b.hasAttribute('data-toggle-amounts')){display.hidden=!display.hidden;saveDisplay(display);applyDisplay(document,display);return;}
+ if(b.dataset.density){display.density=b.dataset.density;saveDisplay(display);applyDisplay(document,display);return;}
  if(b.dataset.appearance){run(()=>mutate(s=>s.appearance=b.dataset.appearance));return;}
  if(b.dataset.rationaleTag){run(()=>mutate(s=>toggleRationale(s,b.dataset.rationaleTicker,b.dataset.rationaleTag)));const next=[...document.querySelectorAll('[data-rationale-tag]')].find(x=>x.dataset.rationaleTag===b.dataset.rationaleTag);next?.focus({preventScroll:true});return;}
- if(b.dataset.tab){if(b.dataset.tab==='themeTab')themeTab=b.dataset.value;else stockTab=b.dataset.value;render();return;}
+ if(b.dataset.tab){if(b.dataset.tab==='themeTab')themeTab=b.dataset.value;else {stockTab=b.dataset.value;stockQuery='';}render();return;}
  if(b.dataset.historyRange){historyRange=b.dataset.historyRange;render();return;}
  if(b.dataset.calendarMode){calendarMode=b.dataset.calendarMode;render();return;}
  if(b.hasAttribute('data-month-today')){month=today().slice(0,7);selected=today();render();return;}
@@ -107,7 +113,7 @@ document.addEventListener('click',event=>{const b=event.target.closest('button')
  if(b.dataset.manageHolding){navigate('#portfolio');const card=[...document.querySelectorAll('[data-holding]')].find(el=>el.dataset.holding===b.dataset.manageHolding);const details=card?.querySelector('details');if(details)details.open=true;card?.scrollIntoView({block:'center'});return;}
  if(b.dataset.removeHolding){if(confirm('この登録分だけを削除しますか？ 同じ銘柄のほかの登録分は残ります。'))run(()=>{mutate(s=>removeHolding(s,b.dataset.removeHolding));editHoldingKey='';navigate('#portfolio');});return;}
  if(b.id==='refresh-data'||b.hasAttribute('data-refresh')){refresh();return;}
- if(b.dataset.stockScope){stockTab=b.dataset.stockScope;render();navigate('#stocks');return;}
+ if(b.dataset.stockScope){stockTab=b.dataset.stockScope;stockQuery='';render();navigate('#stocks');return;}
  if(b.dataset.newsFilter){newsFilter=b.dataset.newsFilter;render();return;}
  if(b.hasAttribute('data-copy-week')){copyReport(weeklyReportText(data,get(),newsFilter));return;}
  if(b.dataset.copyReport){const n=data.news?.value?.articles?.find(n=>n.id===b.dataset.copyReport);if(n)copyReport(reportText(n));return;}
@@ -123,7 +129,7 @@ document.addEventListener('click',event=>{const b=event.target.closest('button')
 document.addEventListener('click',event=>{if(event.target.closest('a[href="#portfolio/edit"]'))editHoldingKey='',addTicker='',editFlow='';});
 document.addEventListener('change',event=>{const input=event.target;if(input.name==='rationaleTags'&&input.checked&&input.form.querySelectorAll('[name="rationaleTags"]:checked').length>MAX_RATIONALES){input.checked=false;notice('投資根拠は最大3個まで選択できます。');}});
 document.addEventListener('change',async event=>{const input=event.target;if(!['import-private','import-csv','import-flows-csv'].includes(input.id)||!input.files?.length)return;try{const file=input.files[0];if(file.size>5_000_000)throw Error('ファイルは5MB以内にしてください。');const raw=await file.text();let next;if(input.id==='import-private'){next=migrate(JSON.parse(raw));}else if(input.id==='import-flows-csv'){next=structuredClone(get());const entries=cashFlowsCSV(raw);if(new Set(entries.map(f=>f.id)).size!==entries.length)throw Error('CSV内の入出金IDが重複しています。');for(const x of entries){next.cashFlows=next.cashFlows.filter(y=>y.id!==x.id);next.cashFlows.push(x);}validate(next);}else{next=structuredClone(get());for(const x of snapshotsCSV(raw)){const old=next.snapshots.find(y=>y.date===x.date);next.snapshots=next.snapshots.filter(y=>y.date!==x.date);next.snapshots.push(old?{...old,...x,components:old.components,allocation:old.allocation,stockContributions:old.stockContributions,themeContributions:old.themeContributions}:x);}validate(next);}if(input.id!=='import-private')verifyIncoming(next,get());if(confirm(`内容を検証しました。保有 ${holdingTickers(next).length}銘柄（${next.holdings.length}件）・評価 ${next.snapshots.length}件・入出金 ${next.cashFlows.length}件。端末の記録に反映しますか？`)){commit(next);render();notice('読み込みが完了しました。');}}catch(e){notice(`保存していません：${e.message}`);}finally{input.value='';}});
-render();navigation.show();refresh();
+render();navigation.show();refresh({silent:true});
 
 document.addEventListener('change',event=>{if(event.target.matches('[data-holding-sort]')){holdingSort=event.target.value;render();}});
 document.addEventListener('input',event=>{
@@ -133,4 +139,6 @@ document.addEventListener('input',event=>{
  root.querySelector('[data-no-holdings]').hidden=shown!==0;
 });
 
-document.addEventListener('input',event=>{if(!event.target.matches('[data-stock-search]'))return;const root=event.target.closest('.tab-page'),q=normalizeSearch(event.target.value);let shown=0;root.querySelectorAll('[data-stock-ticker]').forEach(row=>{const show=normalizeSearch(row.dataset.stockSearch||row.dataset.stockTicker).includes(q);row.hidden=!show;if(show)shown++;});root.querySelector('[data-no-stock-results]').hidden=shown!==0;root.querySelector('.list-count').textContent=shown+'銘柄を表示';});
+document.addEventListener('input',event=>{if(!event.target.matches('[data-stock-search]'))return;const root=event.target.closest('.tab-page'),q=normalizeSearch(event.target.value);stockQuery=event.target.value;let shown=0;root.querySelectorAll('[data-stock-ticker]').forEach(row=>{const show=normalizeSearch(row.dataset.stockSearch||row.dataset.stockTicker).includes(q);row.hidden=!show;if(show)shown++;});root.querySelector('[data-no-stock-results]').hidden=shown!==0;root.querySelector('.list-count').textContent=shown+'銘柄を表示';});
+
+document.addEventListener('change',event=>{if(event.target.matches('[data-stock-sort]')){stockSort=event.target.value;render();}});

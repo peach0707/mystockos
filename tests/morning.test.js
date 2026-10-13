@@ -60,7 +60,7 @@ test('Japanese, kana variants and full-width searches resolve real securities wi
  assert.equal(searchSymbols(rows,'存在しない会社').length,0);
 });
 test('partial valuation is never the asset total, and old data is labeled on home',()=>{
- const s=fresh();s.holdings=['MU','MISSING'].map(ticker=>({ticker,quantity:2,cost:50,currency:'USD',decision:'hold'}));const d=fixture();let v=valueHoldings(s,d,now);assert.equal(v.stockJpy,null);assert.equal(v.subtotalJpy,30000);assert.match(valuationOverview(s,d),/取得済み分の参考評価/);assert.match(homePortfolio(s,d),/data-home-total>—/);
+ const s=fresh();s.holdings=['MU','MISSING'].map(ticker=>({ticker,quantity:2,cost:50,currency:'USD',decision:'hold'}));const d=fixture();let v=valueHoldings(s,d,now);assert.equal(v.stockJpy,null);assert.equal(v.subtotalJpy,30000);assert.match(valuationOverview(s,d),/取得済み分の参考評価/);assert.match(homePortfolio(s,d),/data-home-total[^>]*>—/);
  s.holdings.pop();d.setups.cached=true;assert.match(homePortfolio(s,d),/参考評価・価格または為替/);
 });
 test('fallback cache and FX for dollar cash cannot silently count as fresh',()=>{

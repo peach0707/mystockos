@@ -49,7 +49,7 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
  }
  await page.locator('.bottom a[href="#portfolio"]').click();
  await page.waitForURL('**/#portfolio');
- assert.equal(await page.locator('.bottom a[aria-current="page"]').textContent(),'保有');
+ assert.equal(await page.locator('.bottom a[aria-current="page"]').textContent(),'資産');
  // Synthetic input in a disposable browser; never uploads a user's holdings.
  for(const ticker of ['MU','SKHY','MUU']){
   await page.getByRole('link',{name:'＋ 保有銘柄を登録',exact:true}).click();

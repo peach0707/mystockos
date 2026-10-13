@@ -34,7 +34,7 @@ try{for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.addInitScript(({key,seed})=>localStorage.setItem(key,JSON.stringify(seed)),{key:KEY,seed});
   await page.route('**/data/themes.json',route=>route.fulfill({json:themeFixture}));
   await page.route('**/data/market_calendar.json',route=>route.fulfill({json:calendarFixture}));
-  await page.route('**/data/stock_setups.json',async route=>{const response=await route.fetch(),value=await response.json();for(const ticker of ['MU','SKHY','SNDK'])Object.assign(value.stocks[ticker],{as_of:'2026-10-01',quality:'ok'});await route.fulfill({json:value});});
+  await page.route('**/data/stock_setups.json',async route=>{const response=await route.fetch(),value=await response.json();for(const ticker of ['MU','SKHY','SNDK'])Object.assign(value.stocks[ticker],{as_of:'2026-10-01',quality:'ok',price:105,ma20:100,ma50:90,prior_high20:104,prior_low20:85,rsi14_simple:60,distance_ma20_pct:5,trend_up:true,breakout:true,breakdown:false,overheated:false});await route.fulfill({json:value});});
   await page.goto(root+'/#themes');await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
   const pane=page.locator('.tab-page[data-route="themes"]');
   assert.equal(await pane.locator('[data-theme-card]').count(),29);

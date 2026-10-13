@@ -15,7 +15,7 @@ export function holdingForm(s,editKey='',addTicker='',data={}){
 }
 
 export function positionsHTML(r){
- return `<details class="holding-positions"><summary>証券会社別の内訳（${r.positions.length}件）</summary>${r.positions.map(h=>`<div class="holding-position" data-position="${esc(holdingKey(h))}"><div><b>${esc(brokerName(h))}</b><span>${num(h.quantity,6)}株 · 取得単価 ${unit(h.cost,h.currency)}</span></div><button class="subtle" data-edit-holding="${esc(holdingKey(h))}" aria-label="${esc(r.ticker)}・${esc(brokerName(h))}の登録分を編集">編集</button></div>`).join('')}</details><button class="subtle holding-add" data-add-holding="${esc(r.ticker)}">＋ この銘柄を追加</button>`;
+ return `<details class="holding-positions"><summary>証券会社別の内訳（${r.positions.length}件）</summary>${r.positions.map(h=>`<div class="holding-position" data-position="${esc(holdingKey(h))}"><div><b>${esc(brokerName(h))}</b><span data-private>${num(h.quantity,6)}株 · 取得単価 ${unit(h.cost,h.currency)}</span></div><button class="subtle" data-edit-holding="${esc(holdingKey(h))}" aria-label="${esc(r.ticker)}・${esc(brokerName(h))}の登録分を編集">編集</button></div>`).join('')}</details><button class="subtle holding-add" data-add-holding="${esc(r.ticker)}">＋ この銘柄を追加</button>`;
 }
 
 export function averageCostHTML(r){
