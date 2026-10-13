@@ -26,7 +26,7 @@ export function createNavigation({win=window,onTop,onDetail}){
  let pendingTab=null;
  const h=win.history;
  const show=()=>{const {route,page}=parseRoute(win.location.hash);if(TAB_ROUTES.includes(route)&&!page)onTop(route);else onDetail(route,page);};
- const sync=route=>h.replaceState({...h.state,kabugorilla:{tab:route,depth:0}},'',`#${route}`);
+ const sync=route=>{if(win.location.hash===`#${route}`&&h.state?.kabugorilla?.tab===route&&h.state.kabugorilla.depth===0)return;h.replaceState({...h.state,kabugorilla:{tab:route,depth:0}},'',`#${route}`);};
  const go=hash=>{const {route,page}=parseRoute(hash);const state=h.state?.kabugorilla||{tab:'home',depth:0};
   if(TAB_ROUTES.includes(route)&&!page){if(state.depth>0){pendingTab=route;h.go(-state.depth);}else onTop(route);return;}
   h.pushState({...h.state,kabugorilla:{...state,depth:state.depth+1}},'',`#${route}${page?'/'+page:''}`);show();
