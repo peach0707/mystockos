@@ -1,10 +1,10 @@
 // Native scrolling only: no touch interception, gesture thresholds or animation loop.
-export const TAB_ROUTES=Object.freeze(['home','themes','stocks','news','portfolio']);
+export const TAB_ROUTES=Object.freeze(['home','portfolio','stocks','news','themes']);
 export function parseRoute(hash){const [route='home',page='']=hash.replace(/^#/,'').split('/');return {route:route||'home',page};}
 export function settledIndex(left,width){if(width<=0)return null;const i=Math.round(left/width);return i>=0&&i<TAB_ROUTES.length&&Math.abs(left-i*width)<=2?i:null;}
 export function createPager(main,{html,onTab,win=window,doc=document}){
  const track=doc.createElement('div');track.className='tab-pager';track.setAttribute('aria-label','メイン画面');
- const panes=TAB_ROUTES.map(route=>{const el=doc.createElement('section');el.className='tab-page';el.dataset.route=route;el.setAttribute('aria-label',({home:'ホーム',themes:'テーマ',stocks:'銘柄',news:'ニュース',portfolio:'保有'})[route]);track.append(el);return el;});
+ const panes=TAB_ROUTES.map(route=>{const el=doc.createElement('section');el.className='tab-page';el.dataset.route=route;el.setAttribute('aria-label',({home:'ホーム',themes:'分析',stocks:'銘柄',news:'ニュース',portfolio:'資産'})[route]);track.append(el);return el;});
  const detail=doc.createElement('div');detail.className='detail-page';detail.tabIndex=-1;detail.hidden=true;main.replaceChildren(track,detail);
  let current=0,visible=true,timer;
  function settle(){if(!visible)return;const i=settledIndex(track.scrollLeft,track.clientWidth);if(i===null)return;current=i;panes.forEach((p,n)=>{p.inert=n!==i;});onTab(TAB_ROUTES[i]);}
