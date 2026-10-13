@@ -1,15 +1,16 @@
 import {esc,num,pct,tone} from './ui.js';
 import {companyName,normalizeSearch,searchText} from './company-names.js';
 import {quoteFor} from './setups.js';
+import {listingFor} from './symbols.js';
 
 const KEY='mystockos.display.v1';
-export function readDisplay(storage=globalThis.localStorage){
- try{const v=JSON.parse(storage?.getItem(KEY)||'{}');return {hidden:v.hidden===true,density:v.density==='detail'?'detail':'compact'};}catch{return {hidden:false,density:'compact'};}
+export function readDisplay(storage){
+ try{storage??=globalThis.localStorage;const v=JSON.parse(storage?.getItem(KEY)||'{}');return {hidden:v.hidden===true,density:v.density==='detail'?'detail':'compact'};}catch{return {hidden:false,density:'compact'};}
 }
-export function saveDisplay(value,storage=globalThis.localStorage){try{storage?.setItem(KEY,JSON.stringify(value));return true;}catch{return false;}}
+export function saveDisplay(value,storage){try{storage??=globalThis.localStorage;storage?.setItem(KEY,JSON.stringify(value));return true;}catch{return false;}}
 
 export function sortTickers(tickers,data,sort='saved',state={},query=''){
- const rows=tickers.filter(t=>normalizeSearch(searchText(t,state.securities?.[t]?.name)).includes(normalizeSearch(query)));
+ const rows=tickers.filter(t=>normalizeSearch(searchText(t,state.securities?.[t]?.name||listingFor(t)?.name)).includes(normalizeSearch(query)));
  if(sort==='name')return rows.sort((a,b)=>a.localeCompare(b));
  if(!['up','down'].includes(sort))return rows;
  return rows.sort((a,b)=>{const x=quoteFor(data,a)?.day,y=quoteFor(data,b)?.day;

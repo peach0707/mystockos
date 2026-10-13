@@ -8,6 +8,9 @@ test('bad or inaccessible display preferences never block private portfolio load
  assert.deepEqual(readDisplay({getItem:()=>'{bad'}),{hidden:false,density:'compact'});
  assert.deepEqual(readDisplay({getItem:()=>'{"hidden":true,"density":"detail"}'}),{hidden:true,density:'detail'});
  assert.equal(saveDisplay({}, {setItem(){throw Error('full');}}),false);
+ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ try{Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw Error('blocked');}});assert.deepEqual(readDisplay(),{hidden:false,density:'compact'});assert.equal(saveDisplay({}),false);}
+ finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
 });
 test('sorting and Japanese searching do not mutate the watch list or drop missing quotes',()=>{
  const tickers=['SNDK','MISSING','MU'],s=fresh();s.watch=[...tickers];
