@@ -34,3 +34,5 @@ h1,.page-heading h1{font-size:25px;letter-spacing:-.045em;line-height:1.45}.page
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 :root[data-density=compact] .holding-positions:not([open]),:root[data-density=compact] .holding-add{display:none}:root[data-density=compact] .holding-positions[open]+.holding-add{display:inline-flex}
+
+.home-portfolio>strong,.valuation-total{margin:8px 0 0}.quick-actions>a,.quick-actions>button{min-height:68px}.detail-page>.row{align-items:center}.detail-page>.row h1{font-size:clamp(18px,4.8vw,23px);margin-right:6px}.detail-page>.row>a{flex-shrink:0;font-size:12px}
