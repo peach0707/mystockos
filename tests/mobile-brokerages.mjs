@@ -20,6 +20,7 @@ for(const [name,engine] of engines){
   await page.addInitScript(({key,seed})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(seed));},{key:KEY,seed});
   await page.goto(root+'/#portfolio');
   await page.waitForFunction(()=>document.querySelector('.header-refresh')?.disabled===false);
+  await page.getByRole('button',{name:'詳細',exact:true}).click();
   const card=()=>page.locator('.tab-page[data-route="portfolio"] [data-holding="MU"]');
   const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
   const save=async()=>{await page.getByRole('button',{name:'保存',exact:true}).click();await page.waitForURL('**/#portfolio');};

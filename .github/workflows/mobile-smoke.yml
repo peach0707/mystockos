@@ -18,12 +18,11 @@ jobs:
       - name: Run mobile and desktop acceptance
         run: |
           python -m http.server 4173 --bind 127.0.0.1 > /tmp/app-server.log 2>&1 &
-          node tests/mobile-smoke.mjs
-          node tests/mobile-brokerages.mjs
-          node tests/mobile-history.mjs
-          node tests/mobile-themes.mjs
-          node tests/mobile-morning.mjs
-          node tests/mobile-usability.mjs
+          failed=0
+          for suite in smoke brokerages history themes morning usability; do
+            node "tests/mobile-$suite.mjs" || failed=1
+          done
+          exit "$failed"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
