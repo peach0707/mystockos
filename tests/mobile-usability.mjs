@@ -38,9 +38,9 @@ for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
   await page.waitForURL('**/#stocks');assert.equal(await page.locator('.tab-page[data-route="stocks"] .decision-card:visible').count(),3);
   await page.getByRole('button',{name:'監視銘柄',exact:true}).click();
   const query=page.getByPlaceholder('会社名・ティッカーで絞り込む');await query.fill('マイクロン');
-  await page.getByLabel('銘柄の並び順').selectOption('up');assert.equal(await query.inputValue(),'マイクロン');
+  await page.locator('[data-stock-sort]').selectOption('up');assert.equal(await query.inputValue(),'マイクロン');
   assert.equal(await page.locator('.tab-page[data-route="stocks"] .decision-card:visible').count(),1);
-  await query.fill('');await page.getByLabel('銘柄の並び順').selectOption('name');
+  await query.fill('');await page.locator('[data-stock-sort]').selectOption('name');
   assert.deepEqual(await page.locator('.tab-page[data-route="stocks"] [data-stock-ticker]').evaluateAll(rows=>rows.map(r=>r.dataset.stockTicker)),['MU','NVDA','SKHY','SNDK']);
   await page.screenshot({path:`test-artifacts/${name}-clarity-stocks.png`});
   for(const mode of ['light','dark']){
