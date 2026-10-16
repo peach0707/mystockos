@@ -1,40 +1,40 @@
 {
   "model_version": "1.0",
-  "as_of": "2026-10-14",
-  "updated_at_utc": "2026-10-15T00:43:38.278484+00:00",
+  "as_of": "2026-10-15",
+  "updated_at_utc": "2026-10-16T00:34:42.952633+00:00",
   "market": {
     "label": "Bull",
     "base_label": "Bull",
     "raw_label": "Bull",
-    "trend_score": 65.32,
+    "trend_score": 66.56,
     "confidence": "Low",
-    "regime_duration": 23,
+    "regime_duration": 24,
     "factors": {
       "qqq_vs_200dma": {
-        "raw": 0.083695,
-        "score": 76.15
+        "raw": 0.081405,
+        "score": 75.44
       },
       "qqq_63d_return": {
-        "raw": 0.03367,
-        "score": 58.42
+        "raw": 0.048075,
+        "score": 62.02
       },
       "qqq_50dma_vs_200dma": {
-        "raw": 0.079577,
+        "raw": 0.079041,
         "score": 100.0
       },
       "rsp_spy_63d_rs": {
-        "raw": -0.036787,
-        "score": 21.61
+        "raw": -0.028343,
+        "score": 26.38
       },
       "hyg_lqd_63d_rs": {
-        "raw": 0.009843,
-        "score": 58.2
+        "raw": 0.008277,
+        "score": 56.9
       }
     },
     "pillars": {
-      "price_trend": 67.29,
-      "breadth": 21.61,
-      "credit": 58.2,
+      "price_trend": 68.73,
+      "breadth": 26.38,
+      "credit": 56.9,
       "sides": [
         "Bull",
         "Bear",
@@ -44,42 +44,42 @@
   },
   "instability": {
     "label": "Normal",
-    "score": 31.94,
+    "score": 34.66,
     "factors": {
       "vix": {
-        "raw": 15.27,
-        "score": 18.92
+        "raw": 16.87,
+        "score": 30.44
       },
       "qqq_realized_vol_20d": {
-        "raw": 0.172909,
-        "score": 45.57
+        "raw": 0.163107,
+        "score": 39.44
       },
       "qqq_drawdown_20d": {
-        "raw": 0.040426,
-        "score": 33.69
+        "raw": 0.041677,
+        "score": 34.73
       }
     }
   },
   "semiconductor": {
     "label": "Neutral",
-    "score": 51.03,
-    "vs_qqq_63d": -0.05216,
+    "score": 48.78,
+    "vs_qqq_63d": -0.058237,
     "factors": {
       "soxx_vs_200dma": {
-        "raw": 0.116513,
-        "score": 79.13
+        "raw": 0.103899,
+        "score": 75.97
       },
       "soxx_63d_return": {
-        "raw": -0.020246,
-        "score": 44.94
+        "raw": -0.012962,
+        "score": 46.76
       },
       "soxx_qqq_63d_rs": {
-        "raw": -0.05216,
-        "score": 19.93
+        "raw": -0.058237,
+        "score": 17.4
       },
       "soxx_21d_return": {
-        "raw": 0.041235,
-        "score": 67.18
+        "raw": 0.025196,
+        "score": 60.5
       }
     }
   },
@@ -105,8 +105,8 @@
     ],
     "market_data_source": "Twelve Data",
     "vix_source": "Cboe",
-    "market_as_of": "2026-10-14",
-    "vix_as_of": "2026-10-13",
+    "market_as_of": "2026-10-15",
+    "vix_as_of": "2026-10-14",
     "missing_data": false
   }
 }
