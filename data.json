@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-11-10T21:54:17.785909+00:00",
+  "updated_at": "2026-11-11T01:48:01.469964+00:00",
   "stocks": [
     {
       "ticker": "MU",
-      "price": 724.85,
-      "day": -1.13,
-      "week": -15.23,
-      "month": -26.71,
-      "three_month": -20.46,
+      "price": 725.11,
+      "day": -1.1,
+      "week": -15.2,
+      "month": -26.69,
+      "three_month": -20.43,
       "date": "2026-11-10"
     },
     {
       "ticker": "TSM",
-      "price": 396.51,
-      "day": 2.03,
-      "week": -2.05,
+      "price": 396.48,
+      "day": 2.02,
+      "week": -2.06,
       "month": -10.77,
       "three_month": -7.61,
       "date": "2026-11-10"
@@ -30,20 +30,20 @@
     },
     {
       "ticker": "COHR",
-      "price": 214.73,
-      "day": -4.64,
-      "week": 3.49,
-      "month": -25.45,
-      "three_month": -39.62,
+      "price": 214.66,
+      "day": -4.68,
+      "week": 3.46,
+      "month": -25.47,
+      "three_month": -39.64,
       "date": "2026-11-10"
     },
     {
       "ticker": "LITE",
-      "price": 585.48,
-      "day": -1.79,
-      "week": -13.92,
-      "month": -41.18,
-      "three_month": -37.21,
+      "price": 585.57,
+      "day": -1.78,
+      "week": -13.91,
+      "month": -41.17,
+      "three_month": -37.2,
       "date": "2026-11-10"
     }
   ]
