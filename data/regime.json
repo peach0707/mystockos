@@ -1,96 +1,96 @@
 {
   "model_version": "1.0",
-  "as_of": "2026-11-18",
-  "updated_at_utc": "2026-11-19T03:45:14.379701+00:00",
+  "as_of": "2026-11-20",
+  "updated_at_utc": "2026-11-21T03:21:10.337349+00:00",
   "market": {
-    "label": "Neutral",
+    "label": "Bear",
     "base_label": "Neutral",
-    "raw_label": "Neutral",
-    "trend_score": 48.27,
+    "raw_label": "Bear",
+    "trend_score": 33.04,
     "confidence": "Low",
-    "regime_duration": 10,
+    "regime_duration": 11,
     "factors": {
       "qqq_vs_200dma": {
-        "raw": -0.032695,
-        "score": 36.38
+        "raw": -0.107943,
+        "score": 5.02
       },
       "qqq_63d_return": {
-        "raw": -0.071362,
-        "score": 27.7
+        "raw": -0.137666,
+        "score": 10.58
       },
       "qqq_50dma_vs_200dma": {
-        "raw": 0.0476,
-        "score": 92.25
+        "raw": 0.042236,
+        "score": 88.9
       },
       "rsp_spy_63d_rs": {
-        "raw": 0.022669,
-        "score": 68.89
+        "raw": 0.035829,
+        "score": 77.91
       },
       "hyg_lqd_63d_rs": {
-        "raw": -0.006686,
-        "score": 44.43
+        "raw": -0.016601,
+        "score": 36.17
       }
     },
     "pillars": {
-      "price_trend": 32.04,
-      "breadth": 68.89,
-      "credit": 44.43,
+      "price_trend": 7.8,
+      "breadth": 77.91,
+      "credit": 36.17,
       "sides": [
         "Bear",
         "Bull",
-        "Neutral"
+        "Bear"
       ]
     }
   },
   "instability": {
-    "label": "Unstable",
-    "score": 74.96,
+    "label": "Stress",
+    "score": 96.43,
     "factors": {
       "vix": {
-        "raw": 24.56,
-        "score": 64.25
+        "raw": 35.89,
+        "score": 91.44
       },
       "qqq_realized_vol_20d": {
-        "raw": 0.357525,
-        "score": 91.15
+        "raw": 0.398042,
+        "score": 99.59
       },
       "qqq_drawdown_20d": {
-        "raw": 0.091096,
-        "score": 69.43
+        "raw": 0.161464,
+        "score": 100.0
       }
     }
   },
   "semiconductor": {
     "label": "Strong Bear",
-    "score": 5.73,
-    "vs_qqq_63d": -0.120992,
+    "score": 0.0,
+    "vs_qqq_63d": -0.15022,
     "factors": {
       "soxx_vs_200dma": {
-        "raw": -0.115719,
-        "score": 10.71
+        "raw": -0.231743,
+        "score": 0.0
       },
       "soxx_63d_return": {
-        "raw": -0.183719,
-        "score": 10.05
+        "raw": -0.267206,
+        "score": 0.0
       },
       "soxx_qqq_63d_rs": {
-        "raw": -0.120992,
+        "raw": -0.15022,
         "score": 0.0
       },
       "soxx_21d_return": {
-        "raw": -0.148917,
+        "raw": -0.221762,
         "score": 0.0
       }
     }
   },
   "market_stress": {
-    "active": false,
-    "trigger_now": false,
+    "active": true,
+    "trigger_now": true,
     "clear_days": 0,
     "conditions": {
-      "instability_ge_85": false,
-      "vix_ge_32_and_qqq_5d_le_minus_6pct": false,
-      "qqq_20d_drawdown_ge_12pct": false
+      "instability_ge_85": true,
+      "vix_ge_32_and_qqq_5d_le_minus_6pct": true,
+      "qqq_20d_drawdown_ge_12pct": true
     }
   },
   "data": {
@@ -105,8 +105,8 @@
     ],
     "market_data_source": "Twelve Data",
     "vix_source": "Cboe",
-    "market_as_of": "2026-11-18",
-    "vix_as_of": "2026-11-18",
+    "market_as_of": "2026-11-20",
+    "vix_as_of": "2026-11-20",
     "missing_data": false
   }
 }
